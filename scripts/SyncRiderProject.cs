@@ -51,6 +51,8 @@ namespace RiderIntegration
             };
 
             process.Start();
+            process.WaitForExit();
+
             return true;
         }
 
@@ -66,15 +68,6 @@ namespace RiderIntegration
                     })
                     .ToArray();
             }
-        }
-
-        public bool CustomArgumentsAllowed => false;
-
-        public string DefaultArgument { get; } = "$(SolutionPath) -l $(Line) $(File)";
-
-        public string Arguments
-        {
-            get { return DefaultArgument; } set {}
         }
 
         public bool TryGetInstallationForPath(string editorPath, out ScriptEditor.Installation installation)
@@ -95,7 +88,7 @@ namespace RiderIntegration
                 return true;
             }
 
-            installation = default(ScriptEditor.Installation);
+            installation = default;
             return false;
         }
     }
