@@ -45,13 +45,12 @@ namespace RiderIntegration
                 StartInfo = new ProcessStartInfo
                 {
                     FileName = EditorPrefs.GetString("kScriptsDefaultApp"),
-                    Arguments = $"{generator.SolutionFile()} -l {line} {path}",
+                    Arguments = $"\"{generator.SolutionFile()}\" -l {line} \"{path}\"",
                     UseShellExecute = true,
                 }
             };
 
             process.Start();
-            process.WaitForExit();
 
             return true;
         }
