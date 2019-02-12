@@ -1,94 +1,28 @@
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using Microsoft.Win32;
+using System.IO;
 using UnityEditor;
 using UnityEngine;
-using Debug = UnityEngine.Debug;
+using Unity.CodeEditor;
 
-namespace RiderIntegration
+namespace RiderEditor
 {
-    [InitializeOnLoad]
-    internal class SyncRiderProject : IExternalScriptEditor
-    {
-        ProjectGenerationRider generator = new ProjectGenerationRider();
+    public interface IDiscovery {
+        CodeEditor.Installation[] PathCallback();
+    }
 
-        static SyncRiderProject()
+    public class Discovery : IDiscovery {
+        public CodeEditor.Installation[] PathCallback()
         {
-            ScriptEditor.Register(new SyncRiderProject());
-        }
-
-        public void OnGUI()
-        {
-        }
-
-        public void SyncIfNeeded(IEnumerable<string> affectedFiles, IEnumerable<string> reimportedFiles)
-        {
-            generator.SyncIfNeeded(affectedFiles, reimportedFiles);
-        }
-
-        public void Sync()
-        {
-            generator.Sync();
-        }
-
-        public void Initialize(string editorInstallationPath)
-        {
-        }
-
-        public bool OpenFileAtLine(string path, int line)
-        {
-            var process = new Process
-            {
-                StartInfo = new ProcessStartInfo
+            return RiderPathLocator.GetAllRiderPaths()
+                .Select(riderInfo => new CodeEditor.Installation
                 {
-                    FileName = EditorPrefs.GetString("kScriptsDefaultApp"),
-                    Arguments = $"\"{generator.SolutionFile()}\" -l {line} \"{path}\"",
-                    UseShellExecute = true,
-                }
-            };
-
-            process.Start();
-
-            return true;
-        }
-
-        public ScriptEditor.Installation[] Installations
-        {
-            get
-            {
-                return RiderPathLocator.GetAllRiderPaths()
-                    .Select(riderInfo => new ScriptEditor.Installation
-                    {
-                        Path = riderInfo.Path,
-                        Name = riderInfo.Presentation
-                    })
-                    .ToArray();
-            }
-        }
-
-        public bool TryGetInstallationForPath(string editorPath, out ScriptEditor.Installation installation)
-        {
-            var lowerCasePath = editorPath.ToLower();
-            var filename = Path.GetFileName(lowerCasePath.Replace('\\', Path.DirectorySeparatorChar).Replace('/', Path.DirectorySeparatorChar)).Replace(" ", "");
-            if (filename.StartsWith("rider"))
-            {
-                try
-                {
-                    installation = Installations.First(inst => inst.Path == editorPath);
-                }
-                catch (InvalidOperationException)
-                {
-                    installation = new ScriptEditor.Installation { Name = editorPath, Path = editorPath };
-                }
-
-                return true;
-            }
-
-            installation = default;
-            return false;
+                    Path = riderInfo.Path,
+                    Name = riderInfo.Presentation
+                })
+                .ToArray();
         }
     }
 
@@ -119,16 +53,16 @@ namespace RiderIntegration
                 var lines = File.ReadAllLines(shortcut.FullName);
                 foreach (var line in lines)
                 {
-                    if (line.StartsWith("Exec=\""))
-                    {
-                        var path = line.Split('"').Where((item, index) => index == 1).SingleOrDefault();
-                        if (!string.IsNullOrEmpty(path))
-                        {
-                            var buildTxtPath = Path.Combine(path, pathToBuildTxt);
-                            var buildNumber = GetBuildNumber(buildTxtPath);
-                            paths.Add(new RiderInfo(buildNumber, path, false));
-                        }
-                    }
+                    if (!line.StartsWith("Exec=\""))
+                        continue;
+                    var path = line.Split('"').Where((item, index) => index == 1).SingleOrDefault();
+                    if (string.IsNullOrEmpty(path))
+                        continue;
+                    var buildTxtPath = Path.Combine(path, pathToBuildTxt);
+                    var buildNumber = GetBuildNumber(buildTxtPath);
+                    if (paths.Any(a => a.Path == path)) // avoid adding similar build as from toolbox
+                        continue;
+                    paths.Add(new RiderInfo(buildNumber, path, false));
                 }
             }
 
@@ -259,7 +193,7 @@ namespace RiderIntegration
                     var json = File.ReadAllText(a).Replace("active-application", "active_application");
                     var toolbox = ToolboxInstallData.FromJson(json);
                     var builds = toolbox.active_application.builds;
-                    if (builds.Any())
+                    if (builds != null && builds.Any())
                     {
                         var build = builds.First();
                         var folder = Path.Combine(Path.Combine(channelDir, build), dirName);
@@ -267,6 +201,17 @@ namespace RiderIntegration
                             return new[] {Path.Combine(folder, searchPattern)};
                         return new DirectoryInfo(folder).GetDirectories(searchPattern).Select(f => f.FullName);
                     }
+
+                    // new toolbox format doesn't have active-application block, so return all found Rider installations
+                    return Directory.GetDirectories(channelDir)
+                        .SelectMany(b =>
+                        {
+                            var folder = Path.Combine(b, dirName);
+                            if (!isMac)
+                                return new[] {Path.Combine(folder, searchPattern)};
+                            return new DirectoryInfo(folder).GetDirectories(searchPattern).Select(f => f.FullName);
+                        })
+                        .Where(File.Exists).ToArray();
                 }
                 catch (Exception e)
                 {
@@ -322,3 +267,4 @@ namespace RiderIntegration
         }
     }
 }
+    

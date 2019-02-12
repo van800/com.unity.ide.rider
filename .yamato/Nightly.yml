@@ -1,0 +1,14 @@
+name: All Nightly Jobs
+agent:
+  type: Unity::VM
+  image: cds-ops/ubuntu-18.04-agent:latest
+  flavor: m1.large
+commands:
+- echo hello
+artifacts: {}
+variables: {}
+parameters: {}
+dependencies:
+- .yamato/Tests_Windows_TestRiderPackage_scripting_new-codeeditor-api_scheduled.yml
+- .yamato/Tests_MacOS_TestRiderPackage_scripting_new-codeeditor-api_scheduled.yml
+- .yamato/Tests_Linux_TestRiderPackage_scripting_new-codeeditor-api_scheduled.yml
