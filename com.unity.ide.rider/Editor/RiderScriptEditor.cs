@@ -125,6 +125,10 @@ namespace RiderEditor
         }
 
         private static bool IsRiderInstallation(string path) {
+            if (string.IsNullOrEmpty(path))
+            {
+                return false;
+            }
             var lowerCasePath = path.ToLower();
             var filename = Path.GetFileName(lowerCasePath.Replace('\\', Path.DirectorySeparatorChar).Replace('/', Path.DirectorySeparatorChar)).Replace(" ", "");
             return filename.StartsWith("rider");
