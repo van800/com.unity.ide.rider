@@ -15,6 +15,7 @@
 *.userosscache
 *.sln.docstates
 **/*.tgz
+TestRiderPackage/Assets/Plugins
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
