@@ -5,7 +5,8 @@ maintainers:
 custom_branches:
   mode: exclusive # inclusive
   branches:
-  - scripting/new-codeeditor-api
+  - trunk
+  - 2019.2/staging
 required_unity_components:
 - windows
 - macos

@@ -15,7 +15,8 @@ All_CI:
   variables: {}
   parameters: {}
   dependencies:
-    - .yamato/Tests_Linux_TestRiderPackage_scripting_new-codeeditor-api_ci.yml
+    - .yamato/Tests_Linux_TestRiderPackage_trunk_ci.yml
+    - .yamato/Tests_Linux_TestRiderPackage_2019_2_ci.yml
 
 run_staging:
   name: Packages to Staging

@@ -9,6 +9,6 @@ artifacts: {}
 variables: {}
 parameters: {}
 dependencies:
-- .yamato/Tests_Windows_TestRiderPackage_scripting_new-codeeditor-api_scheduled.yml
-- .yamato/Tests_MacOS_TestRiderPackage_scripting_new-codeeditor-api_scheduled.yml
-- .yamato/Tests_Linux_TestRiderPackage_scripting_new-codeeditor-api_scheduled.yml
+- .yamato/Tests_Windows_TestRiderPackage_scheduled.yml
+- .yamato/Tests_MacOS_TestRiderPackage_scheduled.yml
+- .yamato/Tests_Linux_TestRiderPackage_scheduled.yml
