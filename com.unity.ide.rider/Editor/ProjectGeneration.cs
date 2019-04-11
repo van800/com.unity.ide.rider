@@ -371,9 +371,29 @@ namespace RiderEditor
             SyncFileIfNotChanged(path, newContents);
         }
 
+        static List<Type> SafeGetTypes(System.Reflection.Assembly a)
+        {
+            var ret = new List<Type>();
+
+            try
+            {
+                ret = a.GetTypes().ToList();
+            }
+            catch (System.Reflection.ReflectionTypeLoadException rtl)
+            {
+                ret = rtl.Types.ToList();
+            }
+            catch (Exception)
+            {
+                return new List<Type>();
+            }
+
+            return ret.Where(r => r != null).ToList();
+        }
+
         static void OnGeneratedCSProjectFiles()
         {
-            IEnumerable<Type> types = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypes())
+            IEnumerable<Type> types = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => SafeGetTypes(x))
             .Where(x => typeof(AssetPostprocessor).IsAssignableFrom(x) && !x.IsInterface && !x.IsAbstract);
             var args = new object[0];
             foreach (var type in types)
@@ -389,7 +409,7 @@ namespace RiderEditor
 
         static bool OnPreGeneratingCSProjectFiles()
         {
-            IEnumerable<Type> types = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypes())
+            IEnumerable<Type> types = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => SafeGetTypes(x))
             .Where(x => typeof(AssetPostprocessor).IsAssignableFrom(x) && !x.IsInterface && !x.IsAbstract);
             bool result = false;
             foreach (var type in types)
@@ -411,7 +431,7 @@ namespace RiderEditor
 
         static string OnGeneratedCSProject(string path, string content)
         {
-            IEnumerable<Type> types = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypes())
+            IEnumerable<Type> types = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => SafeGetTypes(x))
             .Where(x => typeof(AssetPostprocessor).IsAssignableFrom(x) && !x.IsInterface && !x.IsAbstract);
             foreach (var type in types)
             {
@@ -432,7 +452,7 @@ namespace RiderEditor
 
         static string OnGeneratedSlnSolution(string path, string content)
         {
-            IEnumerable<Type> types = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypes())
+            IEnumerable<Type> types = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => SafeGetTypes(x))
             .Where(x => typeof(AssetPostprocessor).IsAssignableFrom(x) && !x.IsInterface && !x.IsAbstract);
             foreach (var type in types)
             {
