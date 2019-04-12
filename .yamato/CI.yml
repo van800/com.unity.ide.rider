@@ -88,7 +88,7 @@ commit_ci:
       - "/.*/"
   dependencies:
   {% for editor in editors %}
-  - .yamato/CI.yml#package_test_linux_{{ editor.version }}
+  #- .yamato/CI.yml#package_test_linux_{{ editor.version }}
   - .yamato/CI.yml#run_test_project_linux_{{ editor.version }}
   {% endfor %}
 
