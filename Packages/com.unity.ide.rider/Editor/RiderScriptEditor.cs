@@ -26,6 +26,7 @@ namespace RiderEditor
                 editor.CreateIfDoesntExist();
             }
         }
+        static bool IsOSX => Environment.OSVersion.Platform == PlatformID.Unix;
 
         public RiderScriptEditor(IDiscovery discovery, IGenerator projectGeneration)
         {
@@ -53,6 +54,10 @@ namespace RiderEditor
 
         public bool OpenProject(string path, int line, int column)
         {
+            if (IsOSX)
+            {
+                return OpenOSXApp(path, line, column);
+            }
             var solution = GetSolutionFile(path); // TODO: If solution file doesn't exist resync.
             solution = solution == "" ? "" : $"\"{solution}\"";
             var process = new Process
@@ -66,6 +71,38 @@ namespace RiderEditor
             };
 
             process.Start();
+
+            return true;
+        }
+
+        private bool OpenOSXApp(string path, int line, int column)
+        {
+            var solution = GetSolutionFile(path); // TODO: If solution file doesn't exist resync.
+            solution = solution == "" ? "" : $"\"{solution}\"";
+            var pathArguments = path == "" ? "" : $"-l {line} \"{path}\"";
+            var process = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = "open",
+                    Arguments = $"\"{EditorPrefs.GetString("kScriptsDefaultApp")}\" --args {solution} {pathArguments}",
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                }
+            };
+
+            process.Start();
+
+            while (!process.StandardOutput.EndOfStream)
+            {
+                UnityEngine.Debug.Log(process.StandardOutput.ReadLine());
+            }
+            var errorOutput = process.StandardError.ReadToEnd();
+            if (!string.IsNullOrEmpty(errorOutput))
+            {
+                UnityEngine.Debug.Log("Error: \n" + errorOutput);
+            }
 
             return true;
         }
