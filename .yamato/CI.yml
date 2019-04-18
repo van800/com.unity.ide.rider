@@ -84,6 +84,7 @@ run_test_project_{{ platform.name }}_{{ editor.version }}:
     logs:
       paths:
         - "upm-ci~/test-results/**/*"
+        - "upm-ci~/utr/**/*"
   dependencies:
     - .yamato/CI.yml#pack
 {% endfor %}
