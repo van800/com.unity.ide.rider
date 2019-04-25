@@ -22,6 +22,7 @@ namespace RiderEditor
         bool HasSolutionBeenGenerated();
         string SolutionFile();
         string ProjectDirectory { get; }
+        void GenerateAll(bool generateAll);
     }
 
     public interface IAssemblyNameProvider
@@ -114,7 +115,14 @@ namespace RiderEditor
             RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         string[] m_ProjectSupportedExtensions = new string[0];
+        bool m_ShouldGenerateAll;
+
         public string ProjectDirectory { get; }
+        public void GenerateAll(bool generateAll)
+        {
+            m_ShouldGenerateAll = generateAll;
+        }
+
         public TestSettings Settings { get; set; }
         readonly string m_ProjectName;
         readonly IAssemblyNameProvider m_AssemblyNameProvider;
@@ -201,7 +209,7 @@ namespace RiderEditor
             string extension = Path.GetExtension(file);
 
             // Exclude files coming from packages except if they are internalized.
-            if (IsInternalizedPackagePath(file))
+            if (!m_ShouldGenerateAll && IsInternalizedPackagePath(file))
             {
                 return false;
             }
@@ -301,7 +309,7 @@ namespace RiderEditor
             foreach (string asset in m_AssemblyNameProvider.GetAllAssetPaths())
             {
                 // Exclude files coming from packages except if they are internalized.
-                if (IsInternalizedPackagePath(asset))
+                if (!m_ShouldGenerateAll && IsInternalizedPackagePath(asset))
                 {
                     continue;
                 }

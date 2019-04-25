@@ -26,7 +26,10 @@ namespace RiderEditor
                 editor.CreateIfDoesntExist();
             }
         }
+
+        const string unity_generate_all = "unity_generate_all_csproj";
         static bool IsOSX => Environment.OSVersion.Platform == PlatformID.Unix;
+        static string DefaultApp => EditorPrefs.GetString("kScriptsDefaultApp");
 
         public RiderScriptEditor(IDiscovery discovery, IGenerator projectGeneration)
         {
@@ -36,6 +39,13 @@ namespace RiderEditor
 
         public void OnGUI()
         {
+            var prevGenerate = EditorPrefs.GetBool(unity_generate_all, false);
+            var generateAll = EditorGUILayout.Toggle("Generate all .csproj files.", prevGenerate);
+            if (generateAll != prevGenerate)
+            {
+                EditorPrefs.SetBool(unity_generate_all, generateAll);
+            }
+            m_ProjectGeneration.GenerateAll(generateAll);
         }
 
         public void SyncIfNeeded(string[] addedFiles, string[] deletedFiles, string[] movedFiles, string[] movedFromFiles, string[] importedFiles)
@@ -64,7 +74,7 @@ namespace RiderEditor
             {
                 StartInfo = new ProcessStartInfo
                 {
-                    FileName = EditorPrefs.GetString("kScriptsDefaultApp"),
+                    FileName = DefaultApp,
                     Arguments = $"{solution} -l {line} \"{path}\"",
                     UseShellExecute = true,
                 }
@@ -85,7 +95,7 @@ namespace RiderEditor
                 StartInfo = new ProcessStartInfo
                 {
                     FileName = "open",
-                    Arguments = $"\"{EditorPrefs.GetString("kScriptsDefaultApp")}\" --args {solution} {pathArguments}",
+                    Arguments = $"\"{DefaultApp}\" --args {solution} {pathArguments}",
                     UseShellExecute = false,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
@@ -113,12 +123,9 @@ namespace RiderEditor
             {
                 var baseFolder = GetBaseUnityDeveloperFolder();
                 var lowerPath = path.ToLowerInvariant();
-                var isUnitySourceCode = false;
 
-                if (lowerPath.Contains((baseFolder + "/Runtime").ToLowerInvariant()))
-                {
-                    isUnitySourceCode = true;
-                }
+                bool isUnitySourceCode = lowerPath.Contains((baseFolder + "/Runtime").ToLowerInvariant());
+
                 if (lowerPath.Contains((baseFolder + "/Editor").ToLowerInvariant()))
                 {
                     isUnitySourceCode = true;
@@ -137,7 +144,7 @@ namespace RiderEditor
             return "";
         }
 
-        private string GetBaseUnityDeveloperFolder()
+        static string GetBaseUnityDeveloperFolder()
         {
             return Directory.GetParent(EditorApplication.applicationPath).Parent.Parent.FullName;
         }
