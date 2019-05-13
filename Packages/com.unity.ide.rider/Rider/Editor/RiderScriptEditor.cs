@@ -28,8 +28,7 @@ namespace Packages.Rider.Editor
     }
 
     const string unity_generate_all = "unity_generate_all_csproj";
-    static bool IsOSX => Environment.OSVersion.Platform == PlatformID.Unix;
-    static string DefaultApp => EditorPrefs.GetString("kScriptsDefaultApp");
+    static bool IsOSX => Application.platform == RuntimePlatform.OSXEditor;
 
     public RiderScriptEditor(IDiscovery discovery, IGenerator projectGeneration)
     {
@@ -84,7 +83,7 @@ namespace Packages.Rider.Editor
       {
         StartInfo = new ProcessStartInfo
         {
-          FileName = DefaultApp,
+          FileName = CodeEditor.CurrentEditorInstallation,
           Arguments = $"{solution} -l {line} \"{path}\"",
           UseShellExecute = true,
         }
@@ -105,7 +104,8 @@ namespace Packages.Rider.Editor
         StartInfo = new ProcessStartInfo
         {
           FileName = "open",
-          Arguments = $"\"{DefaultApp}\" --args {solution} {pathArguments}",
+          Arguments = $"\"{CodeEditor.CurrentEditorInstallation}\" --args {solution} {pathArguments}",
+          CreateNoWindow = true,
           UseShellExecute = true,
         }
       };
