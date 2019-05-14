@@ -1,13 +1,12 @@
-using System;
-using Moq;
-using NUnit.Framework;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using UnityEditor.Compilation;
+using Moq;
+using NUnit.Framework;
+using Packages.Rider.Editor;
 using UnityEngine;
 
-namespace RiderEditor.Editor_spec
+namespace Packages.Rider.Tests.Editor
 {
     [TestFixture]
     public class SolutionProject

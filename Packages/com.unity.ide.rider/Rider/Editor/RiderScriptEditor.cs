@@ -1,20 +1,18 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using UnityEditor;
-using UnityEngine;
-using Debug = UnityEngine.Debug;
 using Unity.CodeEditor;
+using UnityEditor;
 
-namespace RiderEditor
+namespace Packages.Rider.Editor
 {
   [InitializeOnLoad]
   public class RiderScriptEditor : IExternalCodeEditor
   {
     IDiscovery m_Discoverability;
     IGenerator m_ProjectGeneration;
+    RiderInitializer m_Initiliazer = new RiderInitializer();
 
     static RiderScriptEditor()
     {
@@ -24,6 +22,8 @@ namespace RiderEditor
       if (IsRiderInstallation(CodeEditor.CurrentEditorInstallation))
       {
         editor.CreateIfDoesntExist();
+        editor.m_Initiliazer.Initialize(CodeEditor.CurrentEditorInstallation);
+        EditorPluginInterop.InitEntryPoint();
       }
     }
 
@@ -68,6 +68,11 @@ namespace RiderEditor
 
     public bool OpenProject(string path, int line, int column)
     {
+      var fastOpenResult = EditorPluginInterop.OpenFileDllImplementation(path, line, column);
+
+      if (fastOpenResult)
+        return true;
+      
       if (IsOSX)
       {
         return OpenOSXApp(path, line, column);
@@ -164,17 +169,15 @@ namespace RiderEditor
       return false;
     }
 
-    private static bool IsRiderInstallation(string path)
+    public static bool IsRiderInstallation(string path)
     {
       if (string.IsNullOrEmpty(path))
       {
         return false;
       }
-
-      var lowerCasePath = path.ToLower();
-      var filename = Path
-        .GetFileName(lowerCasePath.Replace('\\', Path.DirectorySeparatorChar).Replace('/', Path.DirectorySeparatorChar))
-        .Replace(" ", "");
+      
+      var fileInfo = new FileInfo(path);
+      var filename = fileInfo.Name.ToLower();
       return filename.StartsWith("rider");
     }
 

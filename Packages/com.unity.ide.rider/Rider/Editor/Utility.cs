@@ -1,4 +1,4 @@
-namespace RiderEditor
+namespace Packages.Rider.Editor
 {
   public static class Utility
   {

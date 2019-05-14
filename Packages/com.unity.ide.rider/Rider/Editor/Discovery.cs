@@ -1,13 +1,13 @@
-using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.IO;
+using System.Linq;
 using JetBrains.Annotations;
-using UnityEngine;
+using Microsoft.Win32;
 using Unity.CodeEditor;
+using UnityEngine;
 
-namespace RiderEditor
+namespace Packages.Rider.Editor
 {
   public interface IDiscovery
   {

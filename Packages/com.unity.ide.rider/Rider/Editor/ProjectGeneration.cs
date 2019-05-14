@@ -6,15 +6,13 @@ using System.Security;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Xml;
 using UnityEditor;
 using UnityEditor.Compilation;
 using UnityEditor.PackageManager;
-using UnityEditor.Scripting.Compilers;
 using UnityEditorInternal;
 using UnityEngine;
 
-namespace RiderEditor
+namespace Packages.Rider.Editor
 {
   public interface IGenerator
   {

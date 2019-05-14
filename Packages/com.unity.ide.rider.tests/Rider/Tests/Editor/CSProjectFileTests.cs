@@ -1,12 +1,13 @@
-using NUnit.Framework;
-using Moq;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using Moq;
+using NUnit.Framework;
+using Packages.Rider.Editor;
 using UnityEditor.Compilation;
 using UnityEngine;
-using System.Collections.Generic;
 
-namespace RiderEditor.Editor_spec
+namespace Packages.Rider.Tests.Editor
 {
     [TestFixture]
     public class CSProjectFileTests

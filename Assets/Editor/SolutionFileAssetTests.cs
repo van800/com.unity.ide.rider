@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.TestTools;
 using System.IO;
 using System;
+using Packages.Rider.Editor;
 
 namespace RiderEditor.Runtime_spec
 {
@@ -137,13 +138,13 @@ public class SimpleCSharpScript : MonoBehaviour
                 GetSolutionGUID(GetProjectName()),
                 GetProjectGUID("AsmdefResponse"),
                 GetProjectGUID("Assembly-CSharp"),
-                GetProjectGUID("Assembly-CSharp-Editor"),
                 GetProjectGUID("Unity.Rider.Editor"),
+                GetProjectGUID("Assembly-CSharp-Editor"),
                 GetProjectGUID("Unity.Rider.EditorTests"),
                 "AsmdefResponse",
                 "Assembly-CSharp",
-                "Assembly-CSharp-Editor",
                 "Unity.Rider.Editor",
+                "Assembly-CSharp-Editor",
                 "Unity.Rider.EditorTests");
 
             Assert.AreEqual(solutionTemplate, solutionContents);
