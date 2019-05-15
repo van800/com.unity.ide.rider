@@ -1,9 +1,9 @@
 {
   "disableProjectUpdate": true,
   "dependencies": {
+    "com.unity.package-validation-suite": "0.4.0-preview.28",
     "com.unity.test-framework": "1.0.9",
     "com.unity.modules.imgui": "1.0.0",
-    "com.unity.package-validation-suite": "0.4.0-preview.25",
     "com.unity.modules.jsonserialize": "1.0.0"
   }
 }

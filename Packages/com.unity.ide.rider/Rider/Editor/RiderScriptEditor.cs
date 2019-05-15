@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using Unity.CodeEditor;
 using UnityEditor;
+using UnityEngine;
 
 namespace Packages.Rider.Editor
 {

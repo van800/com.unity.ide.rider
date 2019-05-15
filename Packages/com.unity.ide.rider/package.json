@@ -7,5 +7,8 @@
   "unityRelease": "0a12",
   "dependencies": {
     "com.unity.ext.nunit": "1.0.0"
+  },
+  "relatedPackages": {
+    "com.unity.ide.rider.tests": "1.0.5"
   }
 }

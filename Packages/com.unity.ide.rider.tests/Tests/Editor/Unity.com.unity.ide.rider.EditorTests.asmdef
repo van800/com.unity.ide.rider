@@ -1,8 +1,8 @@
 {
     "name": "Unity.Rider.EditorTests",
     "references": [
-		"Unity.Rider.Editor"
-	],
+        "Unity.Rider.Editor"
+    ],
     "optionalUnityReferences": [
         "TestAssemblies"
     ],

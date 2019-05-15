@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -5,6 +6,7 @@ using Moq;
 using NUnit.Framework;
 using Packages.Rider.Editor;
 using UnityEngine;
+using UnityEditor.Compilation;
 
 namespace Packages.Rider.Tests.Editor
 {
@@ -88,6 +90,75 @@ namespace Packages.Rider.Tests.Editor
             Assert.IsTrue(precompiledAssemblySyncIfNeeded);
             Assert.IsTrue(asmdefSyncIfNeeded);
             Assert.IsFalse(someOtherSyncIfNeeded);
+        }
+
+        [Test]
+        public void FormattedSolution()
+        {
+            var mock = new Mock<IAssemblyNameProvider>();
+            var files = new[]
+            {
+                "File.cs",
+            };
+            var island = new Assembly("Assembly2", "/User/Test/Assembly2.dll", files, new string[0], new Assembly[0], new string[0], AssemblyFlags.None);
+            mock.Setup(x => x.GetAllAssemblies(It.IsAny<Func<string, bool>>())).Returns(new[] { island });
+
+            string projectDirectory = Directory.GetParent(Application.dataPath).FullName;
+            var synchronizer = new ProjectGeneration(projectDirectory, mock.Object);
+            var syncPaths = new Dictionary<string, string>();
+            synchronizer.Settings = new TestSettings { ShouldSync = false, SyncPath = syncPaths };
+
+            string GetProjectName()
+            {
+                string[] s = Application.dataPath.Split('/');
+                return s[s.Length - 2];
+            }
+
+            string GetProjectGUID(string projectName)
+            {
+                return SolutionGuidGenerator.GuidForProject(GetProjectName() + projectName);
+            }
+
+            string GetSolutionGUID(string projectName)
+            {
+                return SolutionGuidGenerator.GuidForSolution(projectName, "cs");
+            }
+
+            synchronizer.Sync();
+
+            // solutionguid, solutionname, projectguid
+            var solutionExpected = string.Join("\r\n", new[]
+            {
+                @"",
+                @"Microsoft Visual Studio Solution File, Format Version 11.00",
+                @"# Visual Studio 2010",
+                @"Project(""{{{0}}}"") = ""{2}"", ""{2}.csproj"", ""{{{1}}}""",
+                @"EndProject",
+                @"Global",
+                @"    GlobalSection(SolutionConfigurationPlatforms) = preSolution",
+                @"        Debug|Any CPU = Debug|Any CPU",
+                @"        Release|Any CPU = Release|Any CPU",
+                @"    EndGlobalSection",
+                @"    GlobalSection(ProjectConfigurationPlatforms) = postSolution",
+                @"        {{{1}}}.Debug|Any CPU.ActiveCfg = Debug|Any CPU",
+                @"        {{{1}}}.Debug|Any CPU.Build.0 = Debug|Any CPU",
+                @"        {{{1}}}.Release|Any CPU.ActiveCfg = Release|Any CPU",
+                @"        {{{1}}}.Release|Any CPU.Build.0 = Release|Any CPU",
+                @"    EndGlobalSection",
+                @"    GlobalSection(SolutionProperties) = preSolution",
+                @"        HideSolutionNode = FALSE",
+                @"    EndGlobalSection",
+                @"EndGlobal",
+                @""
+            }).Replace("    ", "\t");
+
+            var solutionTemplate = string.Format(
+                solutionExpected,
+                GetSolutionGUID(GetProjectName()),
+                GetProjectGUID("Assembly2"),
+                "Assembly2");
+
+            Assert.AreEqual(solutionTemplate, syncPaths[synchronizer.SolutionFile()]);
         }
     }
 }
