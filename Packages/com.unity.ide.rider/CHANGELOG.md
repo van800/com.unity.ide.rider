@@ -1,5 +1,11 @@
 # Code Editor Package for Rider
 
+## [1.0.7] - 2019-05-16
+
+Initial migration steps from rider plugin to package.
+Fix OSX check and opening of files.
+
+
 ## [1.0.6] - 2019-04-30
 
 Ensure asset database is refreshed when generating csproj and solution files.
