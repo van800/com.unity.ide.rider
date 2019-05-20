@@ -24,7 +24,6 @@ namespace Packages.Rider.Editor
       {
         editor.CreateIfDoesntExist();
         editor.m_Initiliazer.Initialize(CodeEditor.CurrentEditorInstallation);
-        EditorPluginInterop.InitEntryPoint();
       }
     }
 
