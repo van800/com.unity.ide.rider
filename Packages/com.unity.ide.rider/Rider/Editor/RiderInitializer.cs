@@ -26,7 +26,7 @@ namespace Packages.Rider.Editor
         {
           // doesn't lock assembly on disk
           var bytes = File.ReadAllBytes(dllFile.FullName);
-          var pdbFile = new FileInfo($"{dllFile.FullName}.pdb");
+          var pdbFile = new FileInfo(Path.ChangeExtension(dllFile.FullName, ".pdb"));
           if (pdbFile.Exists)
           {
             AppDomain.CurrentDomain.Load(bytes, File.ReadAllBytes(pdbFile.FullName));  
