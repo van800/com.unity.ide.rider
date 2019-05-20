@@ -36,6 +36,7 @@ namespace Packages.Rider.Editor
             AppDomain.CurrentDomain.Load(bytes);
             // AppDomain.CurrentDomain.Load(AssemblyName.GetAssemblyName(dllFile.FullName)); // use this for external source debug
           }
+          EditorPluginInterop.InitEntryPoint();
         }
         else
         {
