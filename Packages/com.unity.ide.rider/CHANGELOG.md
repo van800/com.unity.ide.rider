@@ -1,5 +1,10 @@
 # Code Editor Package for Rider
 
+## [1.0.8] - 2019-05-20
+
+Fix NullReferenceException when External editor was pointing to non-existing Rider everything was broken by null-ref.
+
+
 ## [1.0.7] - 2019-05-16
 
 Initial migration steps from rider plugin to package.
