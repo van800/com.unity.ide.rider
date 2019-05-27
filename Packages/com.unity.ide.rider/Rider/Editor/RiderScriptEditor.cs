@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -65,13 +66,30 @@ namespace Packages.Rider.Editor
     {
     }
 
+    private static bool SupportsExtension(string path)
+    {
+      var userExtensions = EditorSettings.projectGenerationUserExtensions;
+      var extensionStrings = userExtensions != null
+        ? userExtensions.ToList()
+        : new List<string> { "ts", "bjs", "javascript", "json", "html", "shader" };
+
+      extensionStrings.AddRange(new[] { "template", "compute", "cginc", "hlsl", "glslinc" });
+
+      return extensionStrings.Contains(Path.GetExtension(path));
+    }
+
     public bool OpenProject(string path, int line, int column)
     {
+      if (!SupportsExtension(path))
+      {
+        return false;
+      }
+
       var fastOpenResult = EditorPluginInterop.OpenFileDllImplementation(path, line, column);
 
       if (fastOpenResult)
         return true;
-      
+
       if (IsOSX)
       {
         return OpenOSXApp(path, line, column);
