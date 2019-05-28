@@ -71,7 +71,7 @@ namespace Packages.Rider.Editor
       var userExtensions = EditorSettings.projectGenerationUserExtensions;
       var extensionStrings = userExtensions != null
         ? userExtensions.ToList()
-        : new List<string> { "ts", "bjs", "javascript", "json", "html", "shader" };
+        : new List<string> { "cs", "ts", "bjs", "javascript", "json", "html", "shader" };
 
       extensionStrings.AddRange(new[] { "template", "compute", "cginc", "hlsl", "glslinc" });
 
