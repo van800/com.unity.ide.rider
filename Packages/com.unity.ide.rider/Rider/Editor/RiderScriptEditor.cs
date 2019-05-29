@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -37,6 +36,39 @@ namespace Packages.Rider.Editor
       m_ProjectGeneration = projectGeneration;
     }
 
+    private static string[] defaultExtensions
+    {
+      get
+      {
+        var customExtensions = new[] {"json", "asmdef"};
+        return EditorSettings.projectGenerationBuiltinExtensions.Concat(EditorSettings.projectGenerationUserExtensions)
+          .Concat(customExtensions).Distinct().ToArray();
+      }
+    }
+
+    private static string[] HandledExtensions
+    {
+      get
+      {
+        return HandledExtensionsString.Split(new[] {';'}, StringSplitOptions.RemoveEmptyEntries).Select(s => s.TrimStart('.', '*'))
+          .ToArray();
+      } 
+    }
+
+    private static string HandledExtensionsString
+    {
+      get { return EditorPrefs.GetString("Rider_UserExtensions", string.Join(";", defaultExtensions));}
+      set { EditorPrefs.SetString("Rider_UserExtensions", value); }
+    }
+    
+    private static bool SupportsExtension(string path)
+    {
+      var extension = Path.GetExtension(path);
+      if (string.IsNullOrEmpty(extension))
+        return false; 
+      return HandledExtensions.Contains(extension.TrimStart('.'));
+    }
+
     public void OnGUI()
     {
       var prevGenerate = EditorPrefs.GetBool(unity_generate_all, false);
@@ -45,8 +77,10 @@ namespace Packages.Rider.Editor
       {
         EditorPrefs.SetBool(unity_generate_all, generateAll);
       }
-
+      
       m_ProjectGeneration.GenerateAll(generateAll);
+      
+      HandledExtensionsString = EditorGUILayout.TextField(new GUIContent("Extensions handled: "), HandledExtensionsString);
     }
 
     public void SyncIfNeeded(string[] addedFiles, string[] deletedFiles, string[] movedFiles, string[] movedFromFiles,
@@ -64,18 +98,6 @@ namespace Packages.Rider.Editor
 
     public void Initialize(string editorInstallationPath)
     {
-    }
-
-    private static bool SupportsExtension(string path)
-    {
-      var userExtensions = EditorSettings.projectGenerationUserExtensions;
-      var extensionStrings = userExtensions != null
-        ? userExtensions.ToList()
-        : new List<string> { "cs", "ts", "bjs", "javascript", "json", "html", "shader" };
-
-      extensionStrings.AddRange(new[] { "template", "compute", "cginc", "hlsl", "glslinc" });
-
-      return extensionStrings.Contains(Path.GetExtension(path));
     }
 
     public bool OpenProject(string path, int line, int column)
