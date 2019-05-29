@@ -66,7 +66,28 @@ namespace Packages.Rider.Editor
     {
     }
 
-    private static bool SupportsExtension(string path)
+    private static bool IsSupportedType(string path)
+    {
+      if (string.IsNullOrWhiteSpace(path))
+      {
+        return false;
+      }
+
+      UnityEngine.Object selected = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(path);
+
+      if (selected.GetType().ToString() == "UnityEditor.MonoScript" ||
+        selected.GetType().ToString() == "UnityEngine.Shader" ||
+        selected.GetType().ToString() == "UnityEngine.Experimental.UIElements.VisualTreeAsset" ||
+        selected.GetType().ToString() == "UnityEngine.StyleSheets.StyleSheet" ||
+        SupportedExtensions().Contains(Path.GetExtension(path).Substring(1)))
+      {
+        return true;
+      }
+
+      return false;
+    }
+
+    private static List<string> SupportedExtensions()
     {
       var userExtensions = EditorSettings.projectGenerationUserExtensions;
       var extensionStrings = userExtensions != null
@@ -74,13 +95,12 @@ namespace Packages.Rider.Editor
         : new List<string> { "cs", "ts", "bjs", "javascript", "json", "html", "shader" };
 
       extensionStrings.AddRange(new[] { "template", "compute", "cginc", "hlsl", "glslinc" });
-
-      return extensionStrings.Contains(Path.GetExtension(path));
+      return extensionStrings;
     }
 
     public bool OpenProject(string path, int line, int column)
     {
-      if (!SupportsExtension(path))
+      if (!IsSupportedType(path))
       {
         return false;
       }
