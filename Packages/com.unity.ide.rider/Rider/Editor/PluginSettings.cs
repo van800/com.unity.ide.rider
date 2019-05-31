@@ -140,6 +140,8 @@ namespace Packages.Rider.Editor
     [SettingsProvider]
     private static SettingsProvider RiderPreferencesItem()
     {
+      if (!RiderScriptEditor.IsRiderInstallation(CodeEditor.CurrentEditorInstallation))
+        return null;
       var provider = new SettingsProvider("Preferences/Rider", SettingsScope.User)
       {
         label = "Rider",

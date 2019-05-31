@@ -5,6 +5,7 @@ using System.Linq;
 using Unity.CodeEditor;
 using UnityEditor;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 
 namespace Packages.Rider.Editor
 {
@@ -17,13 +18,20 @@ namespace Packages.Rider.Editor
 
     static RiderScriptEditor()
     {
-      var projectGeneration = new ProjectGeneration();
-      var editor = new RiderScriptEditor(new Discovery(), projectGeneration);
-      CodeEditor.Register(editor);
-      if (IsRiderInstallation(CodeEditor.CurrentEditorInstallation))
+      try
       {
-        editor.CreateIfDoesntExist();
-        editor.m_Initiliazer.Initialize(CodeEditor.CurrentEditorInstallation);
+        var projectGeneration = new ProjectGeneration();
+        var editor = new RiderScriptEditor(new Discovery(), projectGeneration);
+        CodeEditor.Register(editor);
+        if (IsRiderInstallation(CodeEditor.CurrentEditorInstallation))
+        {
+          editor.CreateIfDoesntExist();
+          editor.m_Initiliazer.Initialize(CodeEditor.CurrentEditorInstallation);
+        }
+      }
+      catch (Exception e)
+      {
+        Debug.LogException(e);
       }
     }
 
