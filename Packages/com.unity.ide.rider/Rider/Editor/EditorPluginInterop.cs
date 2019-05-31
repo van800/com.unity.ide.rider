@@ -89,7 +89,9 @@ namespace Packages.Rider.Editor
       }
       catch (TypeInitializationException ex)
       {
-        Debug.LogException(ex.InnerException);
+        Debug.LogException(ex);
+        if (ex.InnerException != null) 
+          Debug.LogException(ex.InnerException);
       }
     }
   }
