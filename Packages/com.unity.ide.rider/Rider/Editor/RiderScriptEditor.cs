@@ -1,11 +1,11 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Unity.CodeEditor;
 using UnityEditor;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 
 namespace Packages.Rider.Editor
 {
@@ -18,13 +18,20 @@ namespace Packages.Rider.Editor
 
     static RiderScriptEditor()
     {
-      var projectGeneration = new ProjectGeneration();
-      var editor = new RiderScriptEditor(new Discovery(), projectGeneration);
-      CodeEditor.Register(editor);
-      if (IsRiderInstallation(CodeEditor.CurrentEditorInstallation))
+      try
       {
-        editor.CreateIfDoesntExist();
-        editor.m_Initiliazer.Initialize(CodeEditor.CurrentEditorInstallation);
+        var projectGeneration = new ProjectGeneration();
+        var editor = new RiderScriptEditor(new Discovery(), projectGeneration);
+        CodeEditor.Register(editor);
+        if (IsRiderInstallation(CodeEditor.CurrentEditorInstallation))
+        {
+          editor.CreateIfDoesntExist();
+          editor.m_Initiliazer.Initialize(CodeEditor.CurrentEditorInstallation);
+        }
+      }
+      catch (Exception e)
+      {
+        Debug.LogException(e);
       }
     }
 
@@ -37,6 +44,39 @@ namespace Packages.Rider.Editor
       m_ProjectGeneration = projectGeneration;
     }
 
+    private static string[] defaultExtensions
+    {
+      get
+      {
+        var customExtensions = new[] {"json", "asmdef"};
+        return EditorSettings.projectGenerationBuiltinExtensions.Concat(EditorSettings.projectGenerationUserExtensions)
+          .Concat(customExtensions).Distinct().ToArray();
+      }
+    }
+
+    private static string[] HandledExtensions
+    {
+      get
+      {
+        return HandledExtensionsString.Split(new[] {';'}, StringSplitOptions.RemoveEmptyEntries).Select(s => s.TrimStart('.', '*'))
+          .ToArray();
+      } 
+    }
+
+    private static string HandledExtensionsString
+    {
+      get { return EditorPrefs.GetString("Rider_UserExtensions", string.Join(";", defaultExtensions));}
+      set { EditorPrefs.SetString("Rider_UserExtensions", value); }
+    }
+    
+    private static bool SupportsExtension(string path)
+    {
+      var extension = Path.GetExtension(path);
+      if (string.IsNullOrEmpty(extension))
+        return false; 
+      return HandledExtensions.Contains(extension.TrimStart('.'));
+    }
+
     public void OnGUI()
     {
       var prevGenerate = EditorPrefs.GetBool(unity_generate_all, false);
@@ -45,8 +85,10 @@ namespace Packages.Rider.Editor
       {
         EditorPrefs.SetBool(unity_generate_all, generateAll);
       }
-
+      
       m_ProjectGeneration.GenerateAll(generateAll);
+      
+      HandledExtensionsString = EditorGUILayout.TextField(new GUIContent("Extensions handled: "), HandledExtensionsString);
     }
 
     public void SyncIfNeeded(string[] addedFiles, string[] deletedFiles, string[] movedFiles, string[] movedFromFiles,
@@ -66,41 +108,9 @@ namespace Packages.Rider.Editor
     {
     }
 
-    private static bool IsSupportedType(string path)
-    {
-      if (string.IsNullOrWhiteSpace(path))
-      {
-        return false;
-      }
-
-      UnityEngine.Object selected = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(path);
-
-      if (selected.GetType().ToString() == "UnityEditor.MonoScript" ||
-        selected.GetType().ToString() == "UnityEngine.Shader" ||
-        selected.GetType().ToString() == "UnityEngine.Experimental.UIElements.VisualTreeAsset" ||
-        selected.GetType().ToString() == "UnityEngine.StyleSheets.StyleSheet" ||
-        SupportedExtensions().Contains(Path.GetExtension(path).Substring(1)))
-      {
-        return true;
-      }
-
-      return false;
-    }
-
-    private static List<string> SupportedExtensions()
-    {
-      var userExtensions = EditorSettings.projectGenerationUserExtensions;
-      var extensionStrings = userExtensions != null
-        ? userExtensions.ToList()
-        : new List<string> { "cs", "ts", "bjs", "javascript", "json", "html", "shader" };
-
-      extensionStrings.AddRange(new[] { "template", "compute", "cginc", "hlsl", "glslinc" });
-      return extensionStrings;
-    }
-
     public bool OpenProject(string path, int line, int column)
     {
-      if (!IsSupportedType(path))
+      if (!SupportsExtension(path))
       {
         return false;
       }
