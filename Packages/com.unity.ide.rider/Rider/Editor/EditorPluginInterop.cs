@@ -85,6 +85,8 @@ namespace Packages.Rider.Editor
       try
       {
         var type = GetEditorPluginAssembly().GetType("JetBrains.Rider.Unity.Editor.AfterUnity56.EntryPoint");
+        if (type == null) 
+          type = GetEditorPluginAssembly().GetType("JetBrains.Rider.Unity.Editor.UnitTesting.EntryPoint"); // oldRider
         RuntimeHelpers.RunClassConstructor(type.TypeHandle);
       }
       catch (TypeInitializationException ex)
