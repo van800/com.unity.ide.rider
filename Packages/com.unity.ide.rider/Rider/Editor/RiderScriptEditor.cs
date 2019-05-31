@@ -107,7 +107,7 @@ namespace Packages.Rider.Editor
     public void Initialize(string editorInstallationPath)
     {
     }
-
+    
     public bool OpenProject(string path, int line, int column)
     {
       if (!SupportsExtension(path))
@@ -226,7 +226,13 @@ namespace Packages.Rider.Editor
       
       var fileInfo = new FileInfo(path);
       var filename = fileInfo.Name.ToLower();
-      return filename.StartsWith("rider");
+      if (!filename.StartsWith("rider"))
+        return false;
+      var ver = RiderPathLocator.GetBuildNumber(path);
+      if (!Version.TryParse(ver, out var version))
+        return false;
+      
+      return version >= new Version("191.7141.156");
     }
 
     public CodeEditor.Installation[] Installations => m_Discoverability.PathCallback();
