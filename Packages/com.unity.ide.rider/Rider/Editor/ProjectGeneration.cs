@@ -11,6 +11,7 @@ using UnityEditor.Compilation;
 using UnityEditor.PackageManager;
 using UnityEditorInternal;
 using UnityEngine;
+using UnityEngine.Profiling;
 
 namespace Packages.Rider.Editor
 {
@@ -30,6 +31,7 @@ namespace Packages.Rider.Editor
     IEnumerable<Assembly> GetAllAssemblies(Func<string, bool> shouldFileBePartOfSolution);
     IEnumerable<string> GetAllAssetPaths();
     UnityEditor.PackageManager.PackageInfo FindForAssetPath(string assetPath);
+    string CollectAssemblyNames(string asset);
   }
 
   public struct TestSettings
@@ -60,8 +62,12 @@ namespace Packages.Rider.Editor
     {
       return UnityEditor.PackageManager.PackageInfo.FindForAssetPath(assetPath);
     }
-  }
 
+    public string CollectAssemblyNames(string asset)
+    {
+      return CompilationPipeline.GetAssemblyNameFromScriptPath(asset + ".cs");
+    }
+  }
 
   public class ProjectGeneration : IGenerator
   {
@@ -165,19 +171,41 @@ namespace Packages.Rider.Editor
     /// </param>
     public bool SyncIfNeeded(IEnumerable<string> affectedFiles, IEnumerable<string> reimportedFiles)
     {
+      Profiler.BeginSample("SolutionSynchronizerSyncIfNeeded");
       SetupProjectSupportedExtensions();
 
       // Don't sync if we haven't synced before
-      if (HasSolutionBeenGenerated() && HasFilesBeenModified(affectedFiles, reimportedFiles))
+      var reimportedList = reimportedFiles.ToList();
+      var affectedList = affectedFiles.ToList();
+      if (HasSolutionBeenGenerated() && HasFilesBeenModified(affectedList, reimportedList))
       {
-        Sync();
+        var assemblies = m_AssemblyNameProvider.GetAllAssemblies(ShouldFileBePartOfSolution).ToList();
+        var allProjectIslands = RelevantIslandsForMode(assemblies).ToList();
+        var allAssetProjectParts = GenerateAllAssetProjectParts();
+        //Sync();
+        var affected = affectedList.Select(CollectAssemblyNames).Select(name => name.Substring(0, name.Length - ".dll".Length)).ToList();
+        var reimported = reimportedList.Select(CollectAssemblyNames).Select(name => name.Substring(0, name.Length - ".dll".Length)).ToList();
+        var affectedAndReimported = new HashSet<string>(affected.Concat(reimported));
+        var necessary = assemblies.Where(assembly =>
+          affectedAndReimported.Contains(Utility.FileNameWithoutExtension(assembly.outputPath)));
+        foreach (var island in necessary)
+        {
+          SyncProject(island, allAssetProjectParts, ParseResponseFileData(island), allProjectIslands);
+        }
+        Profiler.EndSample();
         return true;
       }
 
+      Profiler.EndSample();
       return false;
     }
 
-    bool HasFilesBeenModified(IEnumerable<string> affectedFiles, IEnumerable<string> reimportedFiles)
+    string CollectAssemblyNames(string asset)
+    {
+      return m_AssemblyNameProvider.CollectAssemblyNames(asset);
+    }
+
+    bool HasFilesBeenModified(List<string> affectedFiles, List<string> reimportedFiles)
     {
       return affectedFiles.Any(ShouldFileBePartOfSolution) || reimportedFiles.Any(ShouldSyncOnReimportedAsset);
     }
@@ -224,7 +252,7 @@ namespace Packages.Rider.Editor
       if (extension == ".dll")
         return true;
 
-      if (file.ToLower().EndsWith(".asmdef"))
+      if (file.ToLower().EndsWith(".asmdef", StringComparison.Ordinal))
         return true;
 
       return IsSupportedExtension(extension);
@@ -420,8 +448,7 @@ namespace Packages.Rider.Editor
 
     static void OnGeneratedCSProjectFiles()
     {
-      IEnumerable<Type> types = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => SafeGetTypes(x))
-        .Where(x => typeof(AssetPostprocessor).IsAssignableFrom(x) && !x.IsInterface && !x.IsAbstract);
+      var types = TypeCache.GetTypesDerivedFrom<AssetPostprocessor>();
       var args = new object[0];
       foreach (var type in types)
       {
@@ -439,8 +466,7 @@ namespace Packages.Rider.Editor
 
     static bool OnPreGeneratingCSProjectFiles()
     {
-      IEnumerable<Type> types = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => SafeGetTypes(x))
-        .Where(x => typeof(AssetPostprocessor).IsAssignableFrom(x) && !x.IsInterface && !x.IsAbstract);
+      var types = TypeCache.GetTypesDerivedFrom<AssetPostprocessor>();
       bool result = false;
       foreach (var type in types)
       {
@@ -465,8 +491,7 @@ namespace Packages.Rider.Editor
 
     static string OnGeneratedCSProject(string path, string content)
     {
-      IEnumerable<Type> types = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => SafeGetTypes(x))
-        .Where(x => typeof(AssetPostprocessor).IsAssignableFrom(x) && !x.IsInterface && !x.IsAbstract);
+      var types = TypeCache.GetTypesDerivedFrom<AssetPostprocessor>();
       foreach (var type in types)
       {
         var args = new[] {path, content};
@@ -490,8 +515,7 @@ namespace Packages.Rider.Editor
 
     static string OnGeneratedSlnSolution(string path, string content)
     {
-      IEnumerable<Type> types = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => SafeGetTypes(x))
-        .Where(x => typeof(AssetPostprocessor).IsAssignableFrom(x) && !x.IsInterface && !x.IsAbstract);
+      var types = TypeCache.GetTypesDerivedFrom<AssetPostprocessor>();
       foreach (var type in types)
       {
         var args = new[] {path, content};
@@ -863,7 +887,7 @@ namespace Packages.Rider.Editor
 
     static string SkipPathPrefix(string path, string prefix)
     {
-      if (path.Replace("\\", "/").StartsWith($"{prefix}/"))
+      if (path.Replace("\\", "/").StartsWith($"{prefix}/", StringComparison.Ordinal))
         return path.Substring(prefix.Length + 1);
       return path;
     }

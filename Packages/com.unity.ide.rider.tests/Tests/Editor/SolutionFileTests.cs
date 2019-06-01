@@ -55,7 +55,7 @@ namespace Packages.Rider.Tests.Editor
             Assert.AreEqual(@"", syncedSolutionText[0]);
             Assert.AreEqual(@"Microsoft Visual Studio Solution File, Format Version 11.00", syncedSolutionText[1]);
             Assert.AreEqual(@"# Visual Studio 2010", syncedSolutionText[2]);
-            Assert.IsTrue(syncedSolutionText[3].StartsWith("Project(\"{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}\")"));
+            StringAssert.StartsWith("Project(\"{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}\")", syncedSolutionText[3]);
         }
 
         [Test]
@@ -80,7 +80,10 @@ namespace Packages.Rider.Tests.Editor
             IEnumerable<string> asmdefAssetImport = new[] { "reimport.asmdef" };
             IEnumerable<string> otherAssetImport = new[] { "reimport.someOther" };
 
-            var projectGeneration = new ProjectGeneration(new FileInfo(s_SolutionFile).DirectoryName);
+            var mock = new Mock<IAssemblyNameProvider>();
+            mock.Setup(x => x.CollectAssemblyNames("reimport.dll")).Returns("reimport.dll");
+            mock.Setup(x => x.CollectAssemblyNames("reimport.asmdef")).Returns("reimport.dll");
+            var projectGeneration = new ProjectGeneration(new FileInfo(s_SolutionFile).DirectoryName, mock.Object);
             Assert.IsTrue(File.Exists(s_SolutionFile));
 
             var precompiledAssemblySyncIfNeeded = projectGeneration.SyncIfNeeded(Enumerable.Empty<string>().ToArray(), precompiledAssetImport);
@@ -129,7 +132,7 @@ namespace Packages.Rider.Tests.Editor
             // solutionguid, solutionname, projectguid
             var solutionExpected = string.Join("\r\n", new[]
             {
-                @"",
+                //@"",
                 @"Microsoft Visual Studio Solution File, Format Version 11.00",
                 @"# Visual Studio 2010",
                 @"Project(""{{{0}}}"") = ""{2}"", ""{2}.csproj"", ""{{{1}}}""",
