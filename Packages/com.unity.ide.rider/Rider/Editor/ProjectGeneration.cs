@@ -563,7 +563,7 @@ namespace Packages.Rider.Editor
       IEnumerable<ResponseFileData> responseFilesData,
       List<Assembly> allProjectIslands)
     {
-      var projectBuilder = new StringBuilder(ProjectHeader(assembly, responseFilesData));
+      var projectBuilder = ProjectHeader(assembly, responseFilesData);
       var references = new List<string>();
       var projectReferences = new List<Match>();
 
@@ -651,9 +651,7 @@ namespace Packages.Rider.Editor
     static void AppendReference(string fullReference, StringBuilder projectBuilder)
     {
       //replace \ with / and \\ with /
-      var escapedFullPath = SecurityElement.Escape(fullReference);
-      escapedFullPath = escapedFullPath.Replace("\\", "/");
-      escapedFullPath = escapedFullPath.Replace("\\\\", "/");
+      var escapedFullPath = SecurityElement.Escape(fullReference).Replace("\\\\", "/").Replace("\\", "/");
       projectBuilder.Append(" <Reference Include=\"").Append(Utility.FileNameWithoutExtension(escapedFullPath))
         .Append("\">").Append(k_WindowsNewline);
       projectBuilder.Append(" <HintPath>").Append(escapedFullPath).Append("</HintPath>").Append(k_WindowsNewline);
@@ -670,38 +668,74 @@ namespace Packages.Rider.Editor
       return Path.Combine(ProjectDirectory, $"{m_ProjectName}.sln");
     }
 
-    string ProjectHeader(
+    StringBuilder ProjectHeader(
       Assembly island,
       IEnumerable<ResponseFileData> responseFilesData
     )
     {
-      var arguments = new object[]
-      {
-        k_ToolsVersion, k_ProductVersion, ProjectGuid(island.outputPath),
-        InternalEditorUtility.GetEngineAssemblyPath(),
-        InternalEditorUtility.GetEditorAssemblyPath(),
-        string.Join(";",
-          new[] {"DEBUG", "TRACE"}.Concat(EditorUserBuildSettings.activeScriptCompilationDefines).Concat(island.defines)
-            .Concat(responseFilesData.SelectMany(x => x.Defines)).Distinct().ToArray()),
-        MSBuildNamespaceUri,
-        Utility.FileNameWithoutExtension(island.outputPath),
-        EditorSettings.projectGenerationRootNamespace,
-        k_TargetFrameworkVersion,
-        k_TargetLanguageVersion,
-        k_BaseDirectory,
-        island.compilerOptions.AllowUnsafeCode | responseFilesData.Any(x => x.Unsafe)
-      };
-
-      try
-      {
-        return string.Format(CultureInfo.InvariantCulture, GetProjectHeaderTemplate(), arguments);
-      }
-      catch (Exception)
-      {
-        throw new NotSupportedException(
-          "Failed creating c# project because the c# project header did not have the correct amount of arguments, which is " +
-          arguments.Length);
-      }
+      var responseFileDatas = responseFilesData as ResponseFileData[] ?? responseFilesData.ToArray();
+      var defineConstants = string.Join(";",
+        new[] { "DEBUG", "TRACE" }, EditorUserBuildSettings.activeScriptCompilationDefines, island.defines,
+        responseFileDatas.SelectMany(x => x.Defines).Distinct());
+      var builder = new StringBuilder(40000);
+      builder.Append("<?xml version=\"1.0\" encoding=\"utf-8\"?>").Append(k_WindowsNewline);
+      builder.Append("<Project ToolsVersion=\"").Append(k_ToolsVersion).Append("\" DefaultTargets=\"Build\" xmlns=\"")
+        .Append(MSBuildNamespaceUri).Append("\">").Append(k_WindowsNewline);
+      builder.Append("  <PropertyGroup>").Append(k_WindowsNewline);
+      builder.Append("    <LangVersion>").Append(k_TargetLanguageVersion).Append("</LangVersion>").Append(k_WindowsNewline);
+      builder.Append("  </PropertyGroup>").Append(k_WindowsNewline);
+      builder.Append("  <PropertyGroup>").Append(k_WindowsNewline);
+      builder.Append("    <Configuration Condition=\" '$(Configuration)' == '' \">Debug</Configuration>").Append(k_WindowsNewline);
+      builder.Append("    <Platform Condition=\" '$(Platform)' == '' \">AnyCPU</Platform>").Append(k_WindowsNewline);
+      builder.Append("    <ProductVersion>").Append(k_ProductVersion).Append("</ProductVersion>").Append(k_WindowsNewline);
+      builder.Append("    <SchemaVersion>2.0</SchemaVersion>").Append(k_WindowsNewline);
+      builder.Append("    <RootNamespace>").Append(EditorSettings.projectGenerationRootNamespace).Append("</RootNamespace>").Append(k_WindowsNewline);
+      builder.Append("    <ProjectGuid>{").Append(ProjectGuid(island.outputPath)).Append("}</ProjectGuid>").Append(k_WindowsNewline);
+      builder.Append("    <OutputType>Library</OutputType>").Append(k_WindowsNewline);
+      builder.Append("    <AppDesignerFolder>Properties</AppDesignerFolder>").Append(k_WindowsNewline);
+      builder.Append("    <AssemblyName>").Append(Utility.FileNameWithoutExtension(island.outputPath)).Append("</AssemblyName>").Append(k_WindowsNewline);
+      builder.Append("    <TargetFrameworkVersion>").Append(k_TargetFrameworkVersion).Append("</TargetFrameworkVersion>").Append(k_WindowsNewline);
+      builder.Append("    <FileAlignment>512</FileAlignment>").Append(k_WindowsNewline);
+      builder.Append("    <BaseDirectory>").Append(k_BaseDirectory).Append("</BaseDirectory>").Append(k_WindowsNewline);
+      builder.Append("  </PropertyGroup>").Append(k_WindowsNewline);
+      builder.Append("  <PropertyGroup Condition=\" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' \">").Append(k_WindowsNewline);
+      builder.Append("    <DebugSymbols>true</DebugSymbols>").Append(k_WindowsNewline);
+      builder.Append("    <DebugType>full</DebugType>").Append(k_WindowsNewline);
+      builder.Append("    <Optimize>false</Optimize>").Append(k_WindowsNewline);
+      builder.Append("    <OutputPath>Temp\\bin\\Debug\\</OutputPath>").Append(k_WindowsNewline);
+      builder.Append("    <DefineConstants>").Append(defineConstants).Append("</DefineConstants>").Append(k_WindowsNewline);
+      builder.Append("    <ErrorReport>prompt</ErrorReport>").Append(k_WindowsNewline);
+      builder.Append("    <WarningLevel>4</WarningLevel>").Append(k_WindowsNewline);
+      builder.Append("    <NoWarn>0169</NoWarn>").Append(k_WindowsNewline);
+      builder.Append("    <AllowUnsafeBlocks>").Append(island.compilerOptions.AllowUnsafeCode | responseFileDatas.Any(x => x.Unsafe)).Append("</AllowUnsafeBlocks>").Append(k_WindowsNewline);
+      builder.Append("  </PropertyGroup>").Append(k_WindowsNewline);
+      builder.Append("  <PropertyGroup Condition=\" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' \">").Append(k_WindowsNewline);
+      builder.Append("    <DebugType>pdbonly</DebugType>").Append(k_WindowsNewline);
+      builder.Append("    <Optimize>true</Optimize>").Append(k_WindowsNewline);
+      builder.Append("    <OutputPath>Temp\\bin\\Release\\</OutputPath>").Append(k_WindowsNewline);
+      builder.Append("    <ErrorReport>prompt</ErrorReport>").Append(k_WindowsNewline);
+      builder.Append("    <WarningLevel>4</WarningLevel>").Append(k_WindowsNewline);
+      builder.Append("    <NoWarn>0169</NoWarn>").Append(k_WindowsNewline);
+      builder.Append("    <AllowUnsafeBlocks>").Append(island.compilerOptions.AllowUnsafeCode | responseFileDatas.Any(x => x.Unsafe)).Append("</AllowUnsafeBlocks>").Append(k_WindowsNewline);
+      builder.Append("  </PropertyGroup>").Append(k_WindowsNewline);
+      builder.Append("  <PropertyGroup>").Append(k_WindowsNewline);
+      builder.Append("    <NoConfig>true</NoConfig>").Append(k_WindowsNewline);
+      builder.Append("    <NoStdLib>true</NoStdLib>").Append(k_WindowsNewline);
+      builder.Append("    <AddAdditionalExplicitAssemblyReferences>false</AddAdditionalExplicitAssemblyReferences>").Append(k_WindowsNewline);
+      builder.Append("    <ImplicitlyExpandNETStandardFacades>false</ImplicitlyExpandNETStandardFacades>").Append(k_WindowsNewline);
+      builder.Append("    <ImplicitlyExpandDesignTimeFacades>false</ImplicitlyExpandDesignTimeFacades>").Append(k_WindowsNewline);
+      builder.Append("  </PropertyGroup>").Append(k_WindowsNewline);
+      builder.Append("  <ItemGroup>").Append(k_WindowsNewline);
+      builder.Append("    <Reference Include=\"UnityEngine\">").Append(k_WindowsNewline);
+      builder.Append("      <HintPath>").Append(InternalEditorUtility.GetEngineAssemblyPath()).Append("</HintPath>").Append(k_WindowsNewline);
+      builder.Append("    </Reference>").Append(k_WindowsNewline);
+      builder.Append("    <Reference Include=\"UnityEditor\">").Append(k_WindowsNewline);
+      builder.Append("      <HintPath>").Append(InternalEditorUtility.GetEditorAssemblyPath()).Append("</HintPath>").Append(k_WindowsNewline);
+      builder.Append("    </Reference>").Append(k_WindowsNewline);
+      builder.Append("  </ItemGroup>").Append(k_WindowsNewline);
+      builder.Append("  <ItemGroup>").Append(k_WindowsNewline);
+      builder.Append(k_WindowsNewline);
+      return builder;
     }
 
     static string GetSolutionText()
@@ -740,84 +774,6 @@ namespace Packages.Rider.Editor
         @"  -->",
         @"</Project>",
         @"");
-    }
-
-    static string GetProjectHeaderTemplate()
-    {
-      var header = new[]
-      {
-        @"<?xml version=""1.0"" encoding=""utf-8""?>",
-        @"<Project ToolsVersion=""{0}"" DefaultTargets=""Build"" xmlns=""{6}"">",
-        @"  <PropertyGroup>",
-        @"    <LangVersion>{10}</LangVersion>",
-        @"  </PropertyGroup>",
-        @"  <PropertyGroup>",
-        @"    <Configuration Condition="" '$(Configuration)' == '' "">Debug</Configuration>",
-        @"    <Platform Condition="" '$(Platform)' == '' "">AnyCPU</Platform>",
-        @"    <ProductVersion>{1}</ProductVersion>",
-        @"    <SchemaVersion>2.0</SchemaVersion>",
-        @"    <RootNamespace>{8}</RootNamespace>",
-        @"    <ProjectGuid>{{{2}}}</ProjectGuid>",
-        @"    <OutputType>Library</OutputType>",
-        @"    <AppDesignerFolder>Properties</AppDesignerFolder>",
-        @"    <AssemblyName>{7}</AssemblyName>",
-        @"    <TargetFrameworkVersion>{9}</TargetFrameworkVersion>",
-        @"    <FileAlignment>512</FileAlignment>",
-        @"    <BaseDirectory>{11}</BaseDirectory>",
-        @"  </PropertyGroup>",
-        @"  <PropertyGroup Condition="" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' "">",
-        @"    <DebugSymbols>true</DebugSymbols>",
-        @"    <DebugType>full</DebugType>",
-        @"    <Optimize>false</Optimize>",
-        @"    <OutputPath>Temp\bin\Debug\</OutputPath>",
-        @"    <DefineConstants>{5}</DefineConstants>",
-        @"    <ErrorReport>prompt</ErrorReport>",
-        @"    <WarningLevel>4</WarningLevel>",
-        @"    <NoWarn>0169</NoWarn>",
-        @"    <AllowUnsafeBlocks>{12}</AllowUnsafeBlocks>",
-        @"  </PropertyGroup>",
-        @"  <PropertyGroup Condition="" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' "">",
-        @"    <DebugType>pdbonly</DebugType>",
-        @"    <Optimize>true</Optimize>",
-        @"    <OutputPath>Temp\bin\Release\</OutputPath>",
-        @"    <ErrorReport>prompt</ErrorReport>",
-        @"    <WarningLevel>4</WarningLevel>",
-        @"    <NoWarn>0169</NoWarn>",
-        @"    <AllowUnsafeBlocks>{12}</AllowUnsafeBlocks>",
-        @"  </PropertyGroup>"
-      };
-
-      var forceExplicitReferences = new[]
-      {
-        @"  <PropertyGroup>",
-        @"    <NoConfig>true</NoConfig>",
-        @"    <NoStdLib>true</NoStdLib>",
-        @"    <AddAdditionalExplicitAssemblyReferences>false</AddAdditionalExplicitAssemblyReferences>",
-        @"    <ImplicitlyExpandNETStandardFacades>false</ImplicitlyExpandNETStandardFacades>",
-        @"    <ImplicitlyExpandDesignTimeFacades>false</ImplicitlyExpandDesignTimeFacades>",
-        @"  </PropertyGroup>"
-      };
-
-      var itemGroupStart = new[]
-      {
-        @"  <ItemGroup>"
-      };
-
-      var footer = new[]
-      {
-        @"    <Reference Include=""UnityEngine"">",
-        @"      <HintPath>{3}</HintPath>",
-        @"    </Reference>",
-        @"    <Reference Include=""UnityEditor"">",
-        @"      <HintPath>{4}</HintPath>",
-        @"    </Reference>",
-        @"  </ItemGroup>",
-        @"  <ItemGroup>",
-        @""
-      };
-
-      var text = header.Concat(forceExplicitReferences).Concat(itemGroupStart).Concat(footer).ToArray();
-      return string.Join("\r\n", text);
     }
 
     void SyncSolution(IEnumerable<Assembly> islands)
