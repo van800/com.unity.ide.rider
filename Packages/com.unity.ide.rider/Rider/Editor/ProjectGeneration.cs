@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Security;
@@ -119,7 +120,7 @@ namespace Packages.Rider.Editor
     };*/
     static readonly Regex k_ScriptReferenceExpression = new Regex(
       @"^Library.ScriptAssemblies.(?<dllname>(?<project>.*)\.dll$)",
-      RegexOptions.Compiled | RegexOptions.IgnoreCase);
+      RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
 
     string[] m_ProjectSupportedExtensions = new string[0];
     bool m_ShouldGenerateAll;
@@ -252,7 +253,7 @@ namespace Packages.Rider.Editor
       if (extension == ".dll")
         return true;
 
-      if (file.ToLower().EndsWith(".asmdef", StringComparison.Ordinal))
+      if (file.ToLowerInvariant().EndsWith(".asmdef", StringComparison.Ordinal))
         return true;
 
       return IsSupportedExtension(extension);
@@ -280,7 +281,7 @@ namespace Packages.Rider.Editor
 
     static string GetExtensionOfSourceFile(string file)
     {
-      var ext = Path.GetExtension(file).ToLower();
+      var ext = Path.GetExtension(file).ToLowerInvariant();
       ext = ext.Substring(1); //strip dot
       return ext;
     }
@@ -571,7 +572,7 @@ namespace Packages.Rider.Editor
         if (!ShouldFileBePartOfSolution(file))
           continue;
 
-        var extension = Path.GetExtension(file).ToLower();
+        var extension = Path.GetExtension(file).ToLowerInvariant();
         var fullFile = EscapedRelativePathFor(file);
         if (".dll" != extension)
         {
@@ -693,7 +694,7 @@ namespace Packages.Rider.Editor
 
       try
       {
-        return string.Format(GetProjectHeaderTemplate(), arguments);
+        return string.Format(CultureInfo.InvariantCulture, GetProjectHeaderTemplate(), arguments);
       }
       catch (Exception)
       {
@@ -833,7 +834,7 @@ namespace Packages.Rider.Editor
       string projectEntries = GetProjectEntries(relevantIslands);
       string projectConfigurations = string.Join(k_WindowsNewline,
         relevantIslands.Select(i => GetProjectActiveConfigurations(ProjectGuid(i.outputPath))).ToArray());
-      return string.Format(GetSolutionText(), fileversion, vsversion, projectEntries, projectConfigurations);
+      return string.Format(CultureInfo.InvariantCulture, GetSolutionText(), fileversion, vsversion, projectEntries, projectConfigurations);
     }
 
     static IEnumerable<Assembly> RelevantIslandsForMode(IEnumerable<Assembly> islands)
@@ -848,7 +849,7 @@ namespace Packages.Rider.Editor
     /// </summary>
     string GetProjectEntries(IEnumerable<Assembly> islands)
     {
-      var projectEntries = islands.Select(i => string.Format(
+      var projectEntries = islands.Select(i => string.Format(CultureInfo.InvariantCulture,
         m_SolutionProjectEntryTemplate,
         SolutionGuid(i), Utility.FileNameWithoutExtension(i.outputPath), Path.GetFileName(ProjectFile(i)),
         ProjectGuid(i.outputPath)
@@ -862,7 +863,7 @@ namespace Packages.Rider.Editor
     /// </summary>
     string GetProjectActiveConfigurations(string projectGuid)
     {
-      return string.Format(
+      return string.Format(CultureInfo.InvariantCulture,
         m_SolutionProjectConfigurationTemplate,
         projectGuid);
     }
@@ -930,7 +931,7 @@ namespace Packages.Rider.Editor
 
     public static string GuidForSolution(string projectName, string sourceFileExtension)
     {
-      if (sourceFileExtension.ToLower() == "cs")
+      if (sourceFileExtension.ToLowerInvariant() == "cs")
         // GUID for a C# class library: http://www.codeproject.com/Reference/720512/List-of-Visual-Studio-Project-Type-GUIDs
         return "FAE04EC0-301F-11D3-BF4B-00C04F79EFBC";
 
@@ -947,7 +948,7 @@ namespace Packages.Rider.Editor
     {
       var guid = hash.Substring(0, 8) + "-" + hash.Substring(8, 4) + "-" + hash.Substring(12, 4) + "-" +
                  hash.Substring(16, 4) + "-" + hash.Substring(20, 12);
-      return guid.ToUpper();
+      return guid.ToUpperInvariant();
     }
 
     static string HashToString(byte[] bs)
