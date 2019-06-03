@@ -26,7 +26,10 @@ namespace Packages.Rider.Editor
         if (IsRiderInstallation(CodeEditor.CurrentEditorInstallation))
         {
           editor.CreateIfDoesntExist();
-          editor.m_Initiliazer.Initialize(CodeEditor.CurrentEditorInstallation);
+          if (ShouldLoadAssembly(CodeEditor.CurrentEditorInstallation))
+          {
+            editor.m_Initiliazer.Initialize(CodeEditor.CurrentEditorInstallation);
+          }
         }
       }
       catch (Exception e)
@@ -223,15 +226,21 @@ namespace Packages.Rider.Editor
       {
         return false;
       }
-      
+
       var fileInfo = new FileInfo(path);
       var filename = fileInfo.Name.ToLower();
       if (!filename.StartsWith("rider"))
         return false;
       var ver = RiderPathLocator.GetBuildNumber(path);
+      return Version.TryParse(ver, out var version);
+    }
+
+    static bool ShouldLoadAssembly(string path)
+    {
+      var ver = RiderPathLocator.GetBuildNumber(path);
       if (!Version.TryParse(ver, out var version))
         return false;
-      
+
       return version >= new Version("191.7141.156");
     }
 
