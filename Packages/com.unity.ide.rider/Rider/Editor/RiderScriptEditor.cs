@@ -204,11 +204,8 @@ namespace Packages.Rider.Editor
     {
       if (IsRiderInstallation(editorPath))
       {
-        try
-        {
-          installation = Installations.First(inst => inst.Path == editorPath);
-        }
-        catch (InvalidOperationException)
+        installation = Installations.FirstOrDefault(inst => inst.Path == editorPath);
+        if (installation.Name == null)
         {
           installation = new CodeEditor.Installation {Name = editorPath, Path = editorPath};
         }
@@ -228,11 +225,8 @@ namespace Packages.Rider.Editor
       }
 
       var fileInfo = new FileInfo(path);
-      var filename = fileInfo.Name.ToLower();
-      if (!filename.StartsWith("rider"))
-        return false;
-      var ver = RiderPathLocator.GetBuildNumber(path);
-      return Version.TryParse(ver, out var version);
+      var filename = fileInfo.Name.ToLowerInvariant();
+      return filename.StartsWith("rider", StringComparison.Ordinal);
     }
 
     static bool ShouldLoadAssembly(string path)
