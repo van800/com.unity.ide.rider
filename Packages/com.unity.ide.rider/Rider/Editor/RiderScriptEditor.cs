@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using Packages.Rider.Editor.Util;
 using Unity.CodeEditor;
 using UnityEditor;
 using UnityEngine;
@@ -23,12 +24,34 @@ namespace Packages.Rider.Editor
         var projectGeneration = new ProjectGeneration();
         var editor = new RiderScriptEditor(new Discovery(), projectGeneration);
         CodeEditor.Register(editor);
-        if (IsRiderInstallation(CodeEditor.CurrentEditorInstallation))
+        var path = CodeEditor.CurrentEditorInstallation;
+        if (IsRiderInstallation(path))
         {
           editor.CreateIfDoesntExist();
-          if (ShouldLoadAssembly(CodeEditor.CurrentEditorInstallation))
+          
+          if (SystemInfo.operatingSystemFamily != OperatingSystemFamily.Windows)
           {
-            editor.m_Initiliazer.Initialize(CodeEditor.CurrentEditorInstallation);
+            // in case of symlink
+            var realPath = FileSystemUtil.GetFinalPathName(path);
+            if (IsRiderInstallation(realPath))
+              path = realPath;
+            
+            if (SystemInfo.operatingSystemFamily == OperatingSystemFamily.Linux)
+            {
+              // case of snap installation
+              if (new FileInfo(path).Name.ToLowerInvariant() == "rider" &&
+                  new FileInfo(realPath).Name.ToLowerInvariant() == "snap")
+              {
+                var snapInstallPath = "/snap/rider/current/bin/rider.sh";
+                if (new FileInfo(snapInstallPath).Exists)
+                  path = snapInstallPath;
+              }
+            }
+          }
+
+          if (ShouldLoadAssembly(path))
+          {
+            editor.m_Initiliazer.Initialize(path);
           }
         }
       }
