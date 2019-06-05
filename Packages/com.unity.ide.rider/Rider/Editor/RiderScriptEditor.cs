@@ -276,7 +276,7 @@ namespace Packages.Rider.Editor
       if (!Version.TryParse(ver, out var version))
         return false;
 
-      return version >= new Version("181.7141.156");
+      return version >= new Version("191.7141.156");
     }
 
     public CodeEditor.Installation[] Installations => m_Discoverability.PathCallback();
