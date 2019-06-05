@@ -50,13 +50,16 @@ namespace Packages.Rider.Editor
         var method = handlerInstance.GetType()
           .GetMethod("OnOpenedAsset", new[] {typeof(string), typeof(int), typeof(int)});
         if (method == null) return false;
-        var assetFilePath = Path.GetFullPath(path);
+        var assetFilePath = path;
+        if (!string.IsNullOrEmpty(path))
+          assetFilePath = Path.GetFullPath(path);
         
         openResult = (bool) method.Invoke(handlerInstance, new object[] {assetFilePath, line, column});
       }
-      catch (Exception)
+      catch (Exception e)
       {
         Debug.Log("Unable to do OpenFile to Rider from dll, fallback to com.unity.ide.rider implementation.");
+        Debug.LogException(e);
       }
 
       return openResult;
