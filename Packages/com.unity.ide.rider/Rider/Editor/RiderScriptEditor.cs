@@ -24,31 +24,11 @@ namespace Packages.Rider.Editor
         var projectGeneration = new ProjectGeneration();
         var editor = new RiderScriptEditor(new Discovery(), projectGeneration);
         CodeEditor.Register(editor);
-        var path = CodeEditor.CurrentEditorInstallation;
+        
+        var path = GetCurrentEditorRealPath();
         if (IsRiderInstallation(path))
         {
           editor.CreateIfDoesntExist();
-          
-          if (SystemInfo.operatingSystemFamily != OperatingSystemFamily.Windows)
-          {
-            // in case of symlink
-            var realPath = FileSystemUtil.GetFinalPathName(path);
-            if (IsRiderInstallation(realPath))
-              path = realPath;
-            
-            if (SystemInfo.operatingSystemFamily == OperatingSystemFamily.Linux)
-            {
-              // case of snap installation
-              if (new FileInfo(path).Name.ToLowerInvariant() == "rider" &&
-                  new FileInfo(realPath).Name.ToLowerInvariant() == "snap")
-              {
-                var snapInstallPath = "/snap/rider/current/bin/rider.sh";
-                if (new FileInfo(snapInstallPath).Exists)
-                  path = snapInstallPath;
-              }
-            }
-          }
-
           if (ShouldLoadAssembly(path))
           {
             editor.m_Initiliazer.Initialize(path);
@@ -59,6 +39,32 @@ namespace Packages.Rider.Editor
       {
         Debug.LogException(e);
       }
+    }
+
+    private static string GetCurrentEditorRealPath()
+    {
+      var path = CodeEditor.CurrentEditorInstallation;
+      if (SystemInfo.operatingSystemFamily != OperatingSystemFamily.Windows)
+      {
+        var realPath = FileSystemUtil.GetFinalPathName(path);
+        
+        // case of snap installation
+        if (SystemInfo.operatingSystemFamily == OperatingSystemFamily.Linux)
+        {
+          if (new FileInfo(path).Name.ToLowerInvariant() == "rider" &&
+              new FileInfo(realPath).Name.ToLowerInvariant() == "snap")
+          {
+            var snapInstallPath = "/snap/rider/current/bin/rider.sh";
+            if (new FileInfo(snapInstallPath).Exists)
+              return snapInstallPath;
+          }
+        }
+        
+        // in case of symlink
+        return realPath;
+      }
+
+      return path;
     }
 
     const string unity_generate_all = "unity_generate_all_csproj";
@@ -136,16 +142,19 @@ namespace Packages.Rider.Editor
     
     public bool OpenProject(string path, int line, int column)
     {
-      if (!SupportsExtension(path))
+      if (path != string.Empty) // Assets - Open C# Project passes empty path here
       {
-        return false;
+        if (!SupportsExtension(path))
+        {
+          return false;
+        }
+
+        var fastOpenResult = EditorPluginInterop.OpenFileDllImplementation(path, line, column);
+
+        if (fastOpenResult)
+          return true;
       }
-
-      var fastOpenResult = EditorPluginInterop.OpenFileDllImplementation(path, line, column);
-
-      if (fastOpenResult)
-        return true;
-
+      
       if (IsOSX)
       {
         return OpenOSXApp(path, line, column);
