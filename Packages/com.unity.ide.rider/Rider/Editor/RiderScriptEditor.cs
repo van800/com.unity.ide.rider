@@ -43,6 +43,16 @@ namespace Packages.Rider.Editor
 
     private static string GetEditorRealPath(string path)
     {
+      if (string.IsNullOrEmpty(path))
+      {
+        return path;
+      }
+
+      if (!new FileInfo(path).Exists)
+      {
+        return path;
+      }
+      
       if (SystemInfo.operatingSystemFamily != OperatingSystemFamily.Windows)
       {
         var realPath = FileSystemUtil.GetFinalPathName(path);
