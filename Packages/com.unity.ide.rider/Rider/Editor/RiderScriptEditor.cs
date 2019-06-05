@@ -79,7 +79,7 @@ namespace Packages.Rider.Editor
     {
       get
       {
-        var customExtensions = new[] {"json", "asmdef"};
+        var customExtensions = new[] {"json", "asmdef", "log"};
         return EditorSettings.projectGenerationBuiltinExtensions.Concat(EditorSettings.projectGenerationUserExtensions)
           .Concat(customExtensions).Distinct().ToArray();
       }
@@ -266,7 +266,7 @@ namespace Packages.Rider.Editor
       if (!Version.TryParse(ver, out var version))
         return false;
 
-      return version >= new Version("191.7141.156");
+      return version >= new Version("181.7141.156");
     }
 
     public CodeEditor.Installation[] Installations => m_Discoverability.PathCallback();
