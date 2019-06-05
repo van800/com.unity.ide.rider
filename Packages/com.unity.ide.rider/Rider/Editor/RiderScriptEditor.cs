@@ -25,7 +25,7 @@ namespace Packages.Rider.Editor
         var editor = new RiderScriptEditor(new Discovery(), projectGeneration);
         CodeEditor.Register(editor);
         
-        var path = GetCurrentEditorRealPath();
+        var path = GetEditorRealPath(CodeEditor.CurrentEditorInstallation);
         if (IsRiderInstallation(path))
         {
           editor.CreateIfDoesntExist();
@@ -41,9 +41,8 @@ namespace Packages.Rider.Editor
       }
     }
 
-    private static string GetCurrentEditorRealPath()
+    private static string GetEditorRealPath(string path)
     {
-      var path = CodeEditor.CurrentEditorInstallation;
       if (SystemInfo.operatingSystemFamily != OperatingSystemFamily.Windows)
       {
         var realPath = FileSystemUtil.GetFinalPathName(path);
