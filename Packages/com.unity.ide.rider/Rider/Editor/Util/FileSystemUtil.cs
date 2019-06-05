@@ -19,11 +19,41 @@ namespace Packages.Rider.Editor.Util
       var result = LibcNativeInterop.realpath(path, sb);
       if (result == IntPtr.Zero)
       {
-        var exception = new Win32Exception($"{path} was not resolved.");
-        throw exception;
+        throw new Win32Exception($"{path} was not resolved.");
       }
 
       return new FileInfo(sb.ToString()).FullName;
+    }
+    
+    public static string FileNameWithoutExtension(string path)
+    {
+      if (string.IsNullOrEmpty(path))
+      {
+        return "";
+      }
+
+      var indexOfDot = -1;
+      var indexOfSlash = 0;
+      for (var i = path.Length - 1; i >= 0; i--)
+      {
+        if (indexOfDot == -1 && path[i] == '.')
+        {
+          indexOfDot = i;
+        }
+
+        if (indexOfSlash == 0 && path[i] == '/' || path[i] == '\\')
+        {
+          indexOfSlash = i + 1;
+          break;
+        }
+      }
+
+      if (indexOfDot == -1)
+      {
+        indexOfDot = path.Length - 1;
+      }
+
+      return path.Substring(indexOfSlash, indexOfDot - indexOfSlash);
     }
   }
 }

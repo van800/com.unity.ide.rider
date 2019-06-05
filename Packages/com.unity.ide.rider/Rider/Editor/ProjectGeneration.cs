@@ -6,6 +6,7 @@ using System.Security;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
+using Packages.Rider.Editor.Util;
 using UnityEditor;
 using UnityEditor.Compilation;
 using UnityEditor.PackageManager;
@@ -333,7 +334,7 @@ namespace Packages.Rider.Editor
             continue;
           }
 
-          assemblyName = Utility.FileNameWithoutExtension(assemblyName);
+          assemblyName = FileSystemUtil.FileNameWithoutExtension(assemblyName);
 
           if (!stringBuilders.TryGetValue(assemblyName, out var projectBuilder))
           {
@@ -559,7 +560,7 @@ namespace Packages.Rider.Editor
         }
       }
 
-      var assemblyName = Utility.FileNameWithoutExtension(assembly.outputPath);
+      var assemblyName = FileSystemUtil.FileNameWithoutExtension(assembly.outputPath);
 
       // Append additional non-script files that should be included in project generation.
       if (allAssetsProjectParts.TryGetValue(assemblyName, out var additionalAssetsForProject))
@@ -629,7 +630,7 @@ namespace Packages.Rider.Editor
       var escapedFullPath = SecurityElement.Escape(fullReference);
       escapedFullPath = escapedFullPath.Replace("\\", "/");
       escapedFullPath = escapedFullPath.Replace("\\\\", "/");
-      projectBuilder.Append(" <Reference Include=\"").Append(Utility.FileNameWithoutExtension(escapedFullPath))
+      projectBuilder.Append(" <Reference Include=\"").Append(FileSystemUtil.FileNameWithoutExtension(escapedFullPath))
         .Append("\">").Append(k_WindowsNewline);
       projectBuilder.Append(" <HintPath>").Append(escapedFullPath).Append("</HintPath>").Append(k_WindowsNewline);
       projectBuilder.Append(" </Reference>").Append(k_WindowsNewline);
@@ -637,7 +638,7 @@ namespace Packages.Rider.Editor
 
     public string ProjectFile(Assembly assembly)
     {
-      return Path.Combine(ProjectDirectory, $"{Utility.FileNameWithoutExtension(assembly.outputPath)}.csproj");
+      return Path.Combine(ProjectDirectory, $"{FileSystemUtil.FileNameWithoutExtension(assembly.outputPath)}.csproj");
     }
 
     public string SolutionFile()
@@ -659,7 +660,7 @@ namespace Packages.Rider.Editor
           new[] {"DEBUG", "TRACE"}.Concat(EditorUserBuildSettings.activeScriptCompilationDefines).Concat(island.defines)
             .Concat(responseFilesData.SelectMany(x => x.Defines)).Distinct().ToArray()),
         MSBuildNamespaceUri,
-        Utility.FileNameWithoutExtension(island.outputPath),
+        FileSystemUtil.FileNameWithoutExtension(island.outputPath),
         EditorSettings.projectGenerationRootNamespace,
         k_TargetFrameworkVersion,
         k_TargetLanguageVersion,
@@ -826,7 +827,7 @@ namespace Packages.Rider.Editor
     {
       var projectEntries = islands.Select(i => string.Format(
         m_SolutionProjectEntryTemplate,
-        SolutionGuid(i), Utility.FileNameWithoutExtension(i.outputPath), Path.GetFileName(ProjectFile(i)),
+        SolutionGuid(i), FileSystemUtil.FileNameWithoutExtension(i.outputPath), Path.GetFileName(ProjectFile(i)),
         ProjectGuid(i.outputPath)
       ));
 
@@ -878,7 +879,7 @@ namespace Packages.Rider.Editor
 
     string ProjectGuid(string assembly)
     {
-      return SolutionGuidGenerator.GuidForProject(m_ProjectName + Utility.FileNameWithoutExtension(assembly));
+      return SolutionGuidGenerator.GuidForProject(m_ProjectName + FileSystemUtil.FileNameWithoutExtension(assembly));
     }
 
     string SolutionGuid(Assembly island)

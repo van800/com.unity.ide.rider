@@ -2,9 +2,9 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Packages.Rider.Editor.Util;
 using Unity.CodeEditor;
 using UnityEditor;
-using UnityEditorInternal;
 using UnityEngine;
 
 namespace Packages.Rider.Editor
