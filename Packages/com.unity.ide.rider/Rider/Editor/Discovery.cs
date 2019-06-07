@@ -134,6 +134,11 @@ namespace Packages.Rider.Editor
         }
       }
 
+      // snap install
+      var snapInstallPath = "/snap/rider/current/bin/rider.sh";
+      if (new FileInfo(snapInstallPath).Exists)
+        paths.Add(new RiderInfo(snapInstallPath, false));
+      
       return paths.ToArray();
     }
 
