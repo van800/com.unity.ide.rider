@@ -77,20 +77,6 @@ namespace Packages.Rider.Editor
       private set { InvokeIfValidVersion(value, val => { EditorPrefs.SetString("Rider_TargetFrameworkVersion", val); }); }
     }
 
-    public static bool OverrideTargetFrameworkVersionOldMono
-    {
-      get { return EditorPrefs.GetBool("Rider_OverrideTargetFrameworkVersionOldMono", false); }
-      private set { EditorPrefs.SetBool("Rider_OverrideTargetFrameworkVersionOldMono", value);; }
-    }
-
-    private static string TargetFrameworkVersionOldMonoDefault = "3.5";
-
-    public static string TargetFrameworkVersionOldMono
-    {
-      get { return EditorPrefs.GetString("Rider_TargetFrameworkVersionOldMono", TargetFrameworkVersionOldMonoDefault); }
-      private set { InvokeIfValidVersion(value, val => { EditorPrefs.SetString("Rider_TargetFrameworkVersionOldMono", val); }); }
-    }
-
     public static bool OverrideLangVersion
     {
       get { return EditorPrefs.GetBool("Rider_OverrideLangVersion", false); }
@@ -157,19 +143,15 @@ namespace Packages.Rider.Editor
           LogEventsCollectorEnabled =
             EditorGUILayout.Toggle(new GUIContent("Pass Console to Rider:"), LogEventsCollectorEnabled);
 
-          OverrideTargetFrameworkVersionOldMono =
-            EditorGUILayout.Toggle(new GUIContent("Override TargetFrameworkVersion:"),
-              OverrideTargetFrameworkVersionOldMono);
-          if (OverrideTargetFrameworkVersionOldMono)
+          OverrideTargetFrameworkVersion = EditorGUILayout.Toggle(new GUIContent("Override TargetFrameworkVersion:"), OverrideTargetFrameworkVersion);
+          if (OverrideTargetFrameworkVersion)
           {
-            var helpOldMono = @"TargetFramework = 3.5 is recommended.
- - With 4.5 Rider may show ambiguous references in UniRx.";
-
-            TargetFrameworkVersionOldMono =
+            var help = @"TargetFramework >= 4.6 is recommended.";
+            TargetFrameworkVersion =
               EditorGUILayout.TextField(
-                new GUIContent("For Active profile NET 3.5:",
-                  helpOldMono), TargetFrameworkVersionOldMono);
-            EditorGUILayout.HelpBox(helpOldMono, MessageType.None);
+                new GUIContent("For Active profile NET 4.6",
+                  help), TargetFrameworkVersion);
+            EditorGUILayout.HelpBox(help, MessageType.None);
           }
 
           // Unity 2018.1 doesn't require installed dotnet framework, it references everything from Unity installation
