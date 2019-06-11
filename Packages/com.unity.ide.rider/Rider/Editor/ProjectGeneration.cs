@@ -628,8 +628,7 @@ namespace Packages.Rider.Editor
     {
       //replace \ with / and \\ with /
       var escapedFullPath = SecurityElement.Escape(fullReference);
-      escapedFullPath = escapedFullPath.Replace("\\", "/");
-      escapedFullPath = escapedFullPath.Replace("\\\\", "/");
+      escapedFullPath = escapedFullPath.Replace("\\\\", "/").Replace("\\", "/");
       projectBuilder.Append(" <Reference Include=\"").Append(FileSystemUtil.FileNameWithoutExtension(escapedFullPath))
         .Append("\">").Append(k_WindowsNewline);
       projectBuilder.Append(" <HintPath>").Append(escapedFullPath).Append("</HintPath>").Append(k_WindowsNewline);
