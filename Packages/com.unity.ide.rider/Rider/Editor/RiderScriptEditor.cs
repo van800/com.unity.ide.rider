@@ -29,7 +29,7 @@ namespace Packages.Rider.Editor
         if (IsRiderInstallation(path))
         {
           editor.CreateIfDoesntExist();
-          if (ShouldLoadAssembly(path))
+          if (ShouldLoadEditorPlugin(path))
           {
             editor.m_Initiliazer.Initialize(path);
           }
@@ -270,7 +270,10 @@ namespace Packages.Rider.Editor
       return filename.StartsWith("rider", StringComparison.Ordinal);
     }
 
-    static bool ShouldLoadAssembly(string path)
+    public static string CurrentEditor // works fast, doesn't validate if executable really exists
+      => EditorPrefs.GetString("kScriptsDefaultApp");
+
+    public static bool ShouldLoadEditorPlugin(string path)
     {
       var ver = RiderPathLocator.GetBuildNumber(path);
       if (!Version.TryParse(ver, out var version))
