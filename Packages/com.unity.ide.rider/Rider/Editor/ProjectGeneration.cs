@@ -191,14 +191,15 @@ namespace Packages.Rider.Editor
     public void Sync()
     {
       SetupProjectSupportedExtensions();
-      bool externalCodeAlreadyGeneratedProjects = OnPreGeneratingCSProjectFiles();
+      var types = GetAssetPostprocessorTypes();
+      bool externalCodeAlreadyGeneratedProjects = OnPreGeneratingCSProjectFiles(types);
 
       if (!externalCodeAlreadyGeneratedProjects)
       {
-        GenerateAndWriteSolutionAndProjects();
+        GenerateAndWriteSolutionAndProjects(types);
       }
-
-      OnGeneratedCSProjectFiles();
+      
+      OnGeneratedCSProjectFiles(types);
     }
 
     public bool HasSolutionBeenGenerated()
@@ -265,7 +266,7 @@ namespace Packages.Rider.Editor
         : ScriptingLanguage.None;
     }
 
-    public void GenerateAndWriteSolutionAndProjects()
+    public void GenerateAndWriteSolutionAndProjects(Type[] types)
     {
       // Only synchronize islands that have associated source files and ones that we actually want in the project.
       // This also filters out DLLs coming from .asmdef files in packages.
@@ -275,12 +276,12 @@ namespace Packages.Rider.Editor
 
       var monoIslands = assemblies.ToList();
 
-      SyncSolution(monoIslands);
+      SyncSolution(monoIslands, types);
       var allProjectIslands = RelevantIslandsForMode(monoIslands).ToList();
       foreach (Assembly assembly in allProjectIslands)
       {
         var responseFileData = ParseResponseFileData(assembly);
-        SyncProject(assembly, allAssetProjectParts, responseFileData, allProjectIslands);
+        SyncProject(assembly, allAssetProjectParts, responseFileData, allProjectIslands, types);
       }
     }
 
@@ -376,32 +377,33 @@ namespace Packages.Rider.Editor
       Assembly island,
       Dictionary<string, string> allAssetsProjectParts,
       IEnumerable<ResponseFileData> responseFilesData,
-      List<Assembly> allProjectIslands)
+      List<Assembly> allProjectIslands,
+      Type[] types)
     {
       SyncProjectFileIfNotChanged(ProjectFile(island),
-        ProjectText(island, allAssetsProjectParts, responseFilesData, allProjectIslands));
+        ProjectText(island, allAssetsProjectParts, responseFilesData, allProjectIslands), types);
     }
 
-    void SyncProjectFileIfNotChanged(string path, string newContents)
+    void SyncProjectFileIfNotChanged(string path, string newContents, Type[] types)
     {
       if (Path.GetExtension(path) == ".csproj")
       {
-        newContents = OnGeneratedCSProject(path, newContents);
+        newContents = OnGeneratedCSProject(path, newContents, types);
       }
 
       SyncFileIfNotChanged(path, newContents);
     }
 
-    void SyncSolutionFileIfNotChanged(string path, string newContents)
+    void SyncSolutionFileIfNotChanged(string path, string newContents, Type[] types)
     {
-      newContents = OnGeneratedSlnSolution(path, newContents);
+      newContents = OnGeneratedSlnSolution(path, newContents, types);
 
       SyncFileIfNotChanged(path, newContents);
     }
 
     static List<Type> SafeGetTypes(System.Reflection.Assembly a)
     {
-      var ret = new List<Type>();
+      List<Type> ret;
 
       try
       {
@@ -419,10 +421,8 @@ namespace Packages.Rider.Editor
       return ret.Where(r => r != null).ToList();
     }
 
-    static void OnGeneratedCSProjectFiles()
+    static void OnGeneratedCSProjectFiles(Type[] types)
     {
-      IEnumerable<Type> types = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => SafeGetTypes(x))
-        .Where(x => typeof(AssetPostprocessor).IsAssignableFrom(x) && !x.IsInterface && !x.IsAbstract);
       var args = new object[0];
       foreach (var type in types)
       {
@@ -438,10 +438,14 @@ namespace Packages.Rider.Editor
       }
     }
 
-    static bool OnPreGeneratingCSProjectFiles()
+    public static Type[] GetAssetPostprocessorTypes()
     {
-      IEnumerable<Type> types = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => SafeGetTypes(x))
-        .Where(x => typeof(AssetPostprocessor).IsAssignableFrom(x) && !x.IsInterface && !x.IsAbstract);
+      return AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => SafeGetTypes(x))
+        .Where(x => typeof(AssetPostprocessor).IsAssignableFrom(x) && !x.IsInterface && !x.IsAbstract).ToArray();
+    }
+
+    static bool OnPreGeneratingCSProjectFiles(Type[] types)
+    {
       bool result = false;
       foreach (var type in types)
       {
@@ -464,10 +468,8 @@ namespace Packages.Rider.Editor
       return result;
     }
 
-    static string OnGeneratedCSProject(string path, string content)
+    static string OnGeneratedCSProject(string path, string content, Type[] types)
     {
-      IEnumerable<Type> types = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => SafeGetTypes(x))
-        .Where(x => typeof(AssetPostprocessor).IsAssignableFrom(x) && !x.IsInterface && !x.IsAbstract);
       foreach (var type in types)
       {
         var args = new[] {path, content};
@@ -489,10 +491,8 @@ namespace Packages.Rider.Editor
       return content;
     }
 
-    static string OnGeneratedSlnSolution(string path, string content)
+    static string OnGeneratedSlnSolution(string path, string content, Type[] types)
     {
-      IEnumerable<Type> types = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => SafeGetTypes(x))
-        .Where(x => typeof(AssetPostprocessor).IsAssignableFrom(x) && !x.IsInterface && !x.IsAbstract);
       foreach (var type in types)
       {
         var args = new[] {path, content};
@@ -628,8 +628,7 @@ namespace Packages.Rider.Editor
     {
       //replace \ with / and \\ with /
       var escapedFullPath = SecurityElement.Escape(fullReference);
-      escapedFullPath = escapedFullPath.Replace("\\", "/");
-      escapedFullPath = escapedFullPath.Replace("\\\\", "/");
+      escapedFullPath = escapedFullPath.Replace("\\\\", "/").Replace("\\", "/");
       projectBuilder.Append(" <Reference Include=\"").Append(FileSystemUtil.FileNameWithoutExtension(escapedFullPath))
         .Append("\">").Append(k_WindowsNewline);
       projectBuilder.Append(" <HintPath>").Append(escapedFullPath).Append("</HintPath>").Append(k_WindowsNewline);
@@ -796,9 +795,9 @@ namespace Packages.Rider.Editor
       return string.Join("\r\n", text);
     }
 
-    void SyncSolution(IEnumerable<Assembly> islands)
+    void SyncSolution(IEnumerable<Assembly> islands, Type[] types)
     {
-      SyncSolutionFileIfNotChanged(SolutionFile(), SolutionText(islands));
+      SyncSolutionFileIfNotChanged(SolutionFile(), SolutionText(islands), types);
     }
 
     string SolutionText(IEnumerable<Assembly> islands)
