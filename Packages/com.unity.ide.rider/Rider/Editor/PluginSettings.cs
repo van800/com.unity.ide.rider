@@ -137,7 +137,7 @@ namespace Packages.Rider.Editor
           EditorGUIUtility.labelWidth = 200f;
           EditorGUILayout.BeginVertical();
 
-          GUI.enabled = RiderScriptEditor.IsRiderInstallation(CodeEditor.CurrentEditorInstallation);
+          GUI.enabled = RiderScriptEditor.IsRiderInstallation(EditorPrefs.GetString("kScriptsDefaultApp"));
 
           GUILayout.BeginVertical();
           LogEventsCollectorEnabled =
