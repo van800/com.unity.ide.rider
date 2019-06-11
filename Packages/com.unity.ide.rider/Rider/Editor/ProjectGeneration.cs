@@ -438,7 +438,7 @@ namespace Packages.Rider.Editor
       }
     }
 
-    private static Type[] GetAssetPostprocessorTypes()
+    public static Type[] GetAssetPostprocessorTypes()
     {
       return AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => SafeGetTypes(x))
         .Where(x => typeof(AssetPostprocessor).IsAssignableFrom(x) && !x.IsInterface && !x.IsAbstract).ToArray();
