@@ -141,8 +141,7 @@ namespace Packages.Rider.Editor
 
     public void SyncAll()
     {
-      AssetDatabase.Refresh();
-      m_ProjectGeneration.Sync();
+      AssetDatabase.Refresh(); // refresh would automatically call SyncIfNeeded for changed files
     }
 
     public void Initialize(string editorInstallationPath) // is called each time ExternalEditor is changed
