@@ -128,8 +128,11 @@ namespace Packages.Rider.Editor
       }
       
       m_ProjectGeneration.GenerateAll(generateAll);
-      
-      HandledExtensionsString = EditorGUILayout.TextField(new GUIContent("Extensions handled: "), HandledExtensionsString);
+
+      if (ShouldLoadEditorPlugin(CurrentEditor))
+      {
+        HandledExtensionsString = EditorGUILayout.TextField(new GUIContent("Extensions handled: "), HandledExtensionsString);  
+      }
     }
 
     public void SyncIfNeeded(string[] addedFiles, string[] deletedFiles, string[] movedFiles, string[] movedFromFiles,
