@@ -240,14 +240,14 @@ namespace Packages.Rider.Editor
 
     public bool TryGetInstallationForPath(string editorPath, out CodeEditor.Installation installation)
     {
-      if (IsRiderInstallation(editorPath))
+      if (new FileInfo(editorPath).Exists && IsRiderInstallation(editorPath))
       {
-        installation = Installations.FirstOrDefault(inst => inst.Path == editorPath);
-        if (installation.Name == null)
+        var info = new RiderPathLocator.RiderInfo(editorPath, false);
+        installation = new CodeEditor.Installation
         {
-          installation = new CodeEditor.Installation {Name = editorPath, Path = editorPath};
-        }
-
+          Name = info.Presentation,
+          Path = info.Path
+        };
         return true;
       }
 
