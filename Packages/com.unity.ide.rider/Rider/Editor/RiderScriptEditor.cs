@@ -145,8 +145,9 @@ namespace Packages.Rider.Editor
       m_ProjectGeneration.Sync();
     }
 
-    public void Initialize(string editorInstallationPath)
+    public void Initialize(string editorInstallationPath) // is called each time ExternalEditor is changed
     {
+      m_ProjectGeneration.Sync(); // regenerate csproj and sln for new editor
     }
     
     public bool OpenProject(string path, int line, int column)
