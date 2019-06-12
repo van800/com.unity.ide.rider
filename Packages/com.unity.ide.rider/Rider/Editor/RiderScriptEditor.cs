@@ -149,22 +149,18 @@ namespace Packages.Rider.Editor
     {
       m_ProjectGeneration.Sync(); // regenerate csproj and sln for new editor
     }
-    
+
     public bool OpenProject(string path, int line, int column)
     {
-      if (path != string.Empty) // Assets - Open C# Project passes empty path here
+      if (path != "" && !SupportsExtension(path)) // Assets - Open C# Project passes empty path here
       {
-        if (!SupportsExtension(path))
-        {
-          return false;
-        }
-
-        var fastOpenResult = EditorPluginInterop.OpenFileDllImplementation(path, line, column);
-
-        if (fastOpenResult)
-          return true;
+        return false;
       }
-      
+
+      var fastOpenResult = EditorPluginInterop.OpenFileDllImplementation(path, line, column);
+      if (fastOpenResult)
+        return true;
+
       if (IsOSX)
       {
         return OpenOSXApp(path, line, column);
