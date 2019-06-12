@@ -53,7 +53,9 @@ namespace Packages.Rider.Editor
     [SettingsProvider]
     private static SettingsProvider RiderPreferencesItem()
     {
-      if (!RiderScriptEditor.IsRiderInstallation(CodeEditor.CurrentEditorInstallation))
+      if (!RiderScriptEditor.IsRiderInstallation(RiderScriptEditor.CurrentEditor))
+        return null;
+      if (!RiderScriptEditor.ShouldLoadEditorPlugin(RiderScriptEditor.CurrentEditor))
         return null;
       var provider = new SettingsProvider("Preferences/Rider", SettingsScope.User)
       {
@@ -63,8 +65,6 @@ namespace Packages.Rider.Editor
         {
           EditorGUIUtility.labelWidth = 200f;
           EditorGUILayout.BeginVertical();
-
-          GUI.enabled = RiderScriptEditor.IsRiderInstallation(EditorPrefs.GetString("kScriptsDefaultApp"));
 
           GUILayout.BeginVertical();
           LogEventsCollectorEnabled =

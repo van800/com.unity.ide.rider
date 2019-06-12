@@ -29,7 +29,7 @@ namespace Packages.Rider.Editor
         if (IsRiderInstallation(path))
         {
           editor.CreateIfDoesntExist();
-          if (ShouldLoadAssembly(path))
+          if (ShouldLoadEditorPlugin(path))
           {
             editor.m_Initiliazer.Initialize(path);
           }
@@ -128,8 +128,11 @@ namespace Packages.Rider.Editor
       }
       
       m_ProjectGeneration.GenerateAll(generateAll);
-      
-      HandledExtensionsString = EditorGUILayout.TextField(new GUIContent("Extensions handled: "), HandledExtensionsString);
+
+      if (ShouldLoadEditorPlugin(CurrentEditor))
+      {
+        HandledExtensionsString = EditorGUILayout.TextField(new GUIContent("Extensions handled: "), HandledExtensionsString);  
+      }
     }
 
     public void SyncIfNeeded(string[] addedFiles, string[] deletedFiles, string[] movedFiles, string[] movedFromFiles,
@@ -266,7 +269,10 @@ namespace Packages.Rider.Editor
       return filename.StartsWith("rider", StringComparison.Ordinal);
     }
 
-    static bool ShouldLoadAssembly(string path)
+    public static string CurrentEditor // works fast, doesn't validate if executable really exists
+      => EditorPrefs.GetString("kScriptsDefaultApp");
+
+    public static bool ShouldLoadEditorPlugin(string path)
     {
       var ver = RiderPathLocator.GetBuildNumber(path);
       if (!Version.TryParse(ver, out var version))
