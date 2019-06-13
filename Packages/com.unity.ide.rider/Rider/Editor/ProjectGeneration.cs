@@ -441,7 +441,10 @@ namespace Packages.Rider.Editor
     public static Type[] GetAssetPostprocessorTypes()
     {
       return AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => SafeGetTypes(x))
-        .Where(x => typeof(AssetPostprocessor).IsAssignableFrom(x) && !x.IsInterface && !x.IsAbstract).ToArray();
+        .Where(x => typeof(AssetPostprocessor).IsAssignableFrom(x) && !x.IsInterface && !x.IsAbstract 
+            && x.FullName != "JetBrains.Rider.Unity.Editor.AssetPostprocessors.CsprojAssetPostprocessor") // all functionality reimplemented, so don't call it. causes perf degradation
+        .ToArray();
+      //return TypeCache.GetTypesDerivedFrom<AssetPostprocessor>().ToArray(); // doesn't find types from EditorPlugin
     }
 
     static bool OnPreGeneratingCSProjectFiles(Type[] types)
@@ -662,7 +665,7 @@ namespace Packages.Rider.Editor
         FileSystemUtil.FileNameWithoutExtension(island.outputPath),
         EditorSettings.projectGenerationRootNamespace,
         k_TargetFrameworkVersion,
-        k_TargetLanguageVersion,
+        PluginSettings.OverrideLangVersion?PluginSettings.LangVersion:k_TargetLanguageVersion,
         k_BaseDirectory,
         island.compilerOptions.AllowUnsafeCode | responseFilesData.Any(x => x.Unsafe)
       };
@@ -725,6 +728,9 @@ namespace Packages.Rider.Editor
         @"<Project ToolsVersion=""{0}"" DefaultTargets=""Build"" xmlns=""{6}"">",
         @"  <PropertyGroup>",
         @"    <LangVersion>{10}</LangVersion>",
+        @"    <_TargetFrameworkDirectories>non_empty_path_generated_by_unity.rider.package</_TargetFrameworkDirectories>",
+        @"    <_FullFrameworkReferenceAssemblyPaths>non_empty_path_generated_by_unity.rider.package</_FullFrameworkReferenceAssemblyPaths>", 
+        @"    <DisableHandlePackageFileConflicts>true</DisableHandlePackageFileConflicts>",
         @"  </PropertyGroup>",
         @"  <PropertyGroup>",
         @"    <Configuration Condition="" '$(Configuration)' == '' "">Debug</Configuration>",
