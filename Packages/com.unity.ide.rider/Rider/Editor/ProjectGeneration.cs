@@ -440,11 +440,7 @@ namespace Packages.Rider.Editor
 
     public static Type[] GetAssetPostprocessorTypes()
     {
-      return AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => SafeGetTypes(x))
-        .Where(x => typeof(AssetPostprocessor).IsAssignableFrom(x) && !x.IsInterface && !x.IsAbstract 
-            && x.FullName != "JetBrains.Rider.Unity.Editor.AssetPostprocessors.CsprojAssetPostprocessor") // all functionality reimplemented, so don't call it. causes perf degradation
-        .ToArray();
-      //return TypeCache.GetTypesDerivedFrom<AssetPostprocessor>().ToArray(); // doesn't find types from EditorPlugin
+      return TypeCache.GetTypesDerivedFrom<AssetPostprocessor>().ToArray(); // doesn't find types from EditorPlugin, which is fine
     }
 
     static bool OnPreGeneratingCSProjectFiles(Type[] types)
