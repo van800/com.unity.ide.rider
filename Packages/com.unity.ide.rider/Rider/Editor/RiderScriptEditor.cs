@@ -48,11 +48,9 @@ namespace Packages.Rider.Editor
         return path;
       }
 
-      if (!new FileInfo(path).Exists)
-      {
+      if (!FileSystemUtil.EditorPathExists(path))
         return path;
-      }
-      
+
       if (SystemInfo.operatingSystemFamily != OperatingSystemFamily.Windows)
       {
         var realPath = FileSystemUtil.GetFinalPathName(path);
@@ -243,7 +241,7 @@ namespace Packages.Rider.Editor
 
     public bool TryGetInstallationForPath(string editorPath, out CodeEditor.Installation installation)
     {
-      if (new FileInfo(editorPath).Exists && IsRiderInstallation(editorPath))
+      if (FileSystemUtil.EditorPathExists(editorPath) && IsRiderInstallation(editorPath))
       {
         var info = new RiderPathLocator.RiderInfo(editorPath, false);
         installation = new CodeEditor.Installation

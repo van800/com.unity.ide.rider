@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Text;
 using JetBrains.Annotations;
+using UnityEngine;
 
 namespace Packages.Rider.Editor.Util
 {
@@ -54,6 +55,12 @@ namespace Packages.Rider.Editor.Util
       }
 
       return path.Substring(indexOfSlash, indexOfDot - indexOfSlash);
+    }
+    
+    public static bool EditorPathExists(string editorPath)
+    {
+      return SystemInfo.operatingSystemFamily == OperatingSystemFamily.MacOSX && new DirectoryInfo(editorPath).Exists 
+             || SystemInfo.operatingSystemFamily != OperatingSystemFamily.MacOSX && new FileInfo(editorPath).Exists;
     }
   }
 }
