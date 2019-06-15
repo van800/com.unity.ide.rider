@@ -167,9 +167,8 @@ namespace Packages.Rider.Editor
     public bool SyncIfNeeded(IEnumerable<string> affectedFiles, IEnumerable<string> reimportedFiles)
     {
       SetupProjectSupportedExtensions();
-
-      // Don't sync if we haven't synced before
-      if (HasSolutionBeenGenerated() && HasFilesBeenModified(affectedFiles, reimportedFiles))
+      
+      if (HasFilesBeenModified(affectedFiles, reimportedFiles))
       {
         Sync();
         return true;
