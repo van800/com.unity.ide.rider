@@ -28,6 +28,12 @@ namespace Packages.Rider.Editor
         var path = GetEditorRealPath(CodeEditor.CurrentEditorInstallation);
         if (IsRiderInstallation(path))
         {
+          if (!FileSystemUtil.EditorPathExists(path)) // previously used rider was removed
+          {
+            var newEditor = editor.Installations.Last().Path;
+            CodeEditor.SetExternalScriptEditor(newEditor);
+          }
+          
           editor.CreateSolutionIfDoesntExist();
           if (ShouldLoadEditorPlugin(path))
           {
