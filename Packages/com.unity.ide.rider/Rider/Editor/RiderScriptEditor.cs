@@ -32,6 +32,7 @@ namespace Packages.Rider.Editor
           {
             var newEditor = editor.Installations.Last().Path;
             CodeEditor.SetExternalScriptEditor(newEditor);
+            path = newEditor;
           }
           
           editor.CreateSolutionIfDoesntExist();
