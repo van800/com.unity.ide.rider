@@ -32,7 +32,7 @@ namespace Packages.Rider.Tests.Editor
         [SetUp]
         public void SetUp() {
             var codeEditor = new RiderScriptEditor(new Mock<IDiscovery>().Object, new ProjectGeneration());
-            codeEditor.CreateIfDoesntExist();
+            codeEditor.CreateSolutionIfDoesntExist();
         }
 
         [TearDown]

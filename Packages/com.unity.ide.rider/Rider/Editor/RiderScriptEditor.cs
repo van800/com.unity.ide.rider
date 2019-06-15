@@ -28,7 +28,7 @@ namespace Packages.Rider.Editor
         var path = GetEditorRealPath(CodeEditor.CurrentEditorInstallation);
         if (IsRiderInstallation(path))
         {
-          editor.CreateIfDoesntExist();
+          editor.CreateSolutionIfDoesntExist();
           if (ShouldLoadEditorPlugin(path))
           {
             editor.m_Initiliazer.Initialize(path);
@@ -282,7 +282,7 @@ namespace Packages.Rider.Editor
 
     public CodeEditor.Installation[] Installations => m_Discoverability.PathCallback();
 
-    public void CreateIfDoesntExist()
+    public void CreateSolutionIfDoesntExist()
     {
       if (!m_ProjectGeneration.HasSolutionBeenGenerated())
       {
