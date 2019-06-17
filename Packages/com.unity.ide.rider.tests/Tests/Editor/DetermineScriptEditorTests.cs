@@ -15,7 +15,7 @@ namespace Packages.Rider.Tests.Editor
         public void OSXPathDiscovery()
         {
             var path = Path.Combine(new DirectoryInfo(Directory.GetCurrentDirectory()).FullName,
-                @"Packages\com.unity.ide.rider.tests\Tests\Data\DetermineScriptEditor\Rider.app");
+                @"Packages\com.unity.ide.rider.tests\Tests\Data\DetermineScriptEditorTests\Rider.app");
             Discover(path);
         }
         
@@ -25,7 +25,7 @@ namespace Packages.Rider.Tests.Editor
         public void WindowsPathDiscovery()
         {
             var path = Path.Combine(new DirectoryInfo(Directory.GetCurrentDirectory()).FullName,
-                @"Packages\com.unity.ide.rider.tests\Tests\Data\DetermineScriptEditor\191.7141.355\bin\rider64.exe");
+                @"Packages\com.unity.ide.rider.tests\Tests\Data\DetermineScriptEditorTests\191.7141.355\bin\rider64.exe");
             Discover(path);
         }
 
@@ -33,7 +33,7 @@ namespace Packages.Rider.Tests.Editor
         public void LinuxPathDiscovery()
         {
             var path = Path.Combine(new DirectoryInfo(Directory.GetCurrentDirectory()).FullName,
-                @"Packages\com.unity.ide.rider.tests\Tests\Data\DetermineScriptEditor\191.7141.355\bin\rider.sh");
+                @"Packages\com.unity.ide.rider.tests\Tests\Data\DetermineScriptEditorTests\191.7141.355\bin\rider.sh");
             Discover(path);
         }
 
