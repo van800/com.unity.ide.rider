@@ -110,7 +110,6 @@ namespace Packages.Rider.Editor
     }
 
     const string unity_generate_all = "unity_generate_all_csproj";
-    static bool IsOSX => Application.platform == RuntimePlatform.OSXEditor;
 
     public RiderScriptEditor(IDiscovery discovery, IGenerator projectGeneration)
     {
@@ -196,16 +195,22 @@ namespace Packages.Rider.Editor
       {
         return false;
       }
+      
+      if (path == "" && SystemInfo.operatingSystemFamily == OperatingSystemFamily.MacOSX)
+      {
+        // there is a bug in DllImplementation - use package implementation here instead https://github.cds.internal.unity3d.com/unity/com.unity.ide.rider/issues/21
+        return OpenOSXApp(path, line, column);
+      }
 
       var fastOpenResult = EditorPluginInterop.OpenFileDllImplementation(path, line, column);
       if (fastOpenResult)
         return true;
-
-      if (IsOSX)
+      
+      if (SystemInfo.operatingSystemFamily == OperatingSystemFamily.MacOSX)
       {
         return OpenOSXApp(path, line, column);
       }
-
+      
       var solution = GetSolutionFile(path); // TODO: If solution file doesn't exist resync.
       solution = solution == "" ? "" : $"\"{solution}\"";
       var process = new Process
@@ -233,7 +238,7 @@ namespace Packages.Rider.Editor
         StartInfo = new ProcessStartInfo
         {
           FileName = "open",
-          Arguments = $"\"{CodeEditor.CurrentEditorInstallation}\" --args {solution} {pathArguments}",
+          Arguments = $"-n \"{CodeEditor.CurrentEditorInstallation}\" --args {solution} {pathArguments}",
           CreateNoWindow = true,
           UseShellExecute = true,
         }
