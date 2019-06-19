@@ -24,6 +24,7 @@ namespace Packages.Rider.Editor
           Path = riderInfo.Path,
           Name = riderInfo.Presentation
         })
+        .OrderBy(a=>a.Name)
         .ToArray();
     }
   }

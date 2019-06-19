@@ -28,17 +28,52 @@ namespace Packages.Rider.Editor
         var path = GetEditorRealPath(CodeEditor.CurrentEditorInstallation);
         if (IsRiderInstallation(path))
         {
-          editor.CreateIfDoesntExist();
+          if (!FileSystemUtil.EditorPathExists(path)) // previously used rider was removed
+          {
+            var newEditor = editor.Installations.Last().Path;
+            CodeEditor.SetExternalScriptEditor(newEditor);
+            path = newEditor;
+          }
+          
+          editor.CreateSolutionIfDoesntExist();
           if (ShouldLoadEditorPlugin(path))
           {
             editor.m_Initiliazer.Initialize(path);
           }
+
+          InitProjectFilesWatcher();
         }
       }
       catch (Exception e)
       {
         Debug.LogException(e);
       }
+    }
+
+    private static void InitProjectFilesWatcher()
+    {
+      var watcher = new FileSystemWatcher();
+      watcher.Path = Directory.GetCurrentDirectory();
+      watcher.NotifyFilter = NotifyFilters.LastWrite; //Watch for changes in LastWrite times
+      watcher.Filter = "*.*";
+
+      // Add event handlers.
+      watcher.Changed += OnChanged;
+      watcher.Created += OnChanged;
+
+      watcher.EnableRaisingEvents = true; // Begin watching.
+      
+      AppDomain.CurrentDomain.DomainUnload += (EventHandler) ((_, __) =>
+      {
+        watcher.Dispose();
+      });
+    }
+
+    private static void OnChanged(object sender, FileSystemEventArgs e)
+    {
+      var extension = Path.GetExtension(e.FullPath);
+      if (extension == ".sln" || extension == ".csproj") 
+        RiderScriptEditorData.instance.HasChanges = true;
     }
 
     private static string GetEditorRealPath(string path)
@@ -143,7 +178,11 @@ namespace Packages.Rider.Editor
     public void SyncAll()
     {
       AssetDatabase.Refresh();
-      m_ProjectGeneration.Sync();
+      if (RiderScriptEditorData.instance.HasChanges)
+      {
+        m_ProjectGeneration.Sync();
+        RiderScriptEditorData.instance.HasChanges = false;
+      }
     }
 
     public void Initialize(string editorInstallationPath) // is called each time ExternalEditor is changed
@@ -282,7 +321,7 @@ namespace Packages.Rider.Editor
 
     public CodeEditor.Installation[] Installations => m_Discoverability.PathCallback();
 
-    public void CreateIfDoesntExist()
+    public void CreateSolutionIfDoesntExist()
     {
       if (!m_ProjectGeneration.HasSolutionBeenGenerated())
       {
