@@ -33,8 +33,7 @@ namespace Packages.Rider.Editor.UnitTesting
 
         public void TestStarted(ITestAdaptor result)
         {
-//          if (!(result is TestMethod)) return;
-if (result.Method == null) return;
+          if (result.Method == null) return;
           
           CallbackData.instance.DelayedEvents.Add(
             new TestEvent(EventType.TestStarted, result.UniqueName, result.Method.TypeInfo.Assembly.GetName().Name, "", 0, "", result.ParentId));
@@ -42,8 +41,6 @@ if (result.Method == null) return;
 
         public void TestFinished(ITestResultAdaptor result)
         {
-//          if (!(result.Test.Method is TestMethod)) return;
-//          
           if (result.Test.Method == null) return;
           
           CallbackData.instance.DelayedEvents.Add(
