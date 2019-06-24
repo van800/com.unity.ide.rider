@@ -1,6 +1,6 @@
 using System;
 
-namespace Editor
+namespace Packages.Rider.Editor.UnitTesting
 {
   [Serializable]
   public enum EventType { TestStarted, TestFinished, RunFinished }
