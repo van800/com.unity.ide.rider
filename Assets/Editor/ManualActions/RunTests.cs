@@ -10,6 +10,8 @@ namespace Editor
         [MenuItem("Tests/Run tests in PlayMode")]
         static void RunTestsInPlayMode()
         {
+            CallbackData.instance.isRider = true;
+            
             var api = ScriptableObject.CreateInstance<TestRunnerApi>();
             api.Execute(new ExecutionSettings()
             {

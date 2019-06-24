@@ -7,13 +7,15 @@ using UnityEngine.TestTools.TestRunner.GUI;
 
 namespace Packages.Rider.Editor.UnitTesting
 {
-  internal class CallbackData : ScriptableSingleton<CallbackData>
+  public class CallbackData : ScriptableSingleton<CallbackData>
   {
     [SerializeField]
     internal TestRunnerFilter runFilter;
 
     [SerializeField]
     internal TestMode testMode;
+    
+    public bool isRider;
         
     public List<TestEvent> DelayedEvents = new List<TestEvent>();
   }

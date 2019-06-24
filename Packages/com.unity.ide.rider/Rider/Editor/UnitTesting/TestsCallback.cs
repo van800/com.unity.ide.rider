@@ -1,6 +1,5 @@
 using Editor;
 using NUnit.Framework.Interfaces;
-using NUnit.Framework.Internal;
 using UnityEditor;
 using UnityEditor.TestTools.TestRunner.Api;
 using UnityEngine;
@@ -12,6 +11,8 @@ namespace Packages.Rider.Editor.UnitTesting
     {
         public void RunFinished(ITestResultAdaptor result)
         {
+          CallbackData.instance.isRider = false;
+          
           if (EditorApplication.isPlaying)
           {
             EditorApplication.playModeStateChanged += WaitForExitPlaymode;

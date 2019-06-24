@@ -10,7 +10,8 @@ namespace Packages.Rider.Editor.UnitTesting
   {
     static CallbackInitializer()
     {
-      ScriptableObject.CreateInstance<TestRunnerApi>().RegisterCallbacks(ScriptableObject.CreateInstance<TestsCallback>(), 0);
+      if (CallbackData.instance.isRider)
+        ScriptableObject.CreateInstance<TestRunnerApi>().RegisterCallbacks(ScriptableObject.CreateInstance<TestsCallback>(), 0);
     }
   }
 }
