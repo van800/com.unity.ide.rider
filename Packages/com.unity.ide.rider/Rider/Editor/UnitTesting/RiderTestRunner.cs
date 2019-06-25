@@ -1,3 +1,4 @@
+using JetBrains.Annotations;
 using UnityEditor.TestTools.TestRunner.Api;
 using UnityEngine;
 
@@ -5,6 +6,7 @@ namespace Packages.Rider.Editor.UnitTesting
 {
   public static class RiderTestRunner
   {
+    [UsedImplicitly]
     public static void RunTests(int testMode, string[] assemblyNames, string[] testNames, string[] categoryNames, string[] groupNames)
     {
       CallbackData.instance.isRider = true;
@@ -18,8 +20,7 @@ namespace Packages.Rider.Editor.UnitTesting
          assemblyNames = assemblyNames,
          testNames = testNames,
          categoryNames = categoryNames,
-         groupNames = groupNames,
-         testMode = (TestMode)testMode
+         groupNames = groupNames
         }
         }
 //                , targetPlatform =

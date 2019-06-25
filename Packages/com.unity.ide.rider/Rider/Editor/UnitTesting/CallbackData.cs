@@ -9,20 +9,15 @@ namespace Packages.Rider.Editor.UnitTesting
   public class CallbackData : ScriptableSingleton<CallbackData>
   {
     public bool isRider;
-        
-    [UsedImplicitly]
-    public event EventHandler Changed = ChangedHandler;
 
-    private static void ChangedHandler(object sender, EventArgs e)
-    {
-      //throw new NotImplementedException();
-    }
+    [UsedImplicitly] public static event EventHandler Changed = (sender, args) => { }; 
 
     internal void RaiseChangedEvent()
     {
-      Changed(this, EventArgs.Empty);
+      Changed(null, EventArgs.Empty);
     }
 
+    
     public DelayedEvents events;
 
     [UsedImplicitly]
