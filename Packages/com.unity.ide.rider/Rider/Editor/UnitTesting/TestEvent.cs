@@ -1,4 +1,5 @@
 using System;
+using NUnit.Framework.Interfaces;
 
 namespace Packages.Rider.Editor.UnitTesting
 {
@@ -12,17 +13,17 @@ namespace Packages.Rider.Editor.UnitTesting
     public string id;
     public string assemblyName;
     public string output;
-    public string resultState;
+    public TestStatus testStatus;
     public double duration;
     public string parentId;
     
-    public TestEvent(EventType type, string id, string assemblyName, string output, double duration, string resultState, string parentID)
+    public TestEvent(EventType type, string id, string assemblyName, string output, double duration, TestStatus testStatus, string parentID)
     {
       this.type = type;
       this.id = id;
       this.assemblyName = assemblyName;
       this.output = output;
-      this.resultState = resultState;
+      this.testStatus = testStatus;
       this.duration = duration;
       parentId = parentID;
     }

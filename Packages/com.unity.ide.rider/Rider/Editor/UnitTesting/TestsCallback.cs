@@ -1,5 +1,5 @@
+using System;
 using System.Text;
-using NUnit.Framework.Interfaces;
 using UnityEditor.TestTools.TestRunner.Api;
 using UnityEngine;
 
@@ -12,7 +12,7 @@ namespace Packages.Rider.Editor.UnitTesting
           CallbackData.instance.isRider = false;
           
           CallbackData.instance.events.Add(
-            new TestEvent(EventType.RunFinished, "", "","", 0, ResultState.Success.ToString(), ""));
+            new TestEvent(EventType.RunFinished, "", "","", 0, ParseTestStatus(result.TestStatus), ""));
           CallbackData.instance.RaiseChangedEvent();
         }
 
@@ -21,7 +21,7 @@ namespace Packages.Rider.Editor.UnitTesting
           if (result.Method == null) return;
           
           CallbackData.instance.events.Add(
-            new TestEvent(EventType.TestStarted, GetUniqueName(result), result.Method.TypeInfo.Assembly.GetName().Name, "", 0, "", result.ParentId));
+            new TestEvent(EventType.TestStarted, GetUniqueName(result), result.Method.TypeInfo.Assembly.GetName().Name, "", 0, ParseTestStatus(TestStatus.Passed), result.ParentId));
           CallbackData.instance.RaiseChangedEvent();
         }
 
@@ -30,7 +30,7 @@ namespace Packages.Rider.Editor.UnitTesting
           if (result.Test.Method == null) return;
           
           CallbackData.instance.events.Add(
-            new TestEvent(EventType.TestFinished, GetUniqueName(result.Test), result.Test.Method.TypeInfo.Assembly.GetName().Name, ExtractOutput(result), result.Duration, result.ResultState, result.Test.ParentId));
+            new TestEvent(EventType.TestFinished, GetUniqueName(result.Test), result.Test.Method.TypeInfo.Assembly.GetName().Name, ExtractOutput(result), result.Duration, ParseTestStatus(result.TestStatus), result.Test.ParentId));
           CallbackData.instance.RaiseChangedEvent();
         }
         
@@ -43,6 +43,11 @@ namespace Packages.Rider.Editor.UnitTesting
 
         public void RunStarted(ITestAdaptor testsToRun)
         {
+        }
+        
+        private static NUnit.Framework.Interfaces.TestStatus ParseTestStatus(TestStatus testStatus)
+        {
+          return (NUnit.Framework.Interfaces.TestStatus)Enum.Parse(typeof(NUnit.Framework.Interfaces.TestStatus), testStatus.ToString());
         }
         
         private static string ExtractOutput(ITestResultAdaptor testResult)
