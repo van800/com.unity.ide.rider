@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using JetBrains.Annotations;
 using UnityEditor;
-using UnityEngine;
 
 namespace Packages.Rider.Editor.UnitTesting
 {
@@ -17,26 +16,12 @@ namespace Packages.Rider.Editor.UnitTesting
       Changed(null, EventArgs.Empty);
     }
 
-    
-    public DelayedEvents events;
+    public List<TestEvent> events = new List<TestEvent>();
 
     [UsedImplicitly]
-    public string GetJsonAndClear()
+    public void Clear()
     {
-      var json = JsonUtility.ToJson(events);
       events.Clear();
-      return json;
-    }
-    
-    [Serializable]
-    public class DelayedEvents
-    {
-      public List<TestEvent> events = new List<TestEvent>();
-
-      public void Clear()
-      {
-        events.Clear();
-      }
     }
   }
 }
