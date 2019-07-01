@@ -202,15 +202,18 @@ namespace Packages.Rider.Editor
         return OpenOSXApp(path, line, column);
       }
 
-      var fastOpenResult = EditorPluginInterop.OpenFileDllImplementation(path, line, column);
-      if (fastOpenResult)
-        return true;
-      
+      if (!IsUnityScript(path))
+      {
+        var fastOpenResult = EditorPluginInterop.OpenFileDllImplementation(path, line, column);
+        if (fastOpenResult)
+          return true;
+      }
+
       if (SystemInfo.operatingSystemFamily == OperatingSystemFamily.MacOSX)
       {
         return OpenOSXApp(path, line, column);
       }
-      
+
       var solution = GetSolutionFile(path); // TODO: If solution file doesn't exist resync.
       solution = solution == "" ? "" : $"\"{solution}\"";
       var process = new Process
@@ -251,22 +254,9 @@ namespace Packages.Rider.Editor
 
     private string GetSolutionFile(string path)
     {
-      if (UnityEditor.Unsupported.IsDeveloperBuild())
+      if (IsUnityScript(path))
       {
-        var baseFolder = GetBaseUnityDeveloperFolder();
-        var lowerPath = path.ToLowerInvariant();
-
-        bool isUnitySourceCode = lowerPath.Contains((baseFolder + "/Runtime").ToLowerInvariant());
-
-        if (lowerPath.Contains((baseFolder + "/Editor").ToLowerInvariant()))
-        {
-          isUnitySourceCode = true;
-        }
-
-        if (isUnitySourceCode)
-        {
-          return Path.Combine(baseFolder, "Projects/CSharp/Unity.CSharpProjects.gen.sln");
-        }
+        return Path.Combine(GetBaseUnityDeveloperFolder(), "Projects/CSharp/Unity.CSharpProjects.gen.sln");
       }
 
       var solutionFile = m_ProjectGeneration.SolutionFile();
@@ -276,6 +266,23 @@ namespace Packages.Rider.Editor
       }
 
       return "";
+    }
+
+    static bool IsUnityScript(string path)
+    {
+      if (UnityEditor.Unsupported.IsDeveloperBuild())
+      {
+        var baseFolder = GetBaseUnityDeveloperFolder().Replace("\\", "/");
+        var lowerPath = path.ToLowerInvariant().Replace("\\", "/");
+
+        if (lowerPath.Contains((baseFolder + "/Runtime").ToLowerInvariant())
+          || lowerPath.Contains((baseFolder + "/Editor").ToLowerInvariant()))
+        {
+          return true;
+        }
+      }
+
+      return false;
     }
 
     static string GetBaseUnityDeveloperFolder()
