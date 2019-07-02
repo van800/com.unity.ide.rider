@@ -205,7 +205,8 @@ namespace RiderEditor.Editor_spec
         {
             var projectDirectory = Directory.GetParent(Application.dataPath).FullName;
             var synchronizer = new ProjectGeneration(projectDirectory);
-            synchronizer.GenerateAndWriteSolutionAndProjects();
+            var types = ProjectGeneration.GetAssetPostprocessorTypes();
+            synchronizer.GenerateAndWriteSolutionAndProjects(types);
 
             var files = Directory.GetFiles(projectDirectory);
             return files.Where(f => Path.GetExtension(f) == ".csproj").ToDictionary(x => x, x => File.ReadAllText(Path.Combine(projectDirectory, x)));

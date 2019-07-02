@@ -1,3 +1,4 @@
+using System.IO;
 using Moq;
 using NUnit.Framework;
 using Packages.Rider.Editor;
@@ -8,30 +9,31 @@ using UnityEngine.TestTools;
 namespace Packages.Rider.Tests.Editor
 {
     [TestFixture]
-    public class DetermineScriptEditor
+    public class DetermineScriptEditorTests
     {
-        [TestCase("/Applications/Rider EAP.app")]
-        [TestCase("/Applications/Rider.app")]
-        [TestCase("/Applications/Rider 2017.2.1.app")]
         [UnityPlatform(RuntimePlatform.OSXEditor)]
-        public void OSXPathDiscovery(string path)
+        public void OSXPathDiscovery()
         {
+            var path = Path.Combine(new DirectoryInfo(Directory.GetCurrentDirectory()).FullName,
+                @"Packages\com.unity.ide.rider.tests\Tests\Data\DetermineScriptEditorTests\Rider.app");
             Discover(path);
         }
-
-        [TestCase(@"C:\Program Files\Rider\bin\rider.exe")]
-        [TestCase(@"C:\Program Files\Rider\bin\rider32.exe")]
-        [TestCase(@"C:\Program Files\Rider\bin\rider64.exe")]
+        
+        
         [UnityPlatform(RuntimePlatform.WindowsEditor)]
-        public void WindowsPathDiscovery(string path)
+        [Test]
+        public void WindowsPathDiscovery()
         {
+            var path = Path.Combine(new DirectoryInfo(Directory.GetCurrentDirectory()).FullName,
+                @"Packages\com.unity.ide.rider.tests\Tests\Data\DetermineScriptEditorTests\191.7141.355\bin\rider64.exe");
             Discover(path);
         }
 
-        [TestCase("/home/thatguy/Rider/bin/rider.sh")]
         [UnityPlatform(RuntimePlatform.LinuxEditor)]
-        public void LinuxPathDiscovery(string path)
+        public void LinuxPathDiscovery()
         {
+            var path = Path.Combine(new DirectoryInfo(Directory.GetCurrentDirectory()).FullName,
+                @"Packages\com.unity.ide.rider.tests\Tests\Data\DetermineScriptEditorTests\191.7141.355\bin\rider.sh");
             Discover(path);
         }
 
