@@ -21,7 +21,7 @@ namespace Packages.Rider.Editor.UnitTesting
           if (result.Method == null) return;
           
           CallbackData.instance.events.Add(
-            new TestEvent(EventType.TestStarted, GetUniqueName(result), result.Method.TypeInfo.Assembly.GetName().Name, "", 0, ParseTestStatus(TestStatus.Passed), result.ParentId));
+            new TestEvent(EventType.TestStarted, GetUniqueName(result), result.Method.TypeInfo.Assembly.GetName().Name, "", 0, ParseTestStatus(TestStatus.Passed), result.ParentFullName));
           CallbackData.instance.RaiseChangedEvent();
         }
 
@@ -30,7 +30,7 @@ namespace Packages.Rider.Editor.UnitTesting
           if (result.Test.Method == null) return;
           
           CallbackData.instance.events.Add(
-            new TestEvent(EventType.TestFinished, GetUniqueName(result.Test), result.Test.Method.TypeInfo.Assembly.GetName().Name, ExtractOutput(result), result.Duration, ParseTestStatus(result.TestStatus), result.Test.ParentId));
+            new TestEvent(EventType.TestFinished, GetUniqueName(result.Test), result.Test.Method.TypeInfo.Assembly.GetName().Name, ExtractOutput(result), result.Duration, ParseTestStatus(result.TestStatus), result.Test.ParentFullName));
           CallbackData.instance.RaiseChangedEvent();
         }
         
