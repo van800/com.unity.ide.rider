@@ -5,6 +5,7 @@ using System.Linq;
 using Moq;
 using NUnit.Framework;
 using Packages.Rider.Editor;
+using Unity.CodeEditor;
 using UnityEngine;
 using UnityEditor.Compilation;
 
@@ -27,6 +28,7 @@ namespace Packages.Rider.Tests.Editor
         [OneTimeSetUp]
         public void OneTimeSetUp() {
             File.Delete(s_SolutionFile);
+            CodeEditor.SetExternalScriptEditor("NotSet");
         }
 
         [SetUp]
