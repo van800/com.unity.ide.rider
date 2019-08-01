@@ -10,12 +10,11 @@ namespace Packages.Rider.Editor.UnitTesting
     private static readonly TestsCallback Callback = ScriptableObject.CreateInstance<TestsCallback>();
     
     [UsedImplicitly]
-    public static void RunTests(int? testMode, string[] assemblyNames, string[] testNames, string[] categoryNames, string[] groupNames, int? buildTarget)
+    public static void RunTests(int testMode, string[] assemblyNames, string[] testNames, string[] categoryNames, string[] groupNames, int? buildTarget)
     {
       CallbackData.instance.isRider = true;
             
       var api = ScriptableObject.CreateInstance<TestRunnerApi>();
-      var mode =(TestMode?)testMode; // for future use, when test-framework allows running Edit and Play at once
       var settings = new ExecutionSettings();
       var filter = new Filter
       {
@@ -26,8 +25,8 @@ namespace Packages.Rider.Editor.UnitTesting
         targetPlatform = (BuildTarget?) buildTarget
       };
       
-      if (mode != null)
-        filter.testMode = (TestMode) mode;
+      if (testMode > 0) // for future use - test-framework would allow running both Edit and Play test at once
+        filter.testMode = (TestMode) testMode;
       
       settings.filters = new []{
         filter
