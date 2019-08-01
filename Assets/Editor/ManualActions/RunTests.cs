@@ -10,7 +10,7 @@ namespace Editor
         [MenuItem("Tests/Run tests in PlayMode")]
         static void RunTestsInPlayMode()
         {
-            RiderTestRunner.RunTests(2, null, null, null, null); // 2 = PlayMode
+            RiderTestRunner.RunTests(2, null, null, null, null, null); // 2 = PlayMode
         }
     }
 }

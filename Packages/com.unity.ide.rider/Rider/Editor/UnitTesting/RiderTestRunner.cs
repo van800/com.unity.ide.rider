@@ -10,7 +10,7 @@ namespace Packages.Rider.Editor.UnitTesting
     private static readonly TestsCallback Callback = ScriptableObject.CreateInstance<TestsCallback>();
     
     [UsedImplicitly]
-    public static void RunTests(int testMode, string[] assemblyNames, string[] testNames, string[] categoryNames, string[] groupNames)
+    public static void RunTests(int testMode, string[] assemblyNames, string[] testNames, string[] categoryNames, string[] groupNames, int? buildTarget)
     {
       CallbackData.instance.isRider = true;
             
@@ -24,8 +24,8 @@ namespace Packages.Rider.Editor.UnitTesting
          testNames = testNames,
          categoryNames = categoryNames,
          groupNames = groupNames 
-         //, targetPlatform =BuildTarget.StandaloneWindows64 // This can be used to set the target platform when running playmode tests.
-         //, testMode = TestMode.PlayMode
+         , targetPlatform = (BuildTarget?)buildTarget // This can be used to set the target platform when running playmode tests.
+         , testMode = (TestMode)testMode
         }
         }
       });
