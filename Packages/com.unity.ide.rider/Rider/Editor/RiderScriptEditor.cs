@@ -24,8 +24,14 @@ namespace Packages.Rider.Editor
         var projectGeneration = new ProjectGeneration();
         var editor = new RiderScriptEditor(new Discovery(), projectGeneration);
         CodeEditor.Register(editor);
-        
         var path = GetEditorRealPath(CodeEditor.CurrentEditorInstallation);
+        
+        if (!RiderScriptEditorData.instance.InitializedOnce)
+        {
+          ShowWarningOnUnexpectedScriptEditor(path);
+          RiderScriptEditorData.instance.InitializedOnce = true;
+        }
+        
         if (IsRiderInstallation(path))
         {
           if (!FileSystemUtil.EditorPathExists(path)) // previously used rider was removed
@@ -47,6 +53,22 @@ namespace Packages.Rider.Editor
       catch (Exception e)
       {
         Debug.LogException(e);
+      }
+    }
+
+    private static void ShowWarningOnUnexpectedScriptEditor(string path)
+    {
+      // Show warning, when Unity was started from Rider, but external editor is different https://github.com/JetBrains/resharper-unity/issues/1127
+      var args = Environment.GetCommandLineArgs();
+      var commandlineParser = new CommandLineParser(args);
+      if (commandlineParser.Options.ContainsKey("-origin"))
+      {
+        var origin = commandlineParser.Options["-origin"];
+        var originPath = GetEditorRealPath(origin);
+        var originVersion = RiderPathLocator.GetBuildNumber(originPath);
+        var version = RiderPathLocator.GetBuildNumber(path);
+        if (originVersion != string.Empty && originVersion != version)
+          Debug.LogWarning($"Unity was started by Rider {originVersion}, but external editor is set to: {path}");
       }
     }
 
