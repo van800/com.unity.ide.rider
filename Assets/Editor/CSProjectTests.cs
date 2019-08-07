@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using System.Xml;
 using NUnit.Framework;
 using Packages.Rider.Editor;
+using Unity.CodeEditor;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -20,6 +21,11 @@ namespace RiderEditor.Editor_spec
         List<string> m_PathsToDelete = new List<string>();
         [SerializeField]
         List<string> m_DirectoriesToDelete = new List<string>();
+
+        [OneTimeSetUp]
+        public void OneTimeSetUp() {
+            CodeEditor.SetExternalScriptEditor("NotSet");
+        }
 
         [UnityTearDown]
         public IEnumerator TearDown()
