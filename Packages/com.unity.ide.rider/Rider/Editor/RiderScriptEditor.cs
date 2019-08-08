@@ -68,7 +68,10 @@ namespace Packages.Rider.Editor
         var originVersion = RiderPathLocator.GetBuildNumber(originRealPath);
         var version = RiderPathLocator.GetBuildNumber(path);
         if (originVersion != string.Empty && originVersion != version)
-          Debug.LogWarning($"Unity was started by Rider {originVersion}, but external editor is set to: {path}");
+        {
+          Debug.LogWarning("Unity was started by a version of Rider that is not the current default external editor. Advanced integration features cannot be enabled.");
+          Debug.Log($"Unity was started by Rider {originVersion}, but external editor is set to: {path}");
+        }
       }
     }
 
