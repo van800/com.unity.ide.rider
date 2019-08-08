@@ -61,11 +61,11 @@ namespace Packages.Rider.Editor
       // Show warning, when Unity was started from Rider, but external editor is different https://github.com/JetBrains/resharper-unity/issues/1127
       var args = Environment.GetCommandLineArgs();
       var commandlineParser = new CommandLineParser(args);
-      if (commandlineParser.Options.ContainsKey("-origin"))
+      if (commandlineParser.Options.ContainsKey("-riderPath"))
       {
-        var origin = commandlineParser.Options["-origin"];
-        var originPath = GetEditorRealPath(origin);
-        var originVersion = RiderPathLocator.GetBuildNumber(originPath);
+        var originRiderPath = commandlineParser.Options["-riderPath"];
+        var originRealPath = GetEditorRealPath(originRiderPath);
+        var originVersion = RiderPathLocator.GetBuildNumber(originRealPath);
         var version = RiderPathLocator.GetBuildNumber(path);
         if (originVersion != string.Empty && originVersion != version)
           Debug.LogWarning($"Unity was started by Rider {originVersion}, but external editor is set to: {path}");
