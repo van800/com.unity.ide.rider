@@ -129,6 +129,7 @@ namespace Packages.Rider.Editor
     public TestSettings Settings { get; set; }
     readonly string m_ProjectName;
     readonly IAssemblyNameProvider m_AssemblyNameProvider;
+    internal static bool isRiderProjectGeneration; // workaround to https://github.cds.internal.unity3d.com/unity/com.unity.ide.rider/issues/28
 
     const string k_ToolsVersion = "4.0";
     const string k_ProductVersion = "10.0.20506";
@@ -191,8 +192,9 @@ namespace Packages.Rider.Editor
     {
       SetupProjectSupportedExtensions();
       var types = GetAssetPostprocessorTypes();
+      isRiderProjectGeneration = true;
       bool externalCodeAlreadyGeneratedProjects = OnPreGeneratingCSProjectFiles(types);
-
+      isRiderProjectGeneration = false;
       if (!externalCodeAlreadyGeneratedProjects)
       {
         GenerateAndWriteSolutionAndProjects(types);
