@@ -76,7 +76,7 @@ namespace Packages.Rider.Editor
         RiderScriptEditorData.instance.HasChanges = true;
     }
 
-    private static string GetEditorRealPath(string path)
+    internal static string GetEditorRealPath(string path)
     {
       if (string.IsNullOrEmpty(path))
       {
