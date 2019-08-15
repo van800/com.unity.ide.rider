@@ -1,8 +1,8 @@
 using System;
-using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 using UnityEngine;
-using Debug = UnityEngine.Debug;
 
 namespace Packages.Rider.Editor
 {
@@ -10,10 +10,9 @@ namespace Packages.Rider.Editor
     {
       public void Initialize(string editorPath)
       {
-        var assembly = EditorPluginInterop.EditorPluginAssembly;
-        if (EditorPluginInterop.EditorPluginIsLoadedFromAssets(assembly))
+        if (EditorPluginInterop.EditorPluginIsLoadedFromAssets())
         {
-          Debug.LogError($"Please delete {assembly.Location}. Unity 2019.2+ loads it directly from Rider installation. To disable this, open Rider's settings, search and uncheck 'Automatically install and update Rider's Unity editor plugin'.");
+          Debug.LogError($"Please delete {EditorPluginInterop.GetEditorPluginAssembly().Location}. Unity 2019.2+ loads it directly from Rider installation. To disable this, open Rider's settings, search and uncheck 'Automatically install and update Rider's Unity editor plugin'.");
           return;
         }
 
@@ -25,14 +24,23 @@ namespace Packages.Rider.Editor
 
         if (dllFile.Exists)
         {
-          var bytes = File.ReadAllBytes(dllFile.FullName); 
-          assembly = AppDomain.CurrentDomain.Load(bytes); // doesn't lock assembly on disk
-          // assembly = AppDomain.CurrentDomain.Load(AssemblyName.GetAssemblyName(dllFile.FullName)); // use this for external source debug
-          EditorPluginInterop.InitEntryPoint(assembly, FileVersionInfo.GetVersionInfo(dllFile.FullName));
+          // doesn't lock assembly on disk
+          var bytes = File.ReadAllBytes(dllFile.FullName);
+          var pdbFile = new FileInfo(Path.ChangeExtension(dllFile.FullName, ".pdb"));
+          if (pdbFile.Exists)
+          {
+            AppDomain.CurrentDomain.Load(bytes, File.ReadAllBytes(pdbFile.FullName));  
+          }
+          else
+          {
+            AppDomain.CurrentDomain.Load(bytes);
+            // AppDomain.CurrentDomain.Load(AssemblyName.GetAssemblyName(dllFile.FullName)); // use this for external source debug
+          }
+          EditorPluginInterop.InitEntryPoint();
         }
         else
         {
-          Debug.Log($"Unable to find Rider EditorPlugin {dllFile.FullName} for Unity ");
+          Debug.Log((object) ($"Unable to find Rider EditorPlugin {dllFile.FullName} for Unity "));
         }
       }
     }
