@@ -109,15 +109,17 @@ namespace Packages.Rider.Editor
     }
 
 
-    internal static void InitEntryPoint(Assembly assembly, FileVersionInfo fileVersionInfo)
+    internal static void InitEntryPoint(Assembly assembly)
     {
       try
       {
-        if (fileVersionInfo != null)
+        if (Version.TryParse(RiderScriptEditorData.instance.currentEditorVersion, out var version))
         {
-          if (fileVersionInfo.FileMajorPart < 192) 
+          if (version.Major < 192)
             DisableSyncSolutionOnceCallBack(); // is require for Rider prior to 2019.2
         }
+        else
+            DisableSyncSolutionOnceCallBack();
         
         var type = assembly.GetType("JetBrains.Rider.Unity.Editor.AfterUnity56.EntryPoint");
         if (type == null) 

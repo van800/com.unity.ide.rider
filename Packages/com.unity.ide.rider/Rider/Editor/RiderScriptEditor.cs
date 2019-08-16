@@ -28,15 +28,16 @@ namespace Packages.Rider.Editor
         var path = GetEditorRealPath(CodeEditor.CurrentEditorInstallation);
         if (IsRiderInstallation(path))
         {
+          RiderScriptEditorData.instance.Init();
           if (!FileSystemUtil.EditorPathExists(path)) // previously used rider was removed
           {
             var newEditor = editor.Installations.Last().Path;
             CodeEditor.SetExternalScriptEditor(newEditor);
             path = newEditor;
           }
-          
+
           editor.CreateSolutionIfDoesntExist();
-          if (RiderScriptEditorData.instance.ShouldLoadEditorPlugin(CurrentEditor))
+          if (RiderScriptEditorData.instance.shouldLoadEditorPlugin)
           {
             editor.m_Initiliazer.Initialize(path);
           }
@@ -161,7 +162,7 @@ namespace Packages.Rider.Editor
       
       m_ProjectGeneration.GenerateAll(generateAll);
 
-      if (RiderScriptEditorData.instance.ShouldLoadEditorPlugin(CurrentEditor))
+      if (RiderScriptEditorData.instance.shouldLoadEditorPlugin)
       {
         HandledExtensionsString = EditorGUILayout.TextField(new GUIContent("Extensions handled: "), HandledExtensionsString);  
       }

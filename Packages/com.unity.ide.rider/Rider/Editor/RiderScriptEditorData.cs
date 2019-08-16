@@ -4,22 +4,19 @@ using UnityEngine;
 
 namespace Packages.Rider.Editor
 {
-  public class RiderScriptEditorData:ScriptableSingleton<RiderScriptEditorData>
+  public class RiderScriptEditorData : ScriptableSingleton<RiderScriptEditorData>
   {
     [SerializeField] internal bool HasChanges = true; // sln/csproj files were changed
 
     [SerializeField] internal string currentEditorVersion; 
-    [SerializeField] private bool? shouldLoadEditorPlugin;
-    public bool ShouldLoadEditorPlugin(string path)
+    [SerializeField] internal bool shouldLoadEditorPlugin;
+
+    public void Init()
     {
-      if (shouldLoadEditorPlugin != null)
-        return shouldLoadEditorPlugin.Value;
-      
-      Invalidate(path);
-      
-      return shouldLoadEditorPlugin.Value;
+      if (string.IsNullOrEmpty(currentEditorVersion))
+        Invalidate(RiderScriptEditor.CurrentEditor);
     }
-    
+
     public void Invalidate(string editorInstallationPath)
     {
       currentEditorVersion = RiderPathLocator.GetBuildNumber(editorInstallationPath);
