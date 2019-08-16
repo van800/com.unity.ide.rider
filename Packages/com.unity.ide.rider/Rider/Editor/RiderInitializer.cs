@@ -28,7 +28,7 @@ namespace Packages.Rider.Editor
           var bytes = File.ReadAllBytes(dllFile.FullName); 
           assembly = AppDomain.CurrentDomain.Load(bytes); // doesn't lock assembly on disk
           // assembly = AppDomain.CurrentDomain.Load(AssemblyName.GetAssemblyName(dllFile.FullName)); // use this for external source debug
-          EditorPluginInterop.InitEntryPoint(assembly, FileVersionInfo.GetVersionInfo(dllFile.FullName));
+          EditorPluginInterop.InitEntryPoint(assembly);
         }
         else
         {
