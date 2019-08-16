@@ -55,7 +55,7 @@ namespace Packages.Rider.Editor
     {
       if (!RiderScriptEditor.IsRiderInstallation(RiderScriptEditor.CurrentEditor))
         return null;
-      if (!RiderScriptEditor.ShouldLoadEditorPlugin(RiderScriptEditor.CurrentEditor))
+      if (!RiderScriptEditor.ShouldLoadEditorPlugin())
         return null;
       var provider = new SettingsProvider("Preferences/Rider", SettingsScope.User)
       {
