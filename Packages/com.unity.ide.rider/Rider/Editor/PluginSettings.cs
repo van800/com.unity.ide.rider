@@ -124,9 +124,13 @@ namespace Packages.Rider.Editor
           GUILayout.BeginHorizontal();
 
           GUILayout.FlexibleSpace();
-          var version = EditorPluginInterop.EditorPluginAssembly.GetName().Version;
-          GUILayout.Label("Plugin version: " + version, ourVersionInfoStyle);
-
+          var assembly = EditorPluginInterop.EditorPluginAssembly;
+          if (assembly != null)
+          {
+            var version = assembly.GetName().Version;
+            GUILayout.Label("Plugin version: " + version, ourVersionInfoStyle);
+          }
+          
           GUILayout.EndHorizontal();
 
           EditorGUILayout.EndVertical();
