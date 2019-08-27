@@ -46,7 +46,7 @@ namespace Packages.Rider.Tests.Editor
                 new CodeEditor.Installation
                 {
                     Path = path,
-                    Name = path.Contains("Insiders") ? "Visual Studio Code Insiders" : "Visual Studio Code"
+                    Name = "Rider"
                 }
             });
 

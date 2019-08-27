@@ -24,8 +24,14 @@ namespace Packages.Rider.Editor
         var projectGeneration = new ProjectGeneration();
         var editor = new RiderScriptEditor(new Discovery(), projectGeneration);
         CodeEditor.Register(editor);
-        
         var path = GetEditorRealPath(CodeEditor.CurrentEditorInstallation);
+        
+        if (!RiderScriptEditorData.instance.InitializedOnce)
+        {
+          ShowWarningOnUnexpectedScriptEditor(path);
+          RiderScriptEditorData.instance.InitializedOnce = true;
+        }
+        
         if (IsRiderInstallation(path))
         {
           RiderScriptEditorData.instance.Init();
@@ -48,6 +54,25 @@ namespace Packages.Rider.Editor
       catch (Exception e)
       {
         Debug.LogException(e);
+      }
+    }
+
+    private static void ShowWarningOnUnexpectedScriptEditor(string path)
+    {
+      // Show warning, when Unity was started from Rider, but external editor is different https://github.com/JetBrains/resharper-unity/issues/1127
+      var args = Environment.GetCommandLineArgs();
+      var commandlineParser = new CommandLineParser(args);
+      if (commandlineParser.Options.ContainsKey("-riderPath"))
+      {
+        var originRiderPath = commandlineParser.Options["-riderPath"];
+        var originRealPath = GetEditorRealPath(originRiderPath);
+        var originVersion = RiderPathLocator.GetBuildNumber(originRealPath);
+        var version = RiderPathLocator.GetBuildNumber(path);
+        if (originVersion != string.Empty && originVersion != version)
+        {
+          Debug.LogWarning("Unity was started by a version of Rider that is not the current default external editor. Advanced integration features cannot be enabled.");
+          Debug.Log($"Unity was started by Rider {originVersion}, but external editor is set to: {path}");
+        }
       }
     }
 
@@ -77,7 +102,7 @@ namespace Packages.Rider.Editor
         RiderScriptEditorData.instance.HasChanges = true;
     }
 
-    private static string GetEditorRealPath(string path)
+    internal static string GetEditorRealPath(string path)
     {
       if (string.IsNullOrEmpty(path))
       {
