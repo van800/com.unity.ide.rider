@@ -28,15 +28,16 @@ namespace Packages.Rider.Editor
         var path = GetEditorRealPath(CodeEditor.CurrentEditorInstallation);
         if (IsRiderInstallation(path))
         {
+          RiderScriptEditorData.instance.Init();
           if (!FileSystemUtil.EditorPathExists(path)) // previously used rider was removed
           {
             var newEditor = editor.Installations.Last().Path;
             CodeEditor.SetExternalScriptEditor(newEditor);
             path = newEditor;
           }
-          
+
           editor.CreateSolutionIfDoesntExist();
-          if (ShouldLoadEditorPlugin(path))
+          if (RiderScriptEditorData.instance.shouldLoadEditorPlugin)
           {
             editor.m_Initiliazer.Initialize(path);
           }
@@ -161,7 +162,7 @@ namespace Packages.Rider.Editor
       
       m_ProjectGeneration.GenerateAll(generateAll);
 
-      if (ShouldLoadEditorPlugin(CurrentEditor))
+      if (RiderScriptEditorData.instance.shouldLoadEditorPlugin)
       {
         HandledExtensionsString = EditorGUILayout.TextField(new GUIContent("Extensions handled: "), HandledExtensionsString);  
       }
@@ -186,6 +187,7 @@ namespace Packages.Rider.Editor
 
     public void Initialize(string editorInstallationPath) // is called each time ExternalEditor is changed
     {
+      RiderScriptEditorData.instance.Invalidate(editorInstallationPath);
       m_ProjectGeneration.Sync(); // regenerate csproj and sln for new editor
     }
 
@@ -321,15 +323,6 @@ namespace Packages.Rider.Editor
 
     public static string CurrentEditor // works fast, doesn't validate if executable really exists
       => EditorPrefs.GetString("kScriptsDefaultApp");
-
-    public static bool ShouldLoadEditorPlugin(string path)
-    {
-      var ver = RiderPathLocator.GetBuildNumber(path);
-      if (!Version.TryParse(ver, out var version))
-        return false;
-
-      return version >= new Version("191.7141.156");
-    }
 
     public CodeEditor.Installation[] Installations => m_Discoverability.PathCallback();
 
