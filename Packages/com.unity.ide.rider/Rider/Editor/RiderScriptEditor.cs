@@ -26,20 +26,50 @@ namespace Packages.Rider.Editor
         CodeEditor.Register(editor);
         var path = GetEditorRealPath(CodeEditor.CurrentEditorInstallation);
         
-        if (!RiderScriptEditorData.instance.InitializedOnce)
-        {
-          ShowWarningOnUnexpectedScriptEditor(path);
-          RiderScriptEditorData.instance.InitializedOnce = true;
-        }
-        
         if (IsRiderInstallation(path))
         {
+          if (!RiderScriptEditorData.instance.InitializedOnce)
+          {
+            var installations = editor.Installations;
+            // is toolbox and outdated - update
+            if (installations.Any() && RiderPathLocator.IsToolbox(path) && installations.All(a => a.Path != path))
+            {
+              var toolboxInstallations = installations.Where(a => a.Name.Contains("(JetBrains Toolbox)")).ToArray();
+              if (toolboxInstallations.Any())
+              {
+                var newEditor = toolboxInstallations.Last().Path;
+                CodeEditor.SetExternalScriptEditor(newEditor);
+                path = newEditor;  
+              }
+              else
+              {
+                var newEditor = installations.Last().Path;
+                CodeEditor.SetExternalScriptEditor(newEditor);
+                path = newEditor;  
+              }
+            }
+            
+            // is non toolbox and outdated - notify
+            if (installations.Any() && installations.All(a => a.Path != path))
+            {
+              var newEditorName = installations.Last().Name;
+              Debug.LogWarning($"Consider updating External Editor in Unity to Rider {newEditorName}.");
+            }
+
+            ShowWarningOnUnexpectedScriptEditor(path);
+            RiderScriptEditorData.instance.InitializedOnce = true;
+          }
+
           RiderScriptEditorData.instance.Init();
           if (!FileSystemUtil.EditorPathExists(path)) // previously used rider was removed
           {
-            var newEditor = editor.Installations.Last().Path;
-            CodeEditor.SetExternalScriptEditor(newEditor);
-            path = newEditor;
+            var installations = editor.Installations;
+            if (installations.Any())
+            {
+              var newEditor = installations.Last().Path;
+              CodeEditor.SetExternalScriptEditor(newEditor);
+              path = newEditor;  
+            }
           }
 
           editor.CreateSolutionIfDoesntExist();
