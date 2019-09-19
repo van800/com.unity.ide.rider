@@ -1,166 +1,177 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Moq;
 using NUnit.Framework;
-using Packages.Rider.Editor;
+using Packages.Rider.Tests.Editor.CSProjectGeneration;
 using Unity.CodeEditor;
 using UnityEngine;
 using UnityEditor.Compilation;
 
 namespace Packages.Rider.Tests.Editor
 {
-    [TestFixture]
-    public class SolutionProject
+    namespace SolutionGeneration
     {
-        static string ProjectName
+        public class Synchronization
         {
-            get
+            const string k_ProjectDirectory = "/FullPath/Example";
+            string m_EditorPath;
+
+            [OneTimeSetUp]
+            public void OneTimeSetUp()
             {
-                string[] s = Application.dataPath.Split('/');
-                string projectName = s[s.Length - 2];
-                return projectName;
-            }
-        }
-        static string s_SolutionFile = $"{ProjectName}.sln";
-
-        [OneTimeSetUp]
-        public void OneTimeSetUp() {
-            File.Delete(s_SolutionFile);
-            CodeEditor.SetExternalScriptEditor("NotSet");
-        }
-
-        [SetUp]
-        public void SetUp() {
-            var codeEditor = new RiderScriptEditor(new Mock<IDiscovery>().Object, new ProjectGeneration());
-            codeEditor.CreateSolutionIfDoesntExist();
-        }
-
-        [TearDown]
-        public void Dispose() {
-            File.Delete(s_SolutionFile);
-        }
-
-        [Test]
-        public void CreatesSolutionFileIfFileDoesntExist()
-        {
-            Assert.IsTrue(File.Exists(s_SolutionFile));
-        }
-
-        [Test]
-        public void HeaderFormat_MatchesVS2010()
-        {
-            string[] syncedSolutionText = File.ReadAllLines(s_SolutionFile);
-
-            Assert.IsTrue(syncedSolutionText.Length >= 4);
-            Assert.AreEqual(@"", syncedSolutionText[0]);
-            Assert.AreEqual(@"Microsoft Visual Studio Solution File, Format Version 11.00", syncedSolutionText[1]);
-            Assert.AreEqual(@"# Visual Studio 2010", syncedSolutionText[2]);
-            Assert.IsTrue(syncedSolutionText[3].StartsWith("Project(\"{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}\")"));
-        }
-
-        [Test]
-        public void IsUTF8Encoded()
-        {
-            var bom = new byte[4];
-            using (var file = new FileStream(s_SolutionFile, FileMode.Open, FileAccess.Read))
-            {
-                file.Read(bom, 0, 4);
+                m_EditorPath = CodeEditor.CurrentEditorInstallation;
+                CodeEditor.SetExternalScriptEditor("NotSet");
             }
 
-            // Check for UTF8 BOM - using StreamReader & Assert.AreEqual(Encoding.UTF8, CurrentEncoding); fails despite CurrentEncoding appearing to be UTF8 when viewed in the debugger
-            Assert.AreEqual(0xEF, bom[0]);
-            Assert.AreEqual(0xBB, bom[1]);
-            Assert.AreEqual(0xBF, bom[2]);
+            [OneTimeTearDown]
+            public void OneTimeTearDown()
+            {
+                CodeEditor.SetExternalScriptEditor(m_EditorPath);
+            }
+
+            [Test]
+            public void IfNotExisting_Synchronize()
+            {
+                var assemblyProvider = new Mock<IAssemblyNameProvider>();
+                var assembly = new Assembly("Test", "some/path/file.dll", new[] { "test.cs" }, new string[0], new Assembly[0], new string[0], AssemblyFlags.None);
+                assemblyProvider.Setup(x => x.GetAssemblies(It.IsAny<Func<string, bool>>())).Returns(new[] { assembly });
+
+                var fileIO = new MockFileIO();
+                var synchronizer = new ProjectGeneration(k_ProjectDirectory, assemblyProvider.Object, fileIO, new MockGUIDProvider());
+
+                synchronizer.Sync();
+
+                Assert.True(fileIO.Exists(synchronizer.SolutionFile()), "Should create solution file.");
+            }
+
+            [Test]
+            public void DoesNotChange_WhenSyncedTwice()
+            {
+                var assemblyProvider = new Mock<IAssemblyNameProvider>();
+                var assembly = new Assembly("Test", "some/path/file.dll", new[] { "test.cs" }, new string[0], new Assembly[0], new string[0], AssemblyFlags.None);
+                assemblyProvider.Setup(x => x.GetAssemblies(It.IsAny<Func<string, bool>>())).Returns(new[] { assembly });
+
+                var fileIO = new MockFileIO();
+                var synchronizer = new ProjectGeneration(k_ProjectDirectory, assemblyProvider.Object, fileIO, new MockGUIDProvider());
+
+                synchronizer.Sync();
+                var textBefore = fileIO.ReadAllText(synchronizer.SolutionFile());
+                synchronizer.Sync();
+                var textAfter = fileIO.ReadAllText(synchronizer.SolutionFile());
+
+                Assert.AreEqual(textBefore, textAfter, "Content does not change on re-sync");
+            }
+
+            [Test]
+            public void Overwrite_EmptySolutionFile()
+            {
+                var assemblyProvider = new Mock<IAssemblyNameProvider>();
+                var assembly = new Assembly("Test", "some/path/file.dll", new[] { "test.cs" }, new string[0], new Assembly[0], new string[0], AssemblyFlags.None);
+                assemblyProvider.Setup(x => x.GetAssemblies(It.IsAny<Func<string, bool>>())).Returns(new[] { assembly });
+
+                var fileIO = new MockFileIO();
+                var synchronizer = new ProjectGeneration(k_ProjectDirectory, assemblyProvider.Object, fileIO, new MockGUIDProvider());
+
+                string originalText = "Microsoft Visual Studio Solution File, Format Version 10.00\n# Visual Studio 2008\nGlobal\nEndGlobal";
+                // Pre-seed solution file with empty property section
+                fileIO.WriteAllText(synchronizer.SolutionFile(), originalText);
+
+                synchronizer.Sync();
+
+                var syncedSolutionText = fileIO.ReadAllText(synchronizer.SolutionFile());
+                Assert.AreNotEqual(originalText, syncedSolutionText, "Should rewrite solution text");
+            }
+
+            [TestCase("reimport.dll", true)]
+            [TestCase("reimport.asmdef", true)]
+            [TestCase("dontreimport.someOther", false)]
+            public void AfterSync_WillResync_WhenReimportFileTypes(string reimportedFile, bool expected)
+            {
+                var assemblyProvider = new Mock<IAssemblyNameProvider>();
+                var assembly = new Assembly("Test", "some/path/file.dll", new[] { "test.cs" }, new string[0], new Assembly[0], new string[0], AssemblyFlags.None);
+                assemblyProvider.Setup(x => x.GetAssemblies(It.IsAny<Func<string, bool>>())).Returns(new[] { assembly });
+
+                var synchronizer = new ProjectGeneration(k_ProjectDirectory, assemblyProvider.Object, new MockFileIO(), new MockGUIDProvider());
+
+                synchronizer.Sync();
+
+                Assert.AreEqual(expected, synchronizer.SyncIfNeeded(Enumerable.Empty<string>(), new[] { reimportedFile }));
+            }
         }
 
-        [Test]
-        public void SyncOnlyForSomeAssetTypesOnReimport()
+        public class Format
         {
-            IEnumerable<string> precompiledAssetImport = new[] { "reimport.dll" };
-            IEnumerable<string> asmdefAssetImport = new[] { "reimport.asmdef" };
-            IEnumerable<string> otherAssetImport = new[] { "reimport.someOther" };
+            const string k_ProjectDirectory = "/FullPath/Example";
 
-            var projectGeneration = new ProjectGeneration(new FileInfo(s_SolutionFile).DirectoryName);
-            Assert.IsTrue(File.Exists(s_SolutionFile));
-
-            var precompiledAssemblySyncIfNeeded = projectGeneration.SyncIfNeeded(Enumerable.Empty<string>().ToArray(), precompiledAssetImport);
-            var asmdefSyncIfNeeded = projectGeneration.SyncIfNeeded(Enumerable.Empty<string>().ToArray(), asmdefAssetImport);
-            var someOtherSyncIfNeeded = projectGeneration.SyncIfNeeded(Enumerable.Empty<string>().ToArray(), otherAssetImport);
-
-            Assert.IsTrue(precompiledAssemblySyncIfNeeded);
-            Assert.IsTrue(asmdefSyncIfNeeded);
-            Assert.IsFalse(someOtherSyncIfNeeded);
-        }
-
-        [Test]
-        public void FormattedSolution()
-        {
-            var mock = new Mock<IAssemblyNameProvider>();
-            var files = new[]
+            [Test]
+            public void Header_MatchesVSVersion()
             {
-                "File.cs",
-            };
-            var island = new Assembly("Assembly2", "/User/Test/Assembly2.dll", files, new string[0], new Assembly[0], new string[0], AssemblyFlags.None);
-            mock.Setup(x => x.GetAllAssemblies(It.IsAny<Func<string, bool>>())).Returns(new[] { island });
+                var assemblyProvider = new Mock<IAssemblyNameProvider>();
+                var assembly = new Assembly("Test", "some/path/file.dll", new[] { "test.cs" }, new string[0], new Assembly[0], new string[0], AssemblyFlags.None);
+                assemblyProvider.Setup(x => x.GetAssemblies(It.IsAny<Func<string, bool>>())).Returns(new[] { assembly });
 
-            string projectDirectory = Directory.GetParent(Application.dataPath).FullName;
-            var synchronizer = new ProjectGeneration(projectDirectory, mock.Object);
-            var syncPaths = new Dictionary<string, string>();
-            synchronizer.Settings = new TestSettings { ShouldSync = false, SyncPath = syncPaths };
+                var fileIO = new MockFileIO();
+                var mockGUIDProvider = new MockGUIDProvider();
+                var synchronizer = new ProjectGeneration(k_ProjectDirectory, assemblyProvider.Object, fileIO, mockGUIDProvider);
 
-            string GetProjectName()
-            {
-                string[] s = Application.dataPath.Split('/');
-                return s[s.Length - 2];
+                synchronizer.Sync();
+
+                string[] syncedSolutionText = fileIO.ReadAllText(synchronizer.SolutionFile()).Split(new[] { "\r\n" }, StringSplitOptions.None);
+                Assert.IsTrue(syncedSolutionText.Length >= 4);
+                Assert.AreEqual(@"", syncedSolutionText[0]);
+                Assert.AreEqual(@"Microsoft Visual Studio Solution File, Format Version 11.00", syncedSolutionText[1]);
+                Assert.AreEqual(@"# Visual Studio 2010", syncedSolutionText[2]);
+                Assert.IsTrue(syncedSolutionText[3].StartsWith($"Project(\"{{{mockGUIDProvider.SolutionGuid("Example", "cs")}}}\")"));
             }
 
-            string GetProjectGUID(string projectName)
+            [Test]
+            public void Matches_DefaultProjectGeneration()
             {
-                return SolutionGuidGenerator.GuidForProject(GetProjectName() + projectName);
+                var assemblyProvider = new Mock<IAssemblyNameProvider>();
+                var assembly = new Assembly("Assembly2", "/User/Test/Assembly2.dll", new[] { "File.cs" }, new string[0], new Assembly[0], new string[0], AssemblyFlags.None);
+                assemblyProvider.Setup(x => x.GetAssemblies(It.IsAny<Func<string, bool>>())).Returns(new[] { assembly });
+
+                var mockFileIO = new MockFileIO();
+                var mockGUIDProvider = new MockGUIDProvider();
+                var synchronizer = new ProjectGeneration(k_ProjectDirectory, assemblyProvider.Object, mockFileIO, mockGUIDProvider);
+
+                synchronizer.Sync();
+
+                // solutionguid, solutionname, projectguid
+                var solutionExpected = string.Join("\r\n", new[]
+                {
+                    @"",
+                    @"Microsoft Visual Studio Solution File, Format Version 11.00",
+                    @"# Visual Studio 2010",
+                    @"Project(""{{{0}}}"") = ""{2}"", ""{2}.csproj"", ""{{{1}}}""",
+                    @"EndProject",
+                    @"Global",
+                    @"    GlobalSection(SolutionConfigurationPlatforms) = preSolution",
+                    @"        Debug|Any CPU = Debug|Any CPU",
+                    @"        Release|Any CPU = Release|Any CPU",
+                    @"    EndGlobalSection",
+                    @"    GlobalSection(ProjectConfigurationPlatforms) = postSolution",
+                    @"        {{{1}}}.Debug|Any CPU.ActiveCfg = Debug|Any CPU",
+                    @"        {{{1}}}.Debug|Any CPU.Build.0 = Debug|Any CPU",
+                    @"        {{{1}}}.Release|Any CPU.ActiveCfg = Release|Any CPU",
+                    @"        {{{1}}}.Release|Any CPU.Build.0 = Release|Any CPU",
+                    @"    EndGlobalSection",
+                    @"    GlobalSection(SolutionProperties) = preSolution",
+                    @"        HideSolutionNode = FALSE",
+                    @"    EndGlobalSection",
+                    @"EndGlobal",
+                    @""
+                }).Replace("    ", "\t");
+
+                var solutionTemplate = string.Format(
+                    solutionExpected,
+                    mockGUIDProvider.SolutionGuid("Example", "cs"),
+                    mockGUIDProvider.ProjectGuid("Example", assembly.outputPath),
+                    assembly.name);
+
+                Assert.AreEqual(solutionTemplate, mockFileIO.ReadAllText(synchronizer.SolutionFile()));
             }
-
-            string GetSolutionGUID(string projectName)
-            {
-                return SolutionGuidGenerator.GuidForSolution(projectName, "cs");
-            }
-
-            synchronizer.Sync();
-
-            // solutionguid, solutionname, projectguid
-            var solutionExpected = string.Join("\r\n", new[]
-            {
-                @"",
-                @"Microsoft Visual Studio Solution File, Format Version 11.00",
-                @"# Visual Studio 2010",
-                @"Project(""{{{0}}}"") = ""{2}"", ""{2}.csproj"", ""{{{1}}}""",
-                @"EndProject",
-                @"Global",
-                @"    GlobalSection(SolutionConfigurationPlatforms) = preSolution",
-                @"        Debug|Any CPU = Debug|Any CPU",
-                @"        Release|Any CPU = Release|Any CPU",
-                @"    EndGlobalSection",
-                @"    GlobalSection(ProjectConfigurationPlatforms) = postSolution",
-                @"        {{{1}}}.Debug|Any CPU.ActiveCfg = Debug|Any CPU",
-                @"        {{{1}}}.Debug|Any CPU.Build.0 = Debug|Any CPU",
-                @"        {{{1}}}.Release|Any CPU.ActiveCfg = Release|Any CPU",
-                @"        {{{1}}}.Release|Any CPU.Build.0 = Release|Any CPU",
-                @"    EndGlobalSection",
-                @"    GlobalSection(SolutionProperties) = preSolution",
-                @"        HideSolutionNode = FALSE",
-                @"    EndGlobalSection",
-                @"EndGlobal",
-                @""
-            }).Replace("    ", "\t");
-
-            var solutionTemplate = string.Format(
-                solutionExpected,
-                GetSolutionGUID(GetProjectName()),
-                GetProjectGUID("Assembly2"),
-                "Assembly2");
-
-            Assert.AreEqual(solutionTemplate, syncPaths[synchronizer.SolutionFile()]);
         }
     }
 }

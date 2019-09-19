@@ -1,6 +1,6 @@
 using System.IO;
 using NUnit.Framework;
-using Packages.Rider.Editor;
+using Packages.Rider.Tests.Editor;
 using UnityEngine;
 using UnityEngine.TestTools;
 

@@ -2,13 +2,13 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using Packages.Rider.Editor.Util;
+using Packages.Rider.Tests.Editor.Util;
 using Unity.CodeEditor;
 using UnityEditor;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 
-namespace Packages.Rider.Editor
+namespace Packages.Rider.Tests.Editor
 {
   [InitializeOnLoad]
   public class RiderScriptEditor : IExternalCodeEditor

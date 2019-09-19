@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Packages.Rider.Editor.Util
+namespace Packages.Rider.Tests.Editor.Util
 {
   public class CommandLineParser
   {

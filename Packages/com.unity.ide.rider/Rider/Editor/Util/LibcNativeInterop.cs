@@ -2,7 +2,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace Packages.Rider.Editor.Util
+namespace Packages.Rider.Tests.Editor.Util
 {
   internal static class LibcNativeInterop
   {

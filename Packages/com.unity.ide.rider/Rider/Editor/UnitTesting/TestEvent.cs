@@ -1,7 +1,7 @@
 using System;
 using NUnit.Framework.Interfaces;
 
-namespace Packages.Rider.Editor.UnitTesting
+namespace Packages.Rider.Tests.Editor.UnitTesting
 {
   [Serializable]
   public enum EventType { TestStarted, TestFinished, RunFinished }

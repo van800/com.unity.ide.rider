@@ -3,7 +3,7 @@ using UnityEditor;
 using UnityEditor.TestTools.TestRunner.Api;
 using UnityEngine;
 
-namespace Packages.Rider.Editor.UnitTesting
+namespace Packages.Rider.Tests.Editor.UnitTesting
 {
   public static class RiderTestRunner
   {

@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using UnityEngine;
 
-namespace Packages.Rider.Editor
+namespace Packages.Rider.Tests.Editor
 {
     internal class RiderInitializer
     {
