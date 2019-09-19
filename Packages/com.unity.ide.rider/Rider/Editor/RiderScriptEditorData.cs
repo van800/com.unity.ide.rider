@@ -2,7 +2,7 @@ using System;
 using UnityEditor;
 using UnityEngine;
 
-namespace Packages.Rider.Editor
+namespace Packages.Rider.Tests.Editor
 {
   public class RiderScriptEditorData : ScriptableSingleton<RiderScriptEditorData>
   {

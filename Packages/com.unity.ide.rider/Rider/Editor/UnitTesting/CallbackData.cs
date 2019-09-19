@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using JetBrains.Annotations;
 using UnityEditor;
 
-namespace Packages.Rider.Editor.UnitTesting
+namespace Packages.Rider.Tests.Editor.UnitTesting
 {
   public class CallbackData : ScriptableSingleton<CallbackData>
   {

@@ -5,7 +5,7 @@ using UnityEditor;
 using UnityEditor.TestTools.TestRunner.Api;
 #endif
 
-namespace Packages.Rider.Editor.UnitTesting
+namespace Packages.Rider.Tests.Editor.UnitTesting
 {
   public static class RiderTestRunner
   {

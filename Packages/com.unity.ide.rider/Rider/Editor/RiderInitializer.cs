@@ -3,7 +3,7 @@ using System.IO;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 
-namespace Packages.Rider.Editor
+namespace Packages.Rider.Tests.Editor
 {
     internal class RiderInitializer
     {

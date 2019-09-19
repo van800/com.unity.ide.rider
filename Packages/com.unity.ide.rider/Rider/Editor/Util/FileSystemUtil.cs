@@ -5,7 +5,7 @@ using System.Text;
 using JetBrains.Annotations;
 using UnityEngine;
 
-namespace Packages.Rider.Editor.Util
+namespace Packages.Rider.Tests.Editor.Util
 {
   public static class FileSystemUtil
   {
