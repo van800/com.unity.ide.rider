@@ -73,7 +73,7 @@ promote:{{ test.name }}:
 {% if test.type == "package" -%}
       upm-ci package promote
       --package-path {{ test.path }}
-{% elsif test.type == "project -%}
+{% elsif test.type == "project" -%}
       upm-ci project promote
       --project-path {{ test.path }}
 {% endif -%}
