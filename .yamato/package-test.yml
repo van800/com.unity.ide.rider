@@ -7,15 +7,12 @@
 # Please find the source file here: https://github.cds.internal.unity3d.com/unity/yamato-ci-templates/blob/master/.yamato/package-test.yml
 # VERSION 2
 #_________________________________________________
-
 ######################################################
 # Avoid tampering with stuff below here if you can
-
 {% metadata_file .yamato/template-config.yml %}
 template_environment_variables:
   # Do not touch
   JOB_TEMPLATE_VERSION: 2
-
 images:
   windows:
     type: Unity::VM
@@ -29,12 +26,10 @@ images:
     type: Unity::VM::osx
     image: buildfarm/mac:stable
     flavor: m1.mac
-
 scripting_backends:
   - mono
   - il2cpp
 ---
-
 {% for test in testables %}
 {% for platform in platforms %}
 {% for editor in editors %}
@@ -85,7 +80,6 @@ scripting_backends:
 {% endfor %} # scripting_backends
 {% endif %} # platform.os
 {% endif %} # standalone
-
 {{ test.name }}:{{ platform.os }}:{{ editor.version }}:
   name : Test {{ test.name }} for {{ editor.version }} on {{ platform.os }}
   agent:
@@ -206,7 +200,6 @@ scripting_backends:
 {% endif %}
 {% endfor %}
 {% endfor %}
-
 {% for test in testables %}
 pack:{{ test.name }}:
   name: Pack {{ test.name }}
@@ -232,7 +225,6 @@ pack:{{ test.name }}:
       paths:
         - "upm-ci~/packages/**/*"
 {% endfor %}
-
 test:trigger:
   name: Tests Trigger
   agent:
@@ -262,7 +254,6 @@ test:trigger:
 {% endfor %}
 {% endfor %}
 {% endfor %}
-
 {% for test in testables %}
 {% for editor in editors %}
 {% for platform in platforms %}
@@ -272,6 +263,11 @@ dependency:{{ test.name }}:{{ platform.os }}:{{ editor.version }}:
     type: {{ images[platform.os].type }}
     image: {{ images[platform.os].image }}
     flavor: {{ images[platform.os].flavor }}
+  variables:
+{% if platform.os == "linux" -%}
+    PATH: /home/bokken/bin:/home/bokken/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin:/home/bokken/.npm-global/bin
+    DISPLAY: ":0"
+{% endif -%}
   commands:
     - pip install unity-downloader-cli --upgrade --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple
     - unity-downloader-cli --source-file unity_revision.txt {% for component in platform.components %}-c {{ component }} {% endfor %}--wait --published-only
@@ -295,7 +291,6 @@ dependency:{{ test.name }}:{{ platform.os }}:{{ editor.version }}:
 {% endfor %}
 {% endfor %}
 {% endfor %}
-
 {% for test in testables %}
 dependency:test:trigger:{{ test.name }}:
   name: Dependency Tests Trigger for {{ test.name }}
@@ -329,7 +324,6 @@ dependency:test:trigger:{{ test.name }}:
 {% endfor %}
 {% endfor %}
 {% endfor %}
-
 auto-version:
   name: Auto version {{ test.name }}
   agent:
@@ -358,7 +352,6 @@ auto-version:
     packages:
       paths:
         - "upm-ci~/**/*"
-
 {% for test in testables %}
 {% for editor in editors %}
 {% for platform in platforms %}
@@ -370,6 +363,10 @@ promotion:test:{{ test.name }}:{{ platform.os }}:{{ editor.version }}:
     flavor: {{ images[platform.os].flavor }}
   variables:
     UPMCI_PROMOTION: 1
+{% if platform.os == "linux" -%}
+    PATH: /home/bokken/bin:/home/bokken/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin:/home/bokken/.npm-global/bin
+    DISPLAY: ":0"
+{% endif -%}
   commands:
     - pip install unity-downloader-cli --upgrade --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple
     - unity-downloader-cli --source-file unity_revision.txt {% for component in platform.components %}-c {{ component }} {% endfor %}--wait --published-only
@@ -389,7 +386,6 @@ promotion:test:{{ test.name }}:{{ platform.os }}:{{ editor.version }}:
 {% endfor %}
 {% endfor %}
 {% endfor %}
-
 {% for test in testables %}
 promotion:test:trigger:{{ test.name }}:
   name: Promotion Tests Trigger for {{ test.name }}
@@ -408,7 +404,7 @@ promotion:test:trigger:{{ test.name }}:
     - .yamato/package-test.yml#pack:{{ test.name }}
 {% for editor in editors %}
 {% for platform in platforms %}
-    - .yamato/package-test.yml#dependency:{{ test.name }}:{{ platform.os }}:{{ editor.version }}
+    - .yamato/package-test.yml#promotion:{{ test.name }}:{{ platform.os }}:{{ editor.version }}
 {% endfor %}
 {% endfor %}
 {% endfor %}
