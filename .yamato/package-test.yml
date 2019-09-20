@@ -87,7 +87,7 @@ scripting_backends:
     image: {{ images[platform.os].image }}
     flavor: {{ images[platform.os].flavor }}
   variables:
-{% if platform.os == "linux" -%}
+{% if platform.os == "linux" -%}  
     PATH: /home/bokken/bin:/home/bokken/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin:/home/bokken/.npm-global/bin
     DISPLAY: ":0"
 {% endif -%}
@@ -263,8 +263,8 @@ dependency:{{ test.name }}:{{ platform.os }}:{{ editor.version }}:
     type: {{ images[platform.os].type }}
     image: {{ images[platform.os].image }}
     flavor: {{ images[platform.os].flavor }}
-  variables:
 {% if platform.os == "linux" -%}
+  variables:
     PATH: /home/bokken/bin:/home/bokken/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin:/home/bokken/.npm-global/bin
     DISPLAY: ":0"
 {% endif -%}
@@ -404,7 +404,7 @@ promotion:test:trigger:{{ test.name }}:
     - .yamato/package-test.yml#pack:{{ test.name }}
 {% for editor in editors %}
 {% for platform in platforms %}
-    - .yamato/package-test.yml#promotion:{{ test.name }}:{{ platform.os }}:{{ editor.version }}
+    - .yamato/package-test.yml#promotion:test:{{ test.name }}:{{ platform.os }}:{{ editor.version }}
 {% endfor %}
 {% endfor %}
 {% endfor %}
