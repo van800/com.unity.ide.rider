@@ -1,7 +1,6 @@
 {
   "disableProjectUpdate": true,
   "dependencies": {
-    "com.unity.package-validation-suite": "0.7.5-preview",
-    "com.unity.test-framework": "1.1.2"
+    "com.unity.package-validation-suite": "0.7.5-preview"
   }
 }
