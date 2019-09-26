@@ -1,4 +1,4 @@
-namespace Packages.Rider.Tests.Editor
+namespace Packages.Rider.Editor
 {
   public enum LoggingLevel
   {

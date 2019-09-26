@@ -4,7 +4,7 @@ using System.Text;
 using UnityEditor.TestTools.TestRunner.Api;
 using UnityEngine;
 
-namespace Packages.Rider.Tests.Editor.UnitTesting
+namespace Packages.Rider.Editor.UnitTesting
 {
   public class TestsCallback : ScriptableObject, ICallbacks
     {
