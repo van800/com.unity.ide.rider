@@ -25,7 +25,7 @@ namespace Packages.Rider.Editor
     void GenerateAll(bool generateAll);
   }
 
-  public interface FileIO
+  public interface IFileIO
   {
     bool Exists(string fileName);
 
@@ -33,7 +33,7 @@ namespace Packages.Rider.Editor
     void WriteAllText(string fileName, string content);
   }
 
-  public interface GUIDGenerator
+  public interface IGUIDGenerator
   {
     string ProjectGuid(string projectName, string assemblyName);
     string SolutionGuid(string projectName, string extension);
@@ -81,38 +81,6 @@ namespace Packages.Rider.Editor
     }
   }
 
-  class FileIOProvider : FileIO
-  {
-    public bool Exists(string fileName)
-    {
-      return File.Exists(fileName);
-    }
-
-    public string ReadAllText(string fileName)
-    {
-      return File.ReadAllText(fileName);
-    }
-
-    public void WriteAllText(string fileName, string content)
-    {
-      File.WriteAllText(fileName, content, Encoding.UTF8);
-    }
-  }
-
-  class GUIDProvider : GUIDGenerator
-  {
-    public string ProjectGuid(string projectName, string assemblyName)
-    {
-      return SolutionGuidGenerator.GuidForProject(projectName + assemblyName);
-    }
-
-    public string SolutionGuid(string projectName, string extension)
-    {
-      return SolutionGuidGenerator.GuidForSolution(projectName, extension); // GetExtensionOfSourceFiles(assembly.sourceFiles)
-    }
-  }
-
-
   public class ProjectGeneration : IGenerator
   {
     enum ScriptingLanguage
@@ -138,7 +106,9 @@ namespace Packages.Rider.Editor
         {"compute", ScriptingLanguage.None},
         {"cginc", ScriptingLanguage.None},
         {"hlsl", ScriptingLanguage.None},
-        {"glslinc", ScriptingLanguage.None}
+        {"glslinc", ScriptingLanguage.None},
+        {"template", ScriptingLanguage.None},
+        {"raytrace", ScriptingLanguage.None}
       };
 
     string m_SolutionProjectEntryTemplate = string.Join("\r\n",
@@ -177,8 +147,8 @@ namespace Packages.Rider.Editor
 
     readonly string m_ProjectName;
     readonly IAssemblyNameProvider m_AssemblyNameProvider;
-    readonly FileIO m_FileIOProvider;
-    readonly GUIDGenerator m_GUIDGenerator;
+    readonly IFileIO m_FileIOProvider;
+    readonly IGUIDGenerator m_GUIDGenerator;
     internal static bool isRiderProjectGeneration; // workaround to https://github.cds.internal.unity3d.com/unity/com.unity.ide.rider/issues/28
 
     const string k_ToolsVersion = "4.0";
@@ -199,7 +169,7 @@ namespace Packages.Rider.Editor
     {
     }
 
-    public ProjectGeneration(string tempDirectory, IAssemblyNameProvider assemblyNameProvider, FileIO fileIoProvider, GUIDGenerator guidGenerator)
+    public ProjectGeneration(string tempDirectory, IAssemblyNameProvider assemblyNameProvider, IFileIO fileIoProvider, IGUIDGenerator guidGenerator)
     {
       ProjectDirectory = tempDirectory.Replace('\\', '/');
       m_ProjectName = Path.GetFileName(ProjectDirectory);

@@ -1,12 +1,12 @@
 using System.IO;
 using Moq;
 using NUnit.Framework;
-using Packages.Rider.Tests.Editor;
+using Packages.Rider.Editor;
 using Unity.CodeEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
 
-namespace Packages.Rider.Tests.Editor
+namespace Packages.Rider.Editor.Tests
 {
     [TestFixture]
     public class DetermineScriptEditorTests
