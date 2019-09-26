@@ -1,7 +1,7 @@
 using Unity.CodeEditor;
 using UnityEditor;
 
-namespace Packages.Rider.Tests.Editor.PostProcessors
+namespace Packages.Rider.Editor.PostProcessors
 {
   public class RiderAssetPostprocessor: AssetPostprocessor
   {

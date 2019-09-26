@@ -7,7 +7,7 @@ using Microsoft.Win32;
 using Unity.CodeEditor;
 using UnityEngine;
 
-namespace Packages.Rider.Tests.Editor
+namespace Packages.Rider.Editor
 {
   public interface IDiscovery
   {

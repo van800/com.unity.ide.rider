@@ -5,7 +5,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 
-namespace Packages.Rider.Tests.Editor
+namespace Packages.Rider.Editor
 {
   public static class EditorPluginInterop
   {

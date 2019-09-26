@@ -3,7 +3,7 @@ using Unity.CodeEditor;
 using UnityEditor;
 using UnityEngine;
 
-namespace Packages.Rider.Tests.Editor
+namespace Packages.Rider.Editor
 {
   public class PluginSettings
   {
