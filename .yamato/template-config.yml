@@ -44,3 +44,4 @@ testables:
     path: .
     type: project
     publish_source: true
+    standalone: false
