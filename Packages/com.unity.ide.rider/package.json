@@ -6,6 +6,6 @@
   "unity": "2019.2",
   "unityRelease": "0a12",
   "dependencies": {
-    "com.unity.test-framework": "1.1.1"
+    "com.unity.test-framework": "1.1.2"
   }
 }
