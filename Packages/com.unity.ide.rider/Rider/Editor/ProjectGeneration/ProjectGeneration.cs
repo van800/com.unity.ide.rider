@@ -25,18 +25,27 @@ namespace Packages.Rider.Editor
     void GenerateAll(bool generateAll);
   }
 
+  public interface IFileIO
+  {
+    bool Exists(string fileName);
+
+    string ReadAllText(string fileName);
+    void WriteAllText(string fileName, string content);
+  }
+
+  public interface IGUIDGenerator
+  {
+    string ProjectGuid(string projectName, string assemblyName);
+    string SolutionGuid(string projectName, string extension);
+  }
+
   public interface IAssemblyNameProvider
   {
     string GetAssemblyNameFromScriptPath(string path);
-    IEnumerable<Assembly> GetAllAssemblies(Func<string, bool> shouldFileBePartOfSolution);
+    IEnumerable<Assembly> GetAssemblies(Func<string, bool> shouldFileBePartOfSolution);
     IEnumerable<string> GetAllAssetPaths();
     UnityEditor.PackageManager.PackageInfo FindForAssetPath(string assetPath);
-  }
-
-  public struct TestSettings
-  {
-    public bool ShouldSync;
-    public Dictionary<string, string> SyncPath;
+    ResponseFileData ParseResponseFile(string responseFilePath, string projectDirectory, string[] systemReferenceDirectories);
   }
 
   class AssemblyNameProvider : IAssemblyNameProvider
@@ -46,7 +55,7 @@ namespace Packages.Rider.Editor
       return CompilationPipeline.GetAssemblyNameFromScriptPath(path);
     }
 
-    public IEnumerable<Assembly> GetAllAssemblies(Func<string, bool> shouldFileBePartOfSolution)
+    public IEnumerable<Assembly> GetAssemblies(Func<string, bool> shouldFileBePartOfSolution)
     {
       return CompilationPipeline.GetAssemblies()
         .Where(i => 0 < i.sourceFiles.Length && i.sourceFiles.Any(shouldFileBePartOfSolution));
@@ -61,8 +70,16 @@ namespace Packages.Rider.Editor
     {
       return UnityEditor.PackageManager.PackageInfo.FindForAssetPath(assetPath);
     }
-  }
 
+    public ResponseFileData ParseResponseFile(string responseFilePath, string projectDirectory, string[] systemReferenceDirectories)
+    {
+      return CompilationPipeline.ParseResponseFile(
+        responseFilePath,
+        projectDirectory,
+        systemReferenceDirectories
+      );
+    }
+  }
 
   public class ProjectGeneration : IGenerator
   {
@@ -89,7 +106,9 @@ namespace Packages.Rider.Editor
         {"compute", ScriptingLanguage.None},
         {"cginc", ScriptingLanguage.None},
         {"hlsl", ScriptingLanguage.None},
-        {"glslinc", ScriptingLanguage.None}
+        {"glslinc", ScriptingLanguage.None},
+        {"template", ScriptingLanguage.None},
+        {"raytrace", ScriptingLanguage.None}
       };
 
     string m_SolutionProjectEntryTemplate = string.Join("\r\n",
@@ -126,9 +145,10 @@ namespace Packages.Rider.Editor
       m_ShouldGenerateAll = generateAll;
     }
 
-    public TestSettings Settings { get; set; }
     readonly string m_ProjectName;
     readonly IAssemblyNameProvider m_AssemblyNameProvider;
+    readonly IFileIO m_FileIOProvider;
+    readonly IGUIDGenerator m_GUIDGenerator;
     internal static bool isRiderProjectGeneration; // workaround to https://github.cds.internal.unity3d.com/unity/com.unity.ide.rider/issues/28
 
     const string k_ToolsVersion = "4.0";
@@ -137,20 +157,25 @@ namespace Packages.Rider.Editor
     const string k_TargetFrameworkVersion = "v4.7.1";
     const string k_TargetLanguageVersion = "latest";
 
-    public ProjectGeneration() : this(Directory.GetParent(Application.dataPath).FullName, new AssemblyNameProvider())
+    static readonly Regex scriptReferenceExpression = new Regex(
+      @"^Library.ScriptAssemblies.(?<dllname>(?<project>.*)\.dll$)",
+      RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+    public ProjectGeneration() : this(Directory.GetParent(Application.dataPath).FullName)
     {
     }
 
-    public ProjectGeneration(string tempDirectory) : this(tempDirectory, new AssemblyNameProvider())
+    public ProjectGeneration(string tempDirectory) : this(tempDirectory, new AssemblyNameProvider(), new FileIOProvider(), new GUIDProvider())
     {
     }
 
-    public ProjectGeneration(string tempDirectory, IAssemblyNameProvider assemblyNameProvider)
+    public ProjectGeneration(string tempDirectory, IAssemblyNameProvider assemblyNameProvider, IFileIO fileIoProvider, IGUIDGenerator guidGenerator)
     {
-      Settings = new TestSettings {ShouldSync = true};
       ProjectDirectory = tempDirectory.Replace('\\', '/');
       m_ProjectName = Path.GetFileName(ProjectDirectory);
       m_AssemblyNameProvider = assemblyNameProvider;
+      m_FileIOProvider = fileIoProvider;
+      m_GUIDGenerator = guidGenerator;
     }
 
     /// <summary>
@@ -199,13 +224,13 @@ namespace Packages.Rider.Editor
       {
         GenerateAndWriteSolutionAndProjects(types);
       }
-      
+
       OnGeneratedCSProjectFiles(types);
     }
 
     public bool HasSolutionBeenGenerated()
     {
-      return File.Exists(SolutionFile());
+      return m_FileIOProvider.Exists(SolutionFile());
     }
 
     void SetupProjectSupportedExtensions()
@@ -271,7 +296,7 @@ namespace Packages.Rider.Editor
     {
       // Only synchronize islands that have associated source files and ones that we actually want in the project.
       // This also filters out DLLs coming from .asmdef files in packages.
-      var assemblies = m_AssemblyNameProvider.GetAllAssemblies(ShouldFileBePartOfSolution);
+      var assemblies = m_AssemblyNameProvider.GetAssemblies(ShouldFileBePartOfSolution);
 
       var allAssetProjectParts = GenerateAllAssetProjectParts();
 
@@ -292,8 +317,8 @@ namespace Packages.Rider.Editor
         CompilationPipeline.GetSystemAssemblyDirectories(assembly.compilerOptions.ApiCompatibilityLevel);
 
       Dictionary<string, ResponseFileData> responseFilesData = assembly.compilerOptions.ResponseFiles.ToDictionary(
-        x => x, x => CompilationPipeline.ParseResponseFile(
-          Path.Combine(ProjectDirectory, x),
+        x => x, x => m_AssemblyNameProvider.ParseResponseFile(
+          x,
           ProjectDirectory,
           systemReferenceDirectories
         ));
@@ -516,22 +541,19 @@ namespace Packages.Rider.Editor
 
     void SyncFileIfNotChanged(string filename, string newContents)
     {
-      if (File.Exists(filename) &&
-          newContents == File.ReadAllText(filename))
+      try
       {
-        return;
+        if (m_FileIOProvider.Exists(filename) && newContents == m_FileIOProvider.ReadAllText(filename))
+        {
+          return;
+        }
+      }
+      catch (Exception exception)
+      {
+        Debug.LogException(exception);
       }
 
-      if (Settings.ShouldSync)
-      {
-        File.WriteAllText(filename, newContents, Encoding.UTF8);
-      }
-      else
-      {
-        var utf8 = Encoding.UTF8;
-        byte[] utfBytes = utf8.GetBytes(newContents);
-        Settings.SyncPath[filename] = utf8.GetString(utfBytes, 0, utfBytes.Length);
-      }
+      m_FileIOProvider.WriteAllText(filename, newContents);
     }
 
     string ProjectText(Assembly assembly,
@@ -560,14 +582,11 @@ namespace Packages.Rider.Editor
         }
       }
 
-      var assemblyName = assembly.name;
-
       // Append additional non-script files that should be included in project generation.
-      if (allAssetsProjectParts.TryGetValue(assemblyName, out var additionalAssetsForProject))
+      if (allAssetsProjectParts.TryGetValue(assembly.name, out var additionalAssetsForProject))
         projectBuilder.Append(additionalAssetsForProject);
 
       var islandRefs = references.Union(assembly.allReferences);
-
       foreach (string reference in islandRefs)
       {
         if (reference.EndsWith("/UnityEditor.dll", StringComparison.Ordinal)
@@ -612,8 +631,10 @@ namespace Packages.Rider.Editor
 
           projectBuilder.Append("    <ProjectReference Include=\"").Append(referencedProject)
             .Append(GetProjectExtension()).Append("\">").Append(k_WindowsNewline);
-          projectBuilder.Append("      <Project>{")
-            .Append(ProjectGuid(reference.Groups["project"].Value)).Append("}</Project>")
+          projectBuilder
+            .Append("      <Project>{")
+            .Append(m_GUIDGenerator.ProjectGuid(m_ProjectName, reference.Groups["project"].Value))
+            .Append("}</Project>")
             .Append(k_WindowsNewline);
           projectBuilder.Append("      <Name>").Append(referencedProject).Append("</Name>").Append(k_WindowsNewline);
           projectBuilder.AppendLine("    </ProjectReference>");
@@ -646,25 +667,25 @@ namespace Packages.Rider.Editor
     }
 
     string ProjectHeader(
-      Assembly island,
+      Assembly assembly,
       List<ResponseFileData> responseFilesData
     )
     {
       var arguments = new object[]
       {
-        k_ToolsVersion, k_ProductVersion, ProjectGuid(island.name),
+        k_ToolsVersion, k_ProductVersion, m_GUIDGenerator.ProjectGuid(m_ProjectName, assembly.name),
         InternalEditorUtility.GetEngineAssemblyPath(),
         InternalEditorUtility.GetEditorAssemblyPath(),
         string.Join(";",
           new[] {"DEBUG", "TRACE"}.Concat(EditorUserBuildSettings.activeScriptCompilationDefines).Concat(island.defines)
             .Concat(responseFilesData.SelectMany(x => x.Defines)).Distinct().ToArray()),
         MSBuildNamespaceUri,
-        island.name,
+        assembly.name,
         EditorSettings.projectGenerationRootNamespace,
         k_TargetFrameworkVersion,
         PluginSettings.OverrideLangVersion?PluginSettings.LangVersion:k_TargetLanguageVersion,
         k_BaseDirectory,
-        island.compilerOptions.AllowUnsafeCode | responseFilesData.Any(x => x.Unsafe),
+        assembly.compilerOptions.AllowUnsafeCode | responseFilesData.Any(x => x.Unsafe),
         GenerateNoWarn(responseFilesData),
         GenerateAnalyserItemGroup(responseFilesData),
         GenerateAnalyserAdditionalFiles(responseFilesData),
@@ -776,7 +797,7 @@ namespace Packages.Rider.Editor
         @"    <NoStdLib>true</NoStdLib>",
         @"    <AddAdditionalExplicitAssemblyReferences>false</AddAdditionalExplicitAssemblyReferences>",
         @"    <ImplicitlyExpandNETStandardFacades>false</ImplicitlyExpandNETStandardFacades>",
-        @"    <ImplicitlyExpandDesignTimeFacades>false</ImplicitlyExpandDesignTimeFacades>{16}",
+        @"    <ImplicitlyExpandDesignTimeFacades>false</ImplicitlyExpandDesignTimeFacades>",
         @"  </PropertyGroup>"
       };
 
@@ -815,7 +836,7 @@ namespace Packages.Rider.Editor
       var relevantIslands = RelevantIslandsForMode(islands);
       string projectEntries = GetProjectEntries(relevantIslands);
       string projectConfigurations = string.Join(k_WindowsNewline,
-        relevantIslands.Select(i => GetProjectActiveConfigurations(ProjectGuid(i.name))).ToArray());
+        relevantIslands.Select(i => GetProjectActiveConfigurations(m_GUIDGenerator.ProjectGuid(m_ProjectName, i.name))).ToArray());
       return string.Format(GetSolutionText(), fileversion, vsversion, projectEntries, projectConfigurations);
     }
     
@@ -895,8 +916,10 @@ namespace Packages.Rider.Editor
     {
       var projectEntries = islands.Select(i => string.Format(
         m_SolutionProjectEntryTemplate,
-        SolutionGuid(i), i.name, Path.GetFileName(ProjectFile(i)),
-        ProjectGuid(i.name)
+        m_GUIDGenerator.SolutionGuid(m_ProjectName, GetExtensionOfSourceFiles(i.sourceFiles)),
+        i.name,
+        Path.GetFileName(ProjectFile(i)),
+        m_GUIDGenerator.ProjectGuid(m_ProjectName, i.name)
       ));
 
       return string.Join(k_WindowsNewline, projectEntries.ToArray());
@@ -942,17 +965,6 @@ namespace Packages.Rider.Editor
       if (Path.DirectorySeparatorChar == '\\')
         return path.Replace('/', Path.DirectorySeparatorChar);
       return path.Replace('\\', Path.DirectorySeparatorChar);
-    }
-
-
-    string ProjectGuid(string assembly)
-    {
-      return SolutionGuidGenerator.GuidForProject(m_ProjectName + assembly);
-    }
-
-    string SolutionGuid(Assembly island)
-    {
-      return SolutionGuidGenerator.GuidForSolution(m_ProjectName, GetExtensionOfSourceFiles(island.sourceFiles));
     }
 
     static string ProjectFooter()

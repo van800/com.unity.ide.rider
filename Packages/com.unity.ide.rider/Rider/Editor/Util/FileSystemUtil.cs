@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel;
 using System.IO;
+using System.Linq;
 using System.Text;
 using JetBrains.Annotations;
 using UnityEngine;
@@ -25,7 +26,7 @@ namespace Packages.Rider.Editor.Util
 
       return new FileInfo(sb.ToString()).FullName;
     }
-    
+
     public static string FileNameWithoutExtension(string path)
     {
       if (string.IsNullOrEmpty(path))
@@ -51,7 +52,7 @@ namespace Packages.Rider.Editor.Util
 
       if (indexOfDot == -1)
       {
-        indexOfDot = path.Length - 1;
+        indexOfDot = path.Length;
       }
 
       return path.Substring(indexOfSlash, indexOfDot - indexOfSlash);
