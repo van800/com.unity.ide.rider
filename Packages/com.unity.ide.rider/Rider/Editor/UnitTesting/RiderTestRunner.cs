@@ -1,3 +1,4 @@
+#if TEST_FRAMEWORK
 using JetBrains.Annotations;
 using UnityEditor;
 using UnityEditor.TestTools.TestRunner.Api;
@@ -38,3 +39,4 @@ namespace Packages.Rider.Editor.UnitTesting
     }
   }
 }
+#endif
