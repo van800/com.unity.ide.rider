@@ -1,12 +1,13 @@
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.TestTools;
 using UnityEditor.PackageManager.ValidationSuite;
 
 namespace RiderEditor
 {
     public class Package
     {
-        [Test]
+        [Test][UnityPlatform(exclude = new[] {RuntimePlatform.LinuxEditor })]
         public void Validate()
         {
             const string package = "com.unity.ide.rider@1.1.1";
