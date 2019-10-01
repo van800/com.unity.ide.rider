@@ -802,8 +802,7 @@ namespace Packages.Rider.Editor
         @"    <NoStdLib>true</NoStdLib>",
         @"    <AddAdditionalExplicitAssemblyReferences>false</AddAdditionalExplicitAssemblyReferences>",
         @"    <ImplicitlyExpandNETStandardFacades>false</ImplicitlyExpandNETStandardFacades>",
-        @"    <ImplicitlyExpandDesignTimeFacades>false</ImplicitlyExpandDesignTimeFacades>",
-        @"    {16}",
+        @"    <ImplicitlyExpandDesignTimeFacades>false</ImplicitlyExpandDesignTimeFacades>{16}",
         @"  </PropertyGroup>"
       };
 
@@ -820,9 +819,7 @@ namespace Packages.Rider.Editor
         @"    <Reference Include=""UnityEditor"">",
         @"      <HintPath>{4}</HintPath>",
         @"    </Reference>",
-        @"  </ItemGroup>",
-        @"  {14}",
-        @"  {15}",
+        @"  </ItemGroup>{14}{15}",
         @"  <ItemGroup>",
         @""
       };
@@ -860,7 +857,7 @@ namespace Packages.Rider.Editor
         if (!paths.Any())
             return string.Empty;
 
-        var list = new List<string> {"<ItemGroup>"};
+        var list = new List<string> {"\r\n  <ItemGroup>"};
         list.AddRange(paths.Select(a => $"    <Analyzer Include=\"{a}\" />"));
         list.Add("  </ItemGroup>");
         return string.Join("\r\n", list.ToArray());
@@ -884,7 +881,7 @@ namespace Packages.Rider.Editor
         if (!paths.Any())
             return string.Empty;
       
-        return string.Join("\r\n", paths.Select(a => $"<CodeAnalysisRuleSet>{a}</CodeAnalysisRuleSet>"));
+        return string.Join("\r\n", paths.Select(a => $"\r\n  <CodeAnalysisRuleSet>{a}</CodeAnalysisRuleSet>"));
     }
     
     private static string GenerateAnalyserAdditionalFiles(List<ResponseFileData> responseFilesData)
@@ -894,7 +891,7 @@ namespace Packages.Rider.Editor
       if (!paths.Any())
         return string.Empty;
       
-      var list = new List<string> {"<ItemGroup>"};
+      var list = new List<string> {"\r\n  <ItemGroup>"};
       list.AddRange(paths.Select(a => $"    <AdditionalFiles Include=\"{a}\" />"));
       list.Add("  </ItemGroup>");
       return string.Join("\r\n", list.ToArray());
