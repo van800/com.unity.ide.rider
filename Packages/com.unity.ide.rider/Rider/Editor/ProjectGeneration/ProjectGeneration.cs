@@ -671,6 +671,33 @@ namespace Packages.Rider.Editor
       List<ResponseFileData> responseFilesData
     )
     {
+      
+      const string nowarnPrefix = "nowarn:";
+      string[] warningLevelPrefix = new[] {"w:", "warn:"};
+      string warnLevel = 4.ToString();
+      
+      string ignoredWarnings = String.Empty;
+      foreach (ResponseFileData responseFileData in responseFilesData)
+      {
+        foreach (string otherArgument in responseFileData.OtherArguments)
+        {
+          if(otherArgument.Substring(1).StartsWith(nowarnPrefix))
+          {
+            ignoredWarnings = otherArgument.Substring(nowarnPrefix.Length + 1);
+            continue;
+          }
+
+          foreach (string warnLevelStart in warningLevelPrefix)
+          {
+            if (otherArgument.Substring(1).StartsWith(warnLevelStart))
+            {
+              warnLevel = otherArgument.Substring(warnLevelStart.Length + 1);
+              break;
+            }
+          }
+        }
+      }
+      
       var arguments = new object[]
       {
         k_ToolsVersion, k_ProductVersion, m_GUIDGenerator.ProjectGuid(m_ProjectName, assembly.name),
@@ -686,10 +713,8 @@ namespace Packages.Rider.Editor
         PluginSettings.OverrideLangVersion?PluginSettings.LangVersion:k_TargetLanguageVersion,
         k_BaseDirectory,
         island.compilerOptions.AllowUnsafeCode | responseFilesData.Any(x => x.Unsafe),
-        GenerateNoWarn(responseFilesData),
-        GenerateAnalyserItemGroup(responseFilesData),
-        GenerateAnalyserAdditionalFiles(responseFilesData),
-        GenerateAnalyserRuleSet(responseFilesData)
+        ignoredWarnings,
+        warnLevel
       };
 
       try
@@ -775,7 +800,7 @@ namespace Packages.Rider.Editor
         @"    <OutputPath>Temp\bin\Debug\</OutputPath>",
         @"    <DefineConstants>{5}</DefineConstants>",
         @"    <ErrorReport>prompt</ErrorReport>",
-        @"    <WarningLevel>4</WarningLevel>",
+        @"    <WarningLevel>{14}</WarningLevel>",
         @"    <NoWarn>0169{13}</NoWarn>",
         @"    <AllowUnsafeBlocks>{12}</AllowUnsafeBlocks>",
         @"  </PropertyGroup>",
@@ -784,7 +809,7 @@ namespace Packages.Rider.Editor
         @"    <Optimize>true</Optimize>",
         @"    <OutputPath>Temp\bin\Release\</OutputPath>",
         @"    <ErrorReport>prompt</ErrorReport>",
-        @"    <WarningLevel>4</WarningLevel>",
+        @"    <WarningLevel>{14}</WarningLevel>",
         @"    <NoWarn>0169{13}</NoWarn>",
         @"    <AllowUnsafeBlocks>{12}</AllowUnsafeBlocks>",
         @"  </PropertyGroup>"
