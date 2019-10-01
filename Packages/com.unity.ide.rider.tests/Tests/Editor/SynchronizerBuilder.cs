@@ -73,7 +73,7 @@ namespace Packages.Rider.Editor.Tests
 
         public SynchronizerBuilder WithProjectGuid(string projectGuid, Assembly assembly)
         {
-            m_GUIDGenerator.Setup(x => x.ProjectGuid(Path.GetFileName(k_ProjectDirectory), assembly.outputPath)).Returns(projectGuid);
+            m_GUIDGenerator.Setup(x => x.ProjectGuid(Path.GetFileName(k_ProjectDirectory), assembly.name)).Returns(projectGuid);
             return this;
         }
 
