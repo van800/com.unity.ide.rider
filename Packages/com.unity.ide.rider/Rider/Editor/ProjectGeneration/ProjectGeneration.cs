@@ -690,8 +690,11 @@ namespace Packages.Rider.Editor
         {
           const string start = "/nowarn:";
           var codes = x.OtherArguments.FirstOrDefault(a => a.StartsWith(start))?.Substring(start.Length);
-          return codes != null ? "," + codes: string.Empty;
-        }).FirstOrDefault()
+          return codes != null ? $",{codes}": string.Empty;
+        }).FirstOrDefault(),
+        GenerateAnalyserItemGroup(responseFilesData),
+        GenerateAnalyserAdditionalFiles(responseFilesData),
+        GenerateAnalyserRuleSet(responseFilesData)
       };
 
       try
@@ -800,6 +803,7 @@ namespace Packages.Rider.Editor
         @"    <AddAdditionalExplicitAssemblyReferences>false</AddAdditionalExplicitAssemblyReferences>",
         @"    <ImplicitlyExpandNETStandardFacades>false</ImplicitlyExpandNETStandardFacades>",
         @"    <ImplicitlyExpandDesignTimeFacades>false</ImplicitlyExpandDesignTimeFacades>",
+        @"    {16}",
         @"  </PropertyGroup>"
       };
 
@@ -817,12 +821,14 @@ namespace Packages.Rider.Editor
         @"      <HintPath>{4}</HintPath>",
         @"    </Reference>",
         @"  </ItemGroup>",
+        @"  {14}",
+        @"  {15}",
         @"  <ItemGroup>",
         @""
       };
 
-      var text = header.Concat(forceExplicitReferences).Concat(itemGroupStart).Concat(footer).ToArray();
-      return string.Join("\r\n", text);
+      var pieces = header.Concat(forceExplicitReferences).Concat(itemGroupStart).Concat(footer).ToArray();
+      return string.Join("\r\n", pieces);
     }
 
     void SyncSolution(IEnumerable<Assembly> islands, Type[] types)
@@ -840,6 +846,58 @@ namespace Packages.Rider.Editor
       string projectConfigurations = string.Join(k_WindowsNewline,
         relevantIslands.Select(i => GetProjectActiveConfigurations(m_GUIDGenerator.ProjectGuid(m_ProjectName, i.outputPath))).ToArray());
       return string.Format(GetSolutionText(), fileversion, vsversion, projectEntries, projectConfigurations);
+    }
+    
+    private static string GenerateAnalyserItemGroup(List<ResponseFileData> responseFilesData)
+    {
+        var paths = GetValuesFromResponseFilesData(responseFilesData, "analyzer")
+          .Concat(GetValuesFromResponseFilesData(responseFilesData, "a")).Distinct().ToArray();
+
+        //   <ItemGroup>
+        //      <Analyzer Include="..\packages\Comments_analyser.1.0.6626.21356\analyzers\dotnet\cs\Comments_analyser.dll" />
+        //      <Analyzer Include="..\packages\UnityEngineAnalyzer.1.0.0.0\analyzers\dotnet\cs\UnityEngineAnalyzer.dll" />
+        //  </ItemGroup>
+        if (!paths.Any())
+            return string.Empty;
+
+        var list = new List<string> {"<ItemGroup>"};
+        list.AddRange(paths.Select(a => $"    <Analyzer Include=\"{a}\" />"));
+        list.Add("  </ItemGroup>");
+        return string.Join("\r\n", list.ToArray());
+    }
+
+    private static string[] GetValuesFromResponseFilesData(List<ResponseFileData> responseFilesData, string key)
+    {
+      var paths = responseFilesData.SelectMany(x =>
+      {
+        string start = $"/{key}:";
+        return x.OtherArguments.Where(a => a.StartsWith(start)).Select(b => b.Substring(start.Length));
+      }).Distinct().ToArray();
+      return paths;
+    }
+
+    private static string GenerateAnalyserRuleSet(List<ResponseFileData> responseFilesData)
+    {
+      var paths = GetValuesFromResponseFilesData(responseFilesData, "ruleset");
+
+      //<CodeAnalysisRuleSet>..\path\to\myrules.ruleset</CodeAnalysisRuleSet>
+        if (!paths.Any())
+            return string.Empty;
+      
+        return string.Join("\r\n", paths.Select(a => $"<CodeAnalysisRuleSet>{a}</CodeAnalysisRuleSet>"));
+    }
+    
+    private static string GenerateAnalyserAdditionalFiles(List<ResponseFileData> responseFilesData)
+    {
+      var paths = GetValuesFromResponseFilesData(responseFilesData, "additionalfile");
+
+      if (!paths.Any())
+        return string.Empty;
+      
+      var list = new List<string> {"<ItemGroup>"};
+      list.AddRange(paths.Select(a => $"    <AdditionalFiles Include=\"{a}\" />"));
+      list.Add("  </ItemGroup>");
+      return string.Join("\r\n", list.ToArray());
     }
 
     static IEnumerable<Assembly> RelevantIslandsForMode(IEnumerable<Assembly> islands)
