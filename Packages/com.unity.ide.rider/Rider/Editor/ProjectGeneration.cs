@@ -665,12 +665,7 @@ namespace Packages.Rider.Editor
         PluginSettings.OverrideLangVersion?PluginSettings.LangVersion:k_TargetLanguageVersion,
         k_BaseDirectory,
         island.compilerOptions.AllowUnsafeCode | responseFilesData.Any(x => x.Unsafe),
-        responseFilesData.Select(x =>
-        {
-          const string start = "/nowarn:";
-          var codes = x.OtherArguments.FirstOrDefault(a => a.StartsWith(start))?.Substring(start.Length);
-          return codes != null ? $",{codes}": string.Empty;
-        }).FirstOrDefault(),
+        GenerateNoWarn(responseFilesData),
         GenerateAnalyserItemGroup(responseFilesData),
         GenerateAnalyserAdditionalFiles(responseFilesData),
         GenerateAnalyserRuleSet(responseFilesData)
@@ -874,6 +869,16 @@ namespace Packages.Rider.Editor
       list.AddRange(paths.Select(a => $"    <AdditionalFiles Include=\"{a}\" />"));
       list.Add("  </ItemGroup>");
       return string.Join("\r\n", list.ToArray());
+    }
+    
+    private static string GenerateNoWarn(List<ResponseFileData> responseFilesData)
+    {
+      var codes = GetValuesFromResponseFilesData(responseFilesData, "nowarn");
+      
+      if (!codes.Any())
+        return string.Empty;
+      
+      return $",{string.Join(",", codes)}";
     }
 
     static IEnumerable<Assembly> RelevantIslandsForMode(IEnumerable<Assembly> islands)
