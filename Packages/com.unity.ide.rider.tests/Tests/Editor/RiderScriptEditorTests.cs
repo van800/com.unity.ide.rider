@@ -4,7 +4,7 @@ using Packages.Rider.Editor;
 using UnityEngine;
 using UnityEngine.TestTools;
 
-namespace Packages.Rider.Tests.Editor
+namespace Packages.Rider.Editor.Tests
 {
     [TestFixture]
     public class RiderScriptEditorTests
