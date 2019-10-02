@@ -1,18 +1,23 @@
-#if TEST_FRAMEWORK
 using JetBrains.Annotations;
+using UnityEngine;
+#if TEST_FRAMEWORK
 using UnityEditor;
 using UnityEditor.TestTools.TestRunner.Api;
-using UnityEngine;
+#endif
 
 namespace Packages.Rider.Editor.UnitTesting
 {
   public static class RiderTestRunner
   {
+#if TEST_FRAMEWORK
     private static readonly TestsCallback Callback = ScriptableObject.CreateInstance<TestsCallback>();
-    
+#endif
     [UsedImplicitly]
     public static void RunTests(int testMode, string[] assemblyNames, string[] testNames, string[] categoryNames, string[] groupNames, int? buildTarget)
     {
+#if !TEST_FRAMEWORK
+      Debug.LogError("Update Test Framework package to v.1.1.1+ and reimport Rider package to run tests from Rider.");
+#else
       CallbackData.instance.isRider = true;
             
       var api = ScriptableObject.CreateInstance<TestRunnerApi>();
@@ -36,7 +41,7 @@ namespace Packages.Rider.Editor.UnitTesting
       
       api.UnregisterCallbacks(Callback); // avoid multiple registrations
       api.RegisterCallbacks(Callback); // This can be used to receive information about when the test suite and individual tests starts and stops. Provide this with a scriptable object implementing ICallbacks
+#endif
     }
   }
 }
-#endif
