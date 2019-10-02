@@ -671,33 +671,7 @@ namespace Packages.Rider.Editor
       List<ResponseFileData> responseFilesData
     )
     {
-      
-      const string nowarnPrefix = "nowarn:";
-      string[] warningLevelPrefix = new[] {"w:", "warn:"};
-      string warnLevel = 4.ToString();
-      
-      string ignoredWarnings = String.Empty;
-      foreach (ResponseFileData responseFileData in responseFilesData)
-      {
-        foreach (string otherArgument in responseFileData.OtherArguments)
-        {
-          if(otherArgument.Substring(1).StartsWith(nowarnPrefix))
-          {
-            ignoredWarnings = otherArgument.Substring(nowarnPrefix.Length + 1);
-            continue;
-          }
-
-          foreach (string warnLevelStart in warningLevelPrefix)
-          {
-            if (otherArgument.Substring(1).StartsWith(warnLevelStart))
-            {
-              warnLevel = otherArgument.Substring(warnLevelStart.Length + 1);
-              break;
-            }
-          }
-        }
-      }
-      
+      var otherResponseFilesData = GetOtherArgumentsFromResponseFilesData(responseFilesData);
       var arguments = new object[]
       {
         k_ToolsVersion, k_ProductVersion, m_GUIDGenerator.ProjectGuid(m_ProjectName, assembly.name),
@@ -712,9 +686,11 @@ namespace Packages.Rider.Editor
         k_TargetFrameworkVersion,
         PluginSettings.OverrideLangVersion?PluginSettings.LangVersion:k_TargetLanguageVersion,
         k_BaseDirectory,
-        island.compilerOptions.AllowUnsafeCode | responseFilesData.Any(x => x.Unsafe),
-        ignoredWarnings,
-        warnLevel
+        assembly.compilerOptions.AllowUnsafeCode | responseFilesData.Any(x => x.Unsafe),
+        GenerateNoWarn(otherResponseFilesData["nowarn"].ToArray()),
+        GenerateAnalyserItemGroup(otherResponseFilesData["analyzer"].Concat(otherResponseFilesData["a"]).Distinct().ToArray()),
+        GenerateAnalyserAdditionalFiles(otherResponseFilesData["additionalfile"].ToArray()),
+        GenerateAnalyserRuleSet(otherResponseFilesData["ruleset"].ToArray())
       };
 
       try
@@ -865,12 +841,9 @@ namespace Packages.Rider.Editor
       return string.Format(GetSolutionText(), fileversion, vsversion, projectEntries, projectConfigurations);
     }
     
-    private static string GenerateAnalyserItemGroup(List<ResponseFileData> responseFilesData)
+    private static string GenerateAnalyserItemGroup(string[] paths)
     {
-        var paths = GetValuesFromResponseFilesData(responseFilesData, "analyzer")
-          .Concat(GetValuesFromResponseFilesData(responseFilesData, "a")).Distinct().ToArray();
-
-        //   <ItemGroup>
+      //   <ItemGroup>
         //      <Analyzer Include="..\packages\Comments_analyser.1.0.6626.21356\analyzers\dotnet\cs\Comments_analyser.dll" />
         //      <Analyzer Include="..\packages\UnityEngineAnalyzer.1.0.0.0\analyzers\dotnet\cs\UnityEngineAnalyzer.dll" />
         //  </ItemGroup>
@@ -883,20 +856,31 @@ namespace Packages.Rider.Editor
         return string.Join("\r\n", list.ToArray());
     }
 
-    private static string[] GetValuesFromResponseFilesData(List<ResponseFileData> responseFilesData, string key)
+    private static ILookup<string, string> GetOtherArgumentsFromResponseFilesData(List<ResponseFileData> responseFilesData)
     {
       var paths = responseFilesData.SelectMany(x =>
-      {
-        string start = $"/{key}:";
-        return x.OtherArguments.Where(a => a.StartsWith(start)).Select(b => b.Substring(start.Length));
-      }).Distinct().ToArray();
+        {
+          return x.OtherArguments
+            .Where(a => a.StartsWith("/") || a.StartsWith("-"))
+            .Select(b =>
+            {
+              var index = b.IndexOf(":", StringComparison.Ordinal);
+              if (index > 0 && b.Length > index)
+              {
+                var key = b.Substring(1, index - 1);
+                return new KeyValuePair<string, string>(key, b.Substring(index + 1));
+              }
+
+              return default;
+            });
+        })
+        .Distinct()
+        .ToLookup(o => o.Key, pair => pair.Value);
       return paths;
     }
 
-    private static string GenerateAnalyserRuleSet(List<ResponseFileData> responseFilesData)
+    private static string GenerateAnalyserRuleSet(string[] paths)
     {
-      var paths = GetValuesFromResponseFilesData(responseFilesData, "ruleset");
-
       //<CodeAnalysisRuleSet>..\path\to\myrules.ruleset</CodeAnalysisRuleSet>
         if (!paths.Any())
             return string.Empty;
@@ -904,10 +888,8 @@ namespace Packages.Rider.Editor
         return string.Join("\r\n", paths.Select(a => $"\r\n  <CodeAnalysisRuleSet>{a}</CodeAnalysisRuleSet>"));
     }
     
-    private static string GenerateAnalyserAdditionalFiles(List<ResponseFileData> responseFilesData)
+    private static string GenerateAnalyserAdditionalFiles(string[] paths)
     {
-      var paths = GetValuesFromResponseFilesData(responseFilesData, "additionalfile");
-
       if (!paths.Any())
         return string.Empty;
       
@@ -917,10 +899,8 @@ namespace Packages.Rider.Editor
       return string.Join("\r\n", list.ToArray());
     }
     
-    private static string GenerateNoWarn(List<ResponseFileData> responseFilesData)
+    private static string GenerateNoWarn(string[] codes)
     {
-      var codes = GetValuesFromResponseFilesData(responseFilesData, "nowarn");
-      
       if (!codes.Any())
         return string.Empty;
       
