@@ -216,6 +216,29 @@ namespace Packages.Rider.Editor.Tests
                 var csprojFileContents = m_Builder.ReadProjectFile(m_Builder.Assembly);
                 StringAssert.Contains("<AllowUnsafeBlocks>True</AllowUnsafeBlocks>", csprojFileContents);
             }
+            
+            [TestCase(0)]
+            [TestCase(4)]
+            public void SetWarningLevel(int level)
+            {
+                CheckOtherArgument(new[] {$"-w:{level}"}, $"<WarningLevel>{level}</WarningLevel>");
+                CheckOtherArgument(new[] {$"-warn:{level}"}, $"<WarningLevel>{level}</WarningLevel>");
+                CheckOtherArgument(new[] {$"/w:{level}"}, $"<WarningLevel>{level}</WarningLevel>");
+                CheckOtherArgument(new[] {$"/warn:{level}"}, $"<WarningLevel>{level}</WarningLevel>");
+            }
+
+            public void CheckOtherArgument(string[] argumentString, string expectedOutput)
+            {
+                const string responseFile = "csc.rsp";
+                var synchronizer = m_Builder
+                    .WithResponseFileData(m_Builder.Assembly, responseFile, otherArguments: argumentString)
+                    .Build();
+
+                synchronizer.Sync();
+
+                var csprojFileContents = m_Builder.ReadProjectFile(m_Builder.Assembly);
+                StringAssert.Contains(expectedOutput, csprojFileContents,  "Arguments: " + string.Join(";", argumentString));
+            }
         }
 
         public class References : ProjectGenerationTestBase
