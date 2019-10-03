@@ -16,7 +16,7 @@ namespace Packages.Rider.Editor.UnitTesting
     public static void RunTests(int testMode, string[] assemblyNames, string[] testNames, string[] categoryNames, string[] groupNames, int? buildTarget)
     {
 #if !TEST_FRAMEWORK
-      Debug.LogError("Update Test Framework package to v.1.1.1+ and reimport Rider package to run tests from Rider.");
+      Debug.LogError("Update Test Framework package to v.1.1.1+ to run tests from Rider.");
 #else
       CallbackData.instance.isRider = true;
             
