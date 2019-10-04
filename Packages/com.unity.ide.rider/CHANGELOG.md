@@ -1,5 +1,12 @@
 # Code Editor Package for Rider
 
+## [1.1.2] - 2019-09-18
+
+performance optimizations:
+avoid multiple evaluations
+avoid reflection in DisableSyncSolutionOnceCallBack
+project generation optimization
+
 ## [1.1.1] - 2019-08-26
 
 parse nowarn in csc.rsp
