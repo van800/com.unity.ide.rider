@@ -227,6 +227,12 @@ namespace Packages.Rider.Editor.Tests
                 CheckOtherArgument(new[] {$"/warn:{level}"}, $"<WarningLevel>{level}</WarningLevel>");
             }
 
+            [Test]
+            public void CheckDefaultWarningLevel()
+            {
+                CheckOtherArgument(new string[0], $"<WarningLevel>4</WarningLevel>");
+            }
+
             public void CheckOtherArgument(string[] argumentString, string expectedOutput)
             {
                 const string responseFile = "csc.rsp";
