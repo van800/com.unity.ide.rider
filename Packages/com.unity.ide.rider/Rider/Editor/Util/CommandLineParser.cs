@@ -25,7 +25,10 @@ namespace Packages.Rider.Editor.Util
           i++;
         }
 
-        Options.Add(arg, value);
+        if (!(Options.ContainsKey(arg)))
+        {
+          Options.Add(arg, value);
+        }
         i++;
       }
     }

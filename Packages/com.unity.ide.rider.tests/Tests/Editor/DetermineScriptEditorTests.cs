@@ -14,7 +14,7 @@ namespace Packages.Rider.Tests.Editor
         [UnityPlatform(RuntimePlatform.OSXEditor)]
         public void OSXPathDiscovery()
         {
-            var path = new FileInfo(@"Packages\com.unity.ide.rider.tests\Tests\Data\DetermineScriptEditorTests\Rider.app").FullName;
+            var path = new FileInfo(@"Packages/com.unity.ide.rider.tests/Tests/Data/DetermineScriptEditorTests/Rider.app").FullName;
             Discover(path);
         }
         
@@ -30,7 +30,7 @@ namespace Packages.Rider.Tests.Editor
         [UnityPlatform(RuntimePlatform.LinuxEditor)]
         public void LinuxPathDiscovery()
         {
-            var path = new FileInfo(@"Packages\com.unity.ide.rider.tests\Tests\Data\DetermineScriptEditorTests\191.7141.355\bin\rider.sh").FullName;
+            var path = new FileInfo(@"Packages/com.unity.ide.rider.tests/Tests/Data/DetermineScriptEditorTests/191.7141.355/bin/rider.sh").FullName;
             Discover(path);
         }
 
