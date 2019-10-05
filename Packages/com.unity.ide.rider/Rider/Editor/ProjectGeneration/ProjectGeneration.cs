@@ -688,8 +688,8 @@ namespace Packages.Rider.Editor
         k_BaseDirectory,
         assembly.compilerOptions.AllowUnsafeCode | responseFilesData.Any(x => x.Unsafe),
         GenerateNoWarn(otherResponseFilesData["nowarn"].ToArray()),
-        GenerateAnalyserItemGroup(otherResponseFilesData["analyzer"].Concat(otherResponseFilesData["a"]).Distinct().ToArray()),
-        GenerateAnalyserAdditionalFiles(otherResponseFilesData["additionalfile"].ToArray()),
+        GenerateAnalyserItemGroup(otherResponseFilesData["analyzer"].Concat(otherResponseFilesData["a"]).Distinct().SelectMany(x=>x.Split(';')).ToArray()),
+        GenerateAnalyserAdditionalFiles(otherResponseFilesData["additionalfile"].SelectMany(x=>x.Split(';')).ToArray()),
         GenerateAnalyserRuleSet(otherResponseFilesData["ruleset"].ToArray()),
         GenerateWarningLevel(otherResponseFilesData["warn"].Concat(otherResponseFilesData["w"]))
       };
@@ -764,6 +764,7 @@ namespace Packages.Rider.Editor
         @"    <_TargetFrameworkDirectories>non_empty_path_generated_by_unity.rider.package</_TargetFrameworkDirectories>",
         @"    <_FullFrameworkReferenceAssemblyPaths>non_empty_path_generated_by_unity.rider.package</_FullFrameworkReferenceAssemblyPaths>", 
         @"    <DisableHandlePackageFileConflicts>true</DisableHandlePackageFileConflicts>",
+        @"{16}",
         @"  </PropertyGroup>",
         @"  <PropertyGroup>",
         @"    <Configuration Condition="" '$(Configuration)' == '' "">Debug</Configuration>",
