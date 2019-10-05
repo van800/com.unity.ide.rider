@@ -690,7 +690,8 @@ namespace Packages.Rider.Editor
         GenerateNoWarn(otherResponseFilesData["nowarn"].ToArray()),
         GenerateAnalyserItemGroup(otherResponseFilesData["analyzer"].Concat(otherResponseFilesData["a"]).Distinct().ToArray()),
         GenerateAnalyserAdditionalFiles(otherResponseFilesData["additionalfile"].ToArray()),
-        GenerateAnalyserRuleSet(otherResponseFilesData["ruleset"].ToArray())
+        GenerateAnalyserRuleSet(otherResponseFilesData["ruleset"].ToArray()),
+        GenerateWarningLevel(otherResponseFilesData["warn"].Concat(otherResponseFilesData["w"]))
       };
 
       try
@@ -703,6 +704,15 @@ namespace Packages.Rider.Editor
           "Failed creating c# project because the c# project header did not have the correct amount of arguments, which is " +
           arguments.Length);
       }
+    }
+
+    private string GenerateWarningLevel(IEnumerable<string> warningLevel)
+    {
+      var level = warningLevel.FirstOrDefault();
+      if (!string.IsNullOrWhiteSpace(level))
+        return level;
+
+      return 4.ToString();
     }
 
     static string GetSolutionText()
@@ -776,7 +786,7 @@ namespace Packages.Rider.Editor
         @"    <OutputPath>Temp\bin\Debug\</OutputPath>",
         @"    <DefineConstants>{5}</DefineConstants>",
         @"    <ErrorReport>prompt</ErrorReport>",
-        @"    <WarningLevel>4</WarningLevel>",
+        @"    <WarningLevel>{17}</WarningLevel>",
         @"    <NoWarn>0169{13}</NoWarn>",
         @"    <AllowUnsafeBlocks>{12}</AllowUnsafeBlocks>",
         @"  </PropertyGroup>",
@@ -785,7 +795,7 @@ namespace Packages.Rider.Editor
         @"    <Optimize>true</Optimize>",
         @"    <OutputPath>Temp\bin\Release\</OutputPath>",
         @"    <ErrorReport>prompt</ErrorReport>",
-        @"    <WarningLevel>4</WarningLevel>",
+        @"    <WarningLevel>{17}</WarningLevel>",
         @"    <NoWarn>0169{13}</NoWarn>",
         @"    <AllowUnsafeBlocks>{12}</AllowUnsafeBlocks>",
         @"  </PropertyGroup>"
