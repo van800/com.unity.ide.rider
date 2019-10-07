@@ -218,10 +218,10 @@ namespace Packages.Rider.Editor.Tests
                 StringAssert.Contains("<AllowUnsafeBlocks>True</AllowUnsafeBlocks>", csprojFileContents);
             }
 
-            [TestCase(new Object[] {"C:/Analyzer.dll"})]
-            [TestCase(new Object[] {"C:/Analyzer.dll", "C:/Analyzer2.dll"})]
-            [TestCase(new Object[] {"../Analyzer.dll"})]
-            [TestCase(new Object[] {"../Analyzer.dll", "C:/Analyzer2.dll"})]
+            [TestCase(new object[] {"C:/Analyzer.dll"})]
+            [TestCase(new object[] {"C:/Analyzer.dll", "C:/Analyzer2.dll"})]
+            [TestCase(new object[] {"../Analyzer.dll"})]
+            [TestCase(new object[] {"../Analyzer.dll", "C:/Analyzer2.dll"})]
             public void AddAnalyzers(params string[] paths)
             {
                 var combined = string.Join(";", paths);
@@ -242,10 +242,10 @@ namespace Packages.Rider.Editor.Tests
                 CheckOtherArgument(new[] {$"/analyzer:{combined}"}, expectedOutput);
             }
             
-            [TestCase(new Object[] {"C:/Analyzer.dll"})]
-            [TestCase(new Object[] {"C:/Analyzer.dll", "C:/Analyzer2.dll"})]
-            [TestCase(new Object[] {"../Analyzer.dll"})]
-            [TestCase(new Object[] {"../Analyzer.dll", "C:/Analyzer2.dll"})]
+            [TestCase(new object[] {"C:/Analyzer.dll"})]
+            [TestCase(new object[] {"C:/Analyzer.dll", "C:/Analyzer2.dll"})]
+            [TestCase(new object[] {"../Analyzer.dll"})]
+            [TestCase(new object[] {"../Analyzer.dll", "C:/Analyzer2.dll"})]
             public void AddAdditionalFile(params string[] paths)
             {
                 var combined = string.Join(";", paths);
@@ -276,11 +276,12 @@ namespace Packages.Rider.Editor.Tests
             
             [TestCase("C:/rules.ruleset")]
             [TestCase("../rules.ruleset")]
-            public void SetRuleset(string path)
+            [TestCase(new object[]{"../rules.ruleset", "C:/rules.ruleset"})]
+            public void SetRuleset(params string[] paths)
             {
-                string rulesetString = $"<CodeAnalysisRuleSet>{path}</CodeAnalysisRuleSet>";
-                CheckOtherArgument(new[] {$"-ruleset:{path}"}, rulesetString);
-                CheckOtherArgument(new[] {$"/ruleset:{path}"}, rulesetString);
+                string rulesetTemplate = "<CodeAnalysisRuleSet>{0}</CodeAnalysisRuleSet>";
+                CheckOtherArgument(paths.Select(x=>$"-ruleset:{x}").ToArray(), paths.Select(x=>string.Format(rulesetTemplate, x)).ToArray());
+                CheckOtherArgument(paths.Select(x=>$"/ruleset:{x}").ToArray(), paths.Select(x=>string.Format(rulesetTemplate, x)).ToArray());
             }
             
             [Test]
