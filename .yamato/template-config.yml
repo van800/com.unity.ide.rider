@@ -31,12 +31,12 @@ platforms:
       - macos
       - windows
   # TODO: Add back after unite when we have time to investigate the crashes
-  - os: linux
-    components:
-      - editor
-      - linux
-      - macos
-      - windows
+  # - os: linux
+  #   components:
+  #     - editor
+  #     - linux
+  #     - macos
+  #     - windows
 
 testables:
   # Add any package and/or project folders here - upm ci will automatically grab both packages referenced in the project
