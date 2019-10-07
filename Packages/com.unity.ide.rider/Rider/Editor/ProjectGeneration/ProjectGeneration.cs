@@ -687,11 +687,11 @@ namespace Packages.Rider.Editor
         PluginSettings.OverrideLangVersion?PluginSettings.LangVersion:k_TargetLanguageVersion,
         k_BaseDirectory,
         assembly.compilerOptions.AllowUnsafeCode | responseFilesData.Any(x => x.Unsafe),
-        GenerateNoWarn(otherResponseFilesData["nowarn"].ToArray()),
-        GenerateAnalyserItemGroup(otherResponseFilesData["analyzer"].Concat(otherResponseFilesData["a"]).Distinct().SelectMany(x=>x.Split(';')).ToArray()),
-        GenerateAnalyserAdditionalFiles(otherResponseFilesData["additionalfile"].SelectMany(x=>x.Split(';')).ToArray()),
-        GenerateAnalyserRuleSet(otherResponseFilesData["ruleset"].ToArray()),
-        GenerateWarningLevel(otherResponseFilesData["warn"].Concat(otherResponseFilesData["w"]))
+        GenerateNoWarn(otherResponseFilesData["nowarn"].Distinct().ToArray()),
+        GenerateAnalyserItemGroup(otherResponseFilesData["analyzer"].Concat(otherResponseFilesData["a"]).SelectMany(x=>x.Split(';')).Distinct().ToArray()),
+        GenerateAnalyserAdditionalFiles(otherResponseFilesData["additionalfile"].SelectMany(x=>x.Split(';')).Distinct().ToArray()),
+        GenerateAnalyserRuleSet(otherResponseFilesData["ruleset"].Distinct().ToArray()),
+        GenerateWarningLevel(otherResponseFilesData["warn"].Concat(otherResponseFilesData["w"]).Distinct())
       };
 
       try
@@ -763,8 +763,7 @@ namespace Packages.Rider.Editor
         @"    <LangVersion>{10}</LangVersion>",
         @"    <_TargetFrameworkDirectories>non_empty_path_generated_by_unity.rider.package</_TargetFrameworkDirectories>",
         @"    <_FullFrameworkReferenceAssemblyPaths>non_empty_path_generated_by_unity.rider.package</_FullFrameworkReferenceAssemblyPaths>", 
-        @"    <DisableHandlePackageFileConflicts>true</DisableHandlePackageFileConflicts>",
-        @"{16}",
+        @"    <DisableHandlePackageFileConflicts>true</DisableHandlePackageFileConflicts>{16}",
         @"  </PropertyGroup>",
         @"  <PropertyGroup>",
         @"    <Configuration Condition="" '$(Configuration)' == '' "">Debug</Configuration>",
@@ -896,7 +895,7 @@ namespace Packages.Rider.Editor
         if (!paths.Any())
             return string.Empty;
       
-        return string.Join("\r\n", paths.Select(a => $"\r\n  <CodeAnalysisRuleSet>{a}</CodeAnalysisRuleSet>"));
+        return $"{Environment.NewLine}{string.Join(Environment.NewLine, paths.Select(a => $"  <CodeAnalysisRuleSet>{a}</CodeAnalysisRuleSet>"))}";
     }
     
     private static string GenerateAnalyserAdditionalFiles(string[] paths)
