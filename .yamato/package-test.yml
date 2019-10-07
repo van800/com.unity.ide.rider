@@ -372,9 +372,9 @@ promotion:test:{{ test.name }}:{{ platform.os }}:{{ editor.version }}:
     - unity-downloader-cli --source-file unity_revision.txt {% for component in platform.components %}-c {{ component }} {% endfor %}--wait --published-only
     - npm install upm-ci-utils@experimental -g --registry https://api.bintray.com/npm/unity/unity-npm
 {% if test.type == "package" %}
-    - upm-ci package test -u {{ editor.version }} --type updated-dependencies-tests --package-path {{ test.path }}
+    - upm-ci package test -u {{ editor.version }} --package-path {{ test.path }}
 {% elsif test.type == "project" %}
-    - upm-ci project test -u {{ editor.version }} --type updated-dependencies-tests --project-path {{ test.path }}
+    - upm-ci project test -u {{ editor.version }} --project-path {{ test.path }}
 {% endif %}
   artifacts:
     logs:
