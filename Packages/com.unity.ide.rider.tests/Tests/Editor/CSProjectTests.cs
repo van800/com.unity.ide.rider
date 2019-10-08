@@ -231,7 +231,7 @@ namespace Packages.Rider.Editor.Tests
   </ItemGroup>";
                 const string additionalFileTemplate = @"    <Analyzer Include=""{0}"" />";
 
-                expectedOutput = string.Format(expectedTemplate, string.Join(Environment.NewLine,paths.Select(x => string.Format(additionalFileTemplate, x))));
+                expectedOutput = string.Format(expectedTemplate, string.Join("\r\n",paths.Select(x => string.Format(additionalFileTemplate, x))));
 
 
                 CheckOtherArgument(new[] {$"-a:{combined}"}, expectedOutput);
@@ -255,7 +255,7 @@ namespace Packages.Rider.Editor.Tests
   </ItemGroup>";
                 const string additionalFileTemplate = @"    <AdditionalFiles Include=""{0}"" />";
 
-                expectedOutput = string.Format(expectedTemplate, string.Join(Environment.NewLine,paths.Select(x => string.Format(additionalFileTemplate, x))));
+                expectedOutput = string.Format(expectedTemplate, string.Join("\r\n",paths.Select(x => string.Format(additionalFileTemplate, x))));
 
                 CheckOtherArgument(new[] {$"-additionalfile:{combined}"}, expectedOutput);
                 CheckOtherArgument(new[] {$"/additionalfile:{combined}"}, expectedOutput);

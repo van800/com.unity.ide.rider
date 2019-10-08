@@ -895,7 +895,7 @@ namespace Packages.Rider.Editor
         if (!paths.Any())
             return string.Empty;
       
-        return $"{Environment.NewLine}{string.Join(Environment.NewLine, paths.Select(a => $"  <CodeAnalysisRuleSet>{a}</CodeAnalysisRuleSet>"))}";
+        return $"\r\n{string.Join("\r\n", paths.Select(a => $"  <CodeAnalysisRuleSet>{a}</CodeAnalysisRuleSet>"))}";
     }
     
     private static string GenerateAnalyserAdditionalFiles(string[] paths)
