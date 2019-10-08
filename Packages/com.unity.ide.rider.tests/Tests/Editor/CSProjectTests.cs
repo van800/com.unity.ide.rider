@@ -5,8 +5,6 @@ using System.Text.RegularExpressions;
 using System.Xml;
 using NUnit.Framework;
 using UnityEditor.Compilation;
-using UnityEngine;
-using Object = System.Object;
 
 namespace Packages.Rider.Editor.Tests
 {
