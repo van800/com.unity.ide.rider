@@ -26,7 +26,7 @@ namespace Packages.Rider.Editor
         CodeEditor.Register(editor);
         var path = GetEditorRealPath(CodeEditor.CurrentEditorInstallation);
         
-        if (IsRiderInstallation(path))
+        if (IsRiderInstallation(path) && !UnityEditor.Experimental.AssetDatabaseExperimental.IsAssetImportWorkerProcess())
         {
           if (!RiderScriptEditorData.instance.InitializedOnce)
           {
