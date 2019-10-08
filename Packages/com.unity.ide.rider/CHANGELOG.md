@@ -3,10 +3,11 @@
 ## [1.1.2] - 2019-09-18
 
 performance optimizations:
-avoid multiple evaluations
-avoid reflection in DisableSyncSolutionOnceCallBack
-project generation optimization
-avoid compilation error with incompatible `Test Framework` package
+ - avoid multiple evaluations
+ - avoid reflection in DisableSyncSolutionOnceCallBack
+ - project generation optimization
+fixes:
+ - avoid compilation error with incompatible `Test Framework` package
 
 ## [1.1.1] - 2019-08-26
 
