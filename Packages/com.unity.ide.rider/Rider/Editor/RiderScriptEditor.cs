@@ -26,7 +26,7 @@ namespace Packages.Rider.Editor
         CodeEditor.Register(editor);
         var path = GetEditorRealPath(CodeEditor.CurrentEditorInstallation);
         
-        if (IsRiderInstallation(path) && !UnityEditor.Experimental.AssetDatabaseExperimental.IsAssetImportWorkerProcess())
+        if (IsRiderInstallation(path))
         {
           if (!RiderScriptEditorData.instance.InitializedOnce)
           {
@@ -373,7 +373,8 @@ namespace Packages.Rider.Editor
 
       var fileInfo = new FileInfo(path);
       var filename = fileInfo.Name.ToLowerInvariant();
-      return filename.StartsWith("rider", StringComparison.Ordinal);
+      return filename.StartsWith("rider", StringComparison.Ordinal) &&
+             !UnityEditor.Experimental.AssetDatabaseExperimental.IsAssetImportWorkerProcess();
     }
 
     public static string CurrentEditor // works fast, doesn't validate if executable really exists
