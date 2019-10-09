@@ -366,6 +366,9 @@ namespace Packages.Rider.Editor
 
     public static bool IsRiderInstallation(string path)
     {
+      if (IsAssetImportWorkerProcess())
+        return false;
+      
       if (string.IsNullOrEmpty(path))
       {
         return false;
@@ -373,8 +376,7 @@ namespace Packages.Rider.Editor
 
       var fileInfo = new FileInfo(path);
       var filename = fileInfo.Name.ToLowerInvariant();
-      return filename.StartsWith("rider", StringComparison.Ordinal) &&
-             !IsAssetImportWorkerProcess();
+      return filename.StartsWith("rider", StringComparison.Ordinal);
     }
 
     private static bool IsAssetImportWorkerProcess()
