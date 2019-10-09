@@ -38,6 +38,22 @@ platforms:
   #     - macos
   #     - windows
 
+revision_updater:
+  # Nightly jobs are generated that will check for new revisions of all editors and branches specified above
+  # So here you configure what your mainline branch is that this will trigger on and which channels
+  # and/or people to notify of any updates or failures for these jobs
+  notifications:
+    success:
+      - "#warlock-test-channel"
+    failure:
+      - "#warlock-test-channel"
+  # The mainline/integration branch of the repo
+  branch: master
+  # The frequency at which the revision update notification job should run. Options are daily/weekly or leave it empty for nothing
+  # If you want a job that for example commits the updated file directly then you should leave this blank and create your own
+  # set of jobs that do that and set it to have a dependency on revision:updater
+  scheduling: daily
+  
 testables:
   # Add any package and/or project folders here - upm ci will automatically grab both packages referenced in the project
   - name: project

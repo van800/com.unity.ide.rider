@@ -81,4 +81,8 @@ editor:priming:{{ test.name }}:{{ platform.os }}:
     unity_revision.zip:
       paths:
         - "unity_revision.txt"
+  triggers:
+    branches:
+      only:
+      - /^(r|R)(c|C)-\d+\.\d+\.\d+(-preview(\.\d+)?)?$/
 {% endfor %}
