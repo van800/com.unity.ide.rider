@@ -20,6 +20,8 @@ Assets/Plugins.meta
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
+CodeCoverage/
+UserSettings/
 
 # Build results
 [Dd]ebug/
