@@ -12,6 +12,7 @@ using UnityEditor.Compilation;
 using UnityEditor.PackageManager;
 using UnityEditorInternal;
 using UnityEngine;
+using UnityScript.Scripting;
 
 namespace Packages.Rider.Editor
 {
@@ -691,7 +692,8 @@ namespace Packages.Rider.Editor
         GenerateAnalyserItemGroup(otherResponseFilesData["analyzer"].Concat(otherResponseFilesData["a"]).SelectMany(x=>x.Split(';')).Distinct().ToArray()),
         GenerateAnalyserAdditionalFiles(otherResponseFilesData["additionalfile"].SelectMany(x=>x.Split(';')).Distinct().ToArray()),
         GenerateAnalyserRuleSet(otherResponseFilesData["ruleset"].Distinct().ToArray()),
-        GenerateWarningLevel(otherResponseFilesData["warn"].Concat(otherResponseFilesData["w"]).Distinct())
+        GenerateWarningLevel(otherResponseFilesData["warn"].Concat(otherResponseFilesData["w"]).Distinct()),
+        GenerateWarningAsError(otherResponseFilesData["warnaserror"]),
       };
 
       try
@@ -704,6 +706,31 @@ namespace Packages.Rider.Editor
           "Failed creating c# project because the c# project header did not have the correct amount of arguments, which is " +
           arguments.Length);
       }
+    }
+
+    private string GenerateWarningAsError(IEnumerable<string> enumerable)
+    {
+      string returnValue = String.Empty;
+      bool allWarningsAsErrors = false;
+      List<string> warningIds = new List<string>();
+      
+      foreach (string s in enumerable)
+      {
+        if (s == "+") allWarningsAsErrors = true;
+        else if (s == "-") allWarningsAsErrors = false;
+        else
+        {
+          warningIds.Add(s);
+        }
+      }
+
+      returnValue += $@"    <TreatWarningsAsErrors>{allWarningsAsErrors}</TreatWarningsAsErrors>";
+      if (warningIds.Any())
+      {
+        returnValue += $"\r\n    <WarningsAsErrors>{string.Join(";", warningIds)}</WarningsAsErrors>";
+      }
+
+      return $"\r\n{returnValue}";
     }
 
     private string GenerateWarningLevel(IEnumerable<string> warningLevel)
@@ -788,7 +815,7 @@ namespace Packages.Rider.Editor
         @"    <ErrorReport>prompt</ErrorReport>",
         @"    <WarningLevel>{17}</WarningLevel>",
         @"    <NoWarn>0169{13}</NoWarn>",
-        @"    <AllowUnsafeBlocks>{12}</AllowUnsafeBlocks>",
+        @"    <AllowUnsafeBlocks>{12}</AllowUnsafeBlocks>{18}",
         @"  </PropertyGroup>",
         @"  <PropertyGroup Condition="" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' "">",
         @"    <DebugType>pdbonly</DebugType>",
@@ -797,7 +824,7 @@ namespace Packages.Rider.Editor
         @"    <ErrorReport>prompt</ErrorReport>",
         @"    <WarningLevel>{17}</WarningLevel>",
         @"    <NoWarn>0169{13}</NoWarn>",
-        @"    <AllowUnsafeBlocks>{12}</AllowUnsafeBlocks>",
+        @"    <AllowUnsafeBlocks>{12}</AllowUnsafeBlocks>{18}",
         @"  </PropertyGroup>"
       };
 
@@ -879,6 +906,12 @@ namespace Packages.Rider.Editor
               {
                 var key = b.Substring(1, index - 1);
                 return new KeyValuePair<string, string>(key, b.Substring(index + 1));
+              }
+
+              const string warnaserror = "warnaserror";
+              if (b.Substring(1).StartsWith(warnaserror))
+              {
+                return new KeyValuePair<string,string>(warnaserror, b.Substring(warnaserror.Length+ 1) );
               }
 
               return default;

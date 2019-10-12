@@ -233,7 +233,6 @@ namespace Packages.Rider.Editor.Tests
 
                 expectedOutput = string.Format(expectedTemplate, string.Join("\r\n",paths.Select(x => string.Format(additionalFileTemplate, x))));
 
-
                 CheckOtherArgument(new[] {$"-a:{combined}"}, expectedOutput);
                 CheckOtherArgument(new[] {$"-analyzer:{combined}"}, expectedOutput);
                 CheckOtherArgument(new[] {$"/a:{combined}"}, expectedOutput);
@@ -259,6 +258,43 @@ namespace Packages.Rider.Editor.Tests
 
                 CheckOtherArgument(new[] {$"-additionalfile:{combined}"}, expectedOutput);
                 CheckOtherArgument(new[] {$"/additionalfile:{combined}"}, expectedOutput);
+            }
+            
+            [TestCase("0169", "0123")]
+            [TestCase("0169")]
+            [TestCase("0169;0123", "0234")]
+            public void SetWarnAsError(params string[] errorCodes)
+            {
+                var combined = string.Join(";", errorCodes);
+
+                string expectedOutput = string.Empty;
+
+                expectedOutput = $"<WarningsAsErrors>{string.Join(";", errorCodes)}</WarningsAsErrors>";
+
+                CheckOtherArgument(new[] {$"-warnaserror:{combined}"}, expectedOutput);
+                CheckOtherArgument(new[] {$"/warnaserror:{combined}"}, expectedOutput);
+            }
+
+            [TestCase(true, "0169", "0123")]
+            [TestCase(false, "0169", "0123")]
+            public void SetWarnAsError(bool state, params string[] errorCodes)
+            {
+                string value = state ? "+" : "-";
+                CheckOtherArgument(new[] {$"-warnaserror{value}"}, $"<TreatWarningsAsErrors>{state}</TreatWarningsAsErrors>");
+                CheckOtherArgument(new[] {$"/warnaserror{value}"}, $"<TreatWarningsAsErrors>{state}</TreatWarningsAsErrors>");
+            }
+            
+            [TestCase(true)]
+            [TestCase(false)]
+            public void SetWarnAsErrorCombined(bool state, params string[] errorCodes)
+            {
+                var combined = string.Join(";", errorCodes);
+
+                string expectedWarningsAsErrorsOutput = $"<WarningsAsErrors>{string.Join(";", errorCodes)}</WarningsAsErrors>";
+                string expectedTreatWarningsAsErrors = $"<TreatWarningsAsErrors>{state}</TreatWarningsAsErrors>";
+                string value = state ? "+" : "-";
+                CheckOtherArgument(new[] {$"-warnaserror{value}", $"-warnaserror:{combined}"}, expectedTreatWarningsAsErrors, expectedWarningsAsErrorsOutput);
+                CheckOtherArgument(new[] {$"/warnaserror{value}", $"/warnaserror:{combined}"}, expectedTreatWarningsAsErrors, expectedWarningsAsErrorsOutput);
             }
             
             [TestCase(0)]
