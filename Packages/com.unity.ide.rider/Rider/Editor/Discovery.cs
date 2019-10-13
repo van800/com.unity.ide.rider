@@ -214,6 +214,19 @@ namespace Packages.Rider.Editor
       return string.Empty;
     }
     
+    internal static string GetBuildVersion(string path)
+    {
+      var buildTxtFileInfo = new FileInfo(Path.Combine(path, GetRelativePathToBuildTxt()));
+      var dir = buildTxtFileInfo.DirectoryName;
+      if (!Directory.Exists(dir))
+        return string.Empty;
+      var buildVersionFile = new FileInfo(Path.Combine(dir, "product-info.json"));
+      if (!buildVersionFile.Exists) 
+        return string.Empty;
+      var json = File.ReadAllText(buildVersionFile.FullName);
+      return ProductInfo.GetVersion(json);
+    }
+    
     internal static string GetBuildNumber(string path)
     {
       var file = new FileInfo(Path.Combine(path, GetRelativePathToBuildTxt()));
@@ -373,6 +386,28 @@ namespace Packages.Rider.Editor
       public string build;
     }
 
+    [Serializable]
+    class ProductInfo
+    {
+      public string version;
+
+      [CanBeNull]
+      public static string GetVersion(string json)
+      {
+        try
+        {
+          var productInfo = JsonUtility.FromJson<ProductInfo>(json);
+          return productInfo.version;
+        }
+        catch (Exception)
+        {
+          Logger.Warn($"Failed to get version from json {json}");
+        }
+
+        return null;
+      }
+    }
+
     // ReSharper disable once ClassNeverInstantiated.Global
     [Serializable]
     class ToolboxInstallData
@@ -416,6 +451,7 @@ namespace Packages.Rider.Editor
     {
       public bool IsToolbox;
       public string Presentation;
+      public string BuildNumber;
       public string BuildVersion;
       public string Path;
 
@@ -424,12 +460,20 @@ namespace Packages.Rider.Editor
         if (path == RiderScriptEditor.CurrentEditor)
         {
           RiderScriptEditorData.instance.Init();
-          BuildVersion = RiderScriptEditorData.instance.currentEditorVersion;
+          BuildNumber = RiderScriptEditorData.instance.editorBuildNumber;
+          BuildVersion = RiderScriptEditorData.instance.editorVersion;
         }
         else
-          BuildVersion = GetBuildNumber(path);
+        {
+          BuildNumber = GetBuildNumber(path);
+          BuildVersion = GetBuildVersion(path);
+        }
         Path = new FileInfo(path).FullName; // normalize separators
-        var presentation = "Rider " + BuildVersion;
+        var presentation = $"Rider {BuildNumber}";
+
+        if (!string.IsNullOrEmpty(BuildVersion))
+          presentation = $"Rider {BuildVersion} {BuildNumber}";
+        
         if (isToolbox)
           presentation += " (JetBrains Toolbox)";
 

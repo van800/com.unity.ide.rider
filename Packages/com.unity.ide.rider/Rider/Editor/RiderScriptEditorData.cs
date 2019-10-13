@@ -1,26 +1,31 @@
 using System;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Packages.Rider.Editor
 {
   public class RiderScriptEditorData : ScriptableSingleton<RiderScriptEditorData>
   {
-    [SerializeField] internal bool HasChanges = true; // sln/csproj files were changed 
+    [SerializeField] internal bool hasChanges = true; // sln/csproj files were changed 
     [SerializeField] internal bool shouldLoadEditorPlugin;
-    [SerializeField] internal bool InitializedOnce;
-    [SerializeField] internal string currentEditorVersion;
+    [SerializeField] internal bool initializedOnce;
+    [SerializeField] internal string editorBuildNumber;
+    [SerializeField] internal string editorVersion;
 
     public void Init()
     {
-      if (string.IsNullOrEmpty(currentEditorVersion))
+      if (string.IsNullOrEmpty(editorBuildNumber))
+      {
         Invalidate(RiderScriptEditor.CurrentEditor);
+      }
     }
 
     public void Invalidate(string editorInstallationPath)
     {
-      currentEditorVersion = RiderPathLocator.GetBuildNumber(editorInstallationPath);
-      if (!Version.TryParse(currentEditorVersion, out var version))
+      editorBuildNumber = RiderPathLocator.GetBuildNumber(editorInstallationPath);
+      editorVersion = RiderPathLocator.GetBuildVersion(editorInstallationPath);
+      if (!Version.TryParse(editorBuildNumber, out var version))
         shouldLoadEditorPlugin = false;
 
       shouldLoadEditorPlugin = version >= new Version("191.7141.156");
