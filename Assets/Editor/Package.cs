@@ -1,15 +1,19 @@
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.TestTools;
 using UnityEditor.PackageManager.ValidationSuite;
 
 namespace RiderEditor
 {
     public class Package
     {
-        [Test]
+        [Test][UnityPlatform(exclude = new[] {RuntimePlatform.LinuxEditor })]
         public void Validate()
         {
-            Assert.True(ValidationSuite.ValidatePackage("com.unity.ide.rider@1.1.1", ValidationType.LocalDevelopment));
+            const string package = "com.unity.ide.rider@1.1.1";
+            var result = ValidationSuite.ValidatePackage(package, ValidationType.LocalDevelopment);
+            Debug.Log(ValidationSuite.GetValidationSuiteReport(package));
+            Assert.True(result);
         }
     }
 }

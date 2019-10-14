@@ -366,6 +366,9 @@ namespace Packages.Rider.Editor
 
     public static bool IsRiderInstallation(string path)
     {
+      if (IsAssetImportWorkerProcess())
+        return false;
+      
       if (string.IsNullOrEmpty(path))
       {
         return false;
@@ -374,6 +377,14 @@ namespace Packages.Rider.Editor
       var fileInfo = new FileInfo(path);
       var filename = fileInfo.Name.ToLowerInvariant();
       return filename.StartsWith("rider", StringComparison.Ordinal);
+    }
+
+    private static bool IsAssetImportWorkerProcess()
+    {
+#if UNITY_2019_3_OR_NEWER
+      return UnityEditor.Experimental.AssetDatabaseExperimental.IsAssetImportWorkerProcess();
+#endif
+      return false;
     }
 
     public static string CurrentEditor // works fast, doesn't validate if executable really exists
