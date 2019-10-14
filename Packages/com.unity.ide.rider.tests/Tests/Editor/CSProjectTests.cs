@@ -5,7 +5,6 @@ using System.Text.RegularExpressions;
 using System.Xml;
 using NUnit.Framework;
 using UnityEditor.Compilation;
-using UnityEngine;
 
 namespace Packages.Rider.Editor.Tests
 {
@@ -216,24 +215,80 @@ namespace Packages.Rider.Editor.Tests
                 var csprojFileContents = m_Builder.ReadProjectFile(m_Builder.Assembly);
                 StringAssert.Contains("<AllowUnsafeBlocks>True</AllowUnsafeBlocks>", csprojFileContents);
             }
+
+            [TestCase(new object[] {"C:/Analyzer.dll"})]
+            [TestCase(new object[] {"C:/Analyzer.dll", "C:/Analyzer2.dll"})]
+            [TestCase(new object[] {"../Analyzer.dll"})]
+            [TestCase(new object[] {"../Analyzer.dll", "C:/Analyzer2.dll"})]
+            public void AddAnalyzers(params string[] paths)
+            {
+                var combined = string.Join(";", paths);
+
+                var expectedOutput = string.Empty;
+
+                const string expectedTemplate = @"  <ItemGroup>
+{0}
+  </ItemGroup>";
+                const string additionalFileTemplate = @"    <Analyzer Include=""{0}"" />";
+
+                expectedOutput = string.Format(expectedTemplate, string.Join("\r\n",paths.Select(x => string.Format(additionalFileTemplate, x))));
+
+
+                CheckOtherArgument(new[] {$"-a:{combined}"}, expectedOutput);
+                CheckOtherArgument(new[] {$"-analyzer:{combined}"}, expectedOutput);
+                CheckOtherArgument(new[] {$"/a:{combined}"}, expectedOutput);
+                CheckOtherArgument(new[] {$"/analyzer:{combined}"}, expectedOutput);
+            }
+            
+            [TestCase(new object[] {"C:/Analyzer.dll"})]
+            [TestCase(new object[] {"C:/Analyzer.dll", "C:/Analyzer2.dll"})]
+            [TestCase(new object[] {"../Analyzer.dll"})]
+            [TestCase(new object[] {"../Analyzer.dll", "C:/Analyzer2.dll"})]
+            public void AddAdditionalFile(params string[] paths)
+            {
+                var combined = string.Join(";", paths);
+
+                string expectedOutput = string.Empty;
+
+                const string expectedTemplate = @"  <ItemGroup>
+{0}
+  </ItemGroup>";
+                const string additionalFileTemplate = @"    <AdditionalFiles Include=""{0}"" />";
+
+                expectedOutput = string.Format(expectedTemplate, string.Join("\r\n",paths.Select(x => string.Format(additionalFileTemplate, x))));
+
+                CheckOtherArgument(new[] {$"-additionalfile:{combined}"}, expectedOutput);
+                CheckOtherArgument(new[] {$"/additionalfile:{combined}"}, expectedOutput);
+            }
             
             [TestCase(0)]
             [TestCase(4)]
             public void SetWarningLevel(int level)
             {
-                CheckOtherArgument(new[] {$"-w:{level}"}, $"<WarningLevel>{level}</WarningLevel>");
-                CheckOtherArgument(new[] {$"-warn:{level}"}, $"<WarningLevel>{level}</WarningLevel>");
-                CheckOtherArgument(new[] {$"/w:{level}"}, $"<WarningLevel>{level}</WarningLevel>");
-                CheckOtherArgument(new[] {$"/warn:{level}"}, $"<WarningLevel>{level}</WarningLevel>");
+                string warningLevelString = $"<WarningLevel>{level}</WarningLevel>";
+                CheckOtherArgument(new[] {$"-w:{level}"}, warningLevelString);
+                CheckOtherArgument(new[] {$"-warn:{level}"}, warningLevelString);
+                CheckOtherArgument(new[] {$"/w:{level}"}, warningLevelString);
+                CheckOtherArgument(new[] {$"/warn:{level}"}, warningLevelString);
             }
-
+            
+            [TestCase("C:/rules.ruleset")]
+            [TestCase("../rules.ruleset")]
+            [TestCase(new object[]{"../rules.ruleset", "C:/rules.ruleset"})]
+            public void SetRuleset(params string[] paths)
+            {
+                string rulesetTemplate = "<CodeAnalysisRuleSet>{0}</CodeAnalysisRuleSet>";
+                CheckOtherArgument(paths.Select(x=>$"-ruleset:{x}").ToArray(), paths.Select(x=>string.Format(rulesetTemplate, x)).ToArray());
+                CheckOtherArgument(paths.Select(x=>$"/ruleset:{x}").ToArray(), paths.Select(x=>string.Format(rulesetTemplate, x)).ToArray());
+            }
+            
             [Test]
             public void CheckDefaultWarningLevel()
             {
                 CheckOtherArgument(new string[0], $"<WarningLevel>4</WarningLevel>");
             }
 
-            public void CheckOtherArgument(string[] argumentString, string expectedOutput)
+            public void CheckOtherArgument(string[] argumentString, params string[] expectedContents)
             {
                 const string responseFile = "csc.rsp";
                 var synchronizer = m_Builder
@@ -243,7 +298,10 @@ namespace Packages.Rider.Editor.Tests
                 synchronizer.Sync();
 
                 var csprojFileContents = m_Builder.ReadProjectFile(m_Builder.Assembly);
-                StringAssert.Contains(expectedOutput, csprojFileContents,  "Arguments: " + string.Join(";", argumentString));
+                foreach (string expectedContent in expectedContents)
+                {
+                    StringAssert.Contains(expectedContent, csprojFileContents,  "Arguments: " + string.Join(";", argumentString));
+                }
             }
         }
 
