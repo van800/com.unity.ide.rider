@@ -694,6 +694,7 @@ namespace Packages.Rider.Editor
         GenerateAnalyserRuleSet(otherResponseFilesData["ruleset"].Distinct().ToArray()),
         GenerateWarningLevel(otherResponseFilesData["warn"].Concat(otherResponseFilesData["w"]).Distinct()),
         GenerateWarningAsError(otherResponseFilesData["warnaserror"]),
+        GenerateDocumentationFile(otherResponseFilesData["doc"])
       };
 
       try
@@ -706,6 +707,15 @@ namespace Packages.Rider.Editor
           "Failed creating c# project because the c# project header did not have the correct amount of arguments, which is " +
           arguments.Length);
       }
+    }
+
+    private string GenerateDocumentationFile(IEnumerable<string> paths)
+    {
+      if (!paths.Any())
+        return String.Empty;
+      
+      
+      return $"\r\n{string.Join("\r\n", paths.Select(a => $"  <DocumentationFile>{a}</DocumentationFile>"))}";
     }
 
     private string GenerateWarningAsError(IEnumerable<string> enumerable)
@@ -815,7 +825,7 @@ namespace Packages.Rider.Editor
         @"    <ErrorReport>prompt</ErrorReport>",
         @"    <WarningLevel>{17}</WarningLevel>",
         @"    <NoWarn>0169{13}</NoWarn>",
-        @"    <AllowUnsafeBlocks>{12}</AllowUnsafeBlocks>{18}",
+        @"    <AllowUnsafeBlocks>{12}</AllowUnsafeBlocks>{18}{19}",
         @"  </PropertyGroup>",
         @"  <PropertyGroup Condition="" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' "">",
         @"    <DebugType>pdbonly</DebugType>",
@@ -824,7 +834,7 @@ namespace Packages.Rider.Editor
         @"    <ErrorReport>prompt</ErrorReport>",
         @"    <WarningLevel>{17}</WarningLevel>",
         @"    <NoWarn>0169{13}</NoWarn>",
-        @"    <AllowUnsafeBlocks>{12}</AllowUnsafeBlocks>{18}",
+        @"    <AllowUnsafeBlocks>{12}</AllowUnsafeBlocks>{18}{19}",
         @"  </PropertyGroup>"
       };
 
@@ -928,15 +938,6 @@ namespace Packages.Rider.Editor
       if (!string.IsNullOrWhiteSpace(langVersion))
         return langVersion;
       return k_TargetLanguageVersion;
-    }
-
-    private string GenerateWarningLevel(IEnumerable<string> warningLevel)
-    {
-      var level = warningLevel.FirstOrDefault();
-      if (!string.IsNullOrWhiteSpace(level))
-        return level;
-
-      return 4.ToString();
     }
 
     private static string GenerateAnalyserRuleSet(string[] paths)
