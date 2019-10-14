@@ -685,7 +685,7 @@ namespace Packages.Rider.Editor
         assembly.name,
         EditorSettings.projectGenerationRootNamespace,
         k_TargetFrameworkVersion,
-        PluginSettings.OverrideLangVersion?PluginSettings.LangVersion:k_TargetLanguageVersion,
+        GenerateLangVersion(otherResponseFilesData["langversion"]),
         k_BaseDirectory,
         assembly.compilerOptions.AllowUnsafeCode | responseFilesData.Any(x => x.Unsafe),
         GenerateNoWarn(otherResponseFilesData["nowarn"].Distinct().ToArray()),
@@ -706,40 +706,6 @@ namespace Packages.Rider.Editor
           "Failed creating c# project because the c# project header did not have the correct amount of arguments, which is " +
           arguments.Length);
       }
-    }
-
-    private string GenerateWarningAsError(IEnumerable<string> enumerable)
-    {
-      string returnValue = String.Empty;
-      bool allWarningsAsErrors = false;
-      List<string> warningIds = new List<string>();
-      
-      foreach (string s in enumerable)
-      {
-        if (s == "+") allWarningsAsErrors = true;
-        else if (s == "-") allWarningsAsErrors = false;
-        else
-        {
-          warningIds.Add(s);
-        }
-      }
-
-      returnValue += $@"    <TreatWarningsAsErrors>{allWarningsAsErrors}</TreatWarningsAsErrors>";
-      if (warningIds.Any())
-      {
-        returnValue += $"\r\n    <WarningsAsErrors>{string.Join(";", warningIds)}</WarningsAsErrors>";
-      }
-
-      return $"\r\n{returnValue}";
-    }
-
-    private string GenerateWarningLevel(IEnumerable<string> warningLevel)
-    {
-      var level = warningLevel.FirstOrDefault();
-      if (!string.IsNullOrWhiteSpace(level))
-        return level;
-
-      return 4.ToString();
     }
 
     static string GetSolutionText()
@@ -920,6 +886,23 @@ namespace Packages.Rider.Editor
         .Distinct()
         .ToLookup(o => o.Key, pair => pair.Value);
       return paths;
+    }
+
+    private string GenerateLangVersion(IEnumerable<string> langVersionList)
+    {
+      var langVersion = langVersionList.FirstOrDefault();
+      if (!string.IsNullOrWhiteSpace(langVersion))
+        return langVersion;
+      return k_TargetLanguageVersion;
+    }
+
+    private string GenerateWarningLevel(IEnumerable<string> warningLevel)
+    {
+      var level = warningLevel.FirstOrDefault();
+      if (!string.IsNullOrWhiteSpace(level))
+        return level;
+
+      return 4.ToString();
     }
 
     private static string GenerateAnalyserRuleSet(string[] paths)

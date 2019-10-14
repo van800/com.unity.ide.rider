@@ -332,6 +332,18 @@ namespace Packages.Rider.Editor.Tests
                 CheckOtherArgument(args, $"<NoWarn>0169{expected}</NoWarn>");
             }
 
+            [Test]
+            public void CheckLangVersion()
+            {
+                CheckOtherArgument(new []{"-langversion:7.2"}, $"<LangVersion>7.2</LangVersion>");
+            }
+            
+            [Test]
+            public void CheckDefaultLangVersion()
+            {
+                CheckOtherArgument(new string[0], $"<LangVersion>latest</LangVersion>");
+            }
+
             public void CheckOtherArgument(string[] argumentString, params string[] expectedContents)
             {
                 const string responseFile = "csc.rsp";
