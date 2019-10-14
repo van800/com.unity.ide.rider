@@ -323,6 +323,26 @@ namespace Packages.Rider.Editor.Tests
             {
                 CheckOtherArgument(new string[0], $"<WarningLevel>4</WarningLevel>");
             }
+            
+            [TestCase(new []{"-nowarn:10"}, ",10")]
+            [TestCase(new []{"-nowarn:10,11"}, ",10,11")]
+            [TestCase(new []{"-nowarn:10,11", "-nowarn:12"}, ",10,11,12")]
+            public void CheckNoWarn(string[] args, string expected)
+            {
+                CheckOtherArgument(args, $"<NoWarn>0169{expected}</NoWarn>");
+            }
+
+            [Test]
+            public void CheckLangVersion()
+            {
+                CheckOtherArgument(new []{"-langversion:7.2"}, $"<LangVersion>7.2</LangVersion>");
+            }
+            
+            [Test]
+            public void CheckDefaultLangVersion()
+            {
+                CheckOtherArgument(new string[0], $"<LangVersion>latest</LangVersion>");
+            }
 
             public void CheckOtherArgument(string[] argumentString, params string[] expectedContents)
             {
