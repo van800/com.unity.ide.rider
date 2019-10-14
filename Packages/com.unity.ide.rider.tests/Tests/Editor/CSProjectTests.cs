@@ -233,7 +233,6 @@ namespace Packages.Rider.Editor.Tests
 
                 expectedOutput = string.Format(expectedTemplate, string.Join("\r\n",paths.Select(x => string.Format(additionalFileTemplate, x))));
 
-
                 CheckOtherArgument(new[] {$"-a:{combined}"}, expectedOutput);
                 CheckOtherArgument(new[] {$"-analyzer:{combined}"}, expectedOutput);
                 CheckOtherArgument(new[] {$"/a:{combined}"}, expectedOutput);
@@ -261,6 +260,43 @@ namespace Packages.Rider.Editor.Tests
                 CheckOtherArgument(new[] {$"/additionalfile:{combined}"}, expectedOutput);
             }
             
+            [TestCase("0169", "0123")]
+            [TestCase("0169")]
+            [TestCase("0169;0123", "0234")]
+            public void SetWarnAsError(params string[] errorCodes)
+            {
+                var combined = string.Join(";", errorCodes);
+
+                string expectedOutput = string.Empty;
+
+                expectedOutput = $"<WarningsAsErrors>{string.Join(";", errorCodes)}</WarningsAsErrors>";
+
+                CheckOtherArgument(new[] {$"-warnaserror:{combined}"}, expectedOutput);
+                CheckOtherArgument(new[] {$"/warnaserror:{combined}"}, expectedOutput);
+            }
+
+            [TestCase(true, "0169", "0123")]
+            [TestCase(false, "0169", "0123")]
+            public void SetWarnAsError(bool state, params string[] errorCodes)
+            {
+                string value = state ? "+" : "-";
+                CheckOtherArgument(new[] {$"-warnaserror{value}"}, $"<TreatWarningsAsErrors>{state}</TreatWarningsAsErrors>");
+                CheckOtherArgument(new[] {$"/warnaserror{value}"}, $"<TreatWarningsAsErrors>{state}</TreatWarningsAsErrors>");
+            }
+            
+            [TestCase(true)]
+            [TestCase(false)]
+            public void SetWarnAsErrorCombined(bool state, params string[] errorCodes)
+            {
+                var combined = string.Join(";", errorCodes);
+
+                string expectedWarningsAsErrorsOutput = $"<WarningsAsErrors>{string.Join(";", errorCodes)}</WarningsAsErrors>";
+                string expectedTreatWarningsAsErrors = $"<TreatWarningsAsErrors>{state}</TreatWarningsAsErrors>";
+                string value = state ? "+" : "-";
+                CheckOtherArgument(new[] {$"-warnaserror{value}", $"-warnaserror:{combined}"}, expectedTreatWarningsAsErrors, expectedWarningsAsErrorsOutput);
+                CheckOtherArgument(new[] {$"/warnaserror{value}", $"/warnaserror:{combined}"}, expectedTreatWarningsAsErrors, expectedWarningsAsErrorsOutput);
+            }
+            
             [TestCase(0)]
             [TestCase(4)]
             public void SetWarningLevel(int level)
@@ -280,6 +316,16 @@ namespace Packages.Rider.Editor.Tests
                 string rulesetTemplate = "<CodeAnalysisRuleSet>{0}</CodeAnalysisRuleSet>";
                 CheckOtherArgument(paths.Select(x=>$"-ruleset:{x}").ToArray(), paths.Select(x=>string.Format(rulesetTemplate, x)).ToArray());
                 CheckOtherArgument(paths.Select(x=>$"/ruleset:{x}").ToArray(), paths.Select(x=>string.Format(rulesetTemplate, x)).ToArray());
+            }
+            
+            [TestCase("C:/docs.xml")]
+            [TestCase("../docs.xml")]
+            [TestCase(new object[]{"../docs.xml", "C:/docs.xml"})]
+            public void SetDocumentationFile(params string[] paths)
+            {
+                string docTemplate = "<DocumentationFile>{0}</DocumentationFile>";
+                CheckOtherArgument(paths.Select(x=>$"-doc:{x}").ToArray(), paths.Select(x=>string.Format(docTemplate, x)).ToArray());
+                CheckOtherArgument(paths.Select(x=>$"/doc:{x}").ToArray(), paths.Select(x=>string.Format(docTemplate, x)).ToArray());
             }
             
             [Test]
