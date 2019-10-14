@@ -318,6 +318,16 @@ namespace Packages.Rider.Editor.Tests
                 CheckOtherArgument(paths.Select(x=>$"/ruleset:{x}").ToArray(), paths.Select(x=>string.Format(rulesetTemplate, x)).ToArray());
             }
             
+            [TestCase("C:/docs.xml")]
+            [TestCase("../docs.xml")]
+            [TestCase(new object[]{"../docs.xml", "C:/docs.xml"})]
+            public void SetDocumentationFile(params string[] paths)
+            {
+                string docTemplate = "<DocumentationFile>{0}</DocumentationFile>";
+                CheckOtherArgument(paths.Select(x=>$"-doc:{x}").ToArray(), paths.Select(x=>string.Format(docTemplate, x)).ToArray());
+                CheckOtherArgument(paths.Select(x=>$"/doc:{x}").ToArray(), paths.Select(x=>string.Format(docTemplate, x)).ToArray());
+            }
+            
             [Test]
             public void CheckDefaultWarningLevel()
             {
