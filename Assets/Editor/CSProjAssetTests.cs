@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading;
-using System.Xml;
 using NUnit.Framework;
 using Packages.Rider.Editor;
 using UnityEditor;
