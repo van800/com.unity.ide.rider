@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using System.Xml;
 using NUnit.Framework;
 using UnityEditor.Compilation;
+using UnityEngine;
 
 namespace Packages.Rider.Editor.Tests
 {
@@ -226,9 +227,12 @@ namespace Packages.Rider.Editor.Tests
 
                 var expectedOutput = string.Empty;
 
-                const string expectedTemplate = @"  <ItemGroup>
+                string expectedTemplate = @"  <ItemGroup>
 {0}
   </ItemGroup>";
+                if (SystemInfo.operatingSystemFamily != OperatingSystemFamily.Windows)
+                    expectedTemplate = expectedTemplate.Replace(Environment.NewLine, "\r\n");
+                
                 const string additionalFileTemplate = @"    <Analyzer Include=""{0}"" />";
 
                 expectedOutput = string.Format(expectedTemplate, string.Join("\r\n",paths.Select(x => string.Format(additionalFileTemplate, x))));
@@ -249,9 +253,11 @@ namespace Packages.Rider.Editor.Tests
 
                 string expectedOutput = string.Empty;
 
-                const string expectedTemplate = @"  <ItemGroup>
+                string expectedTemplate = @"  <ItemGroup>
 {0}
   </ItemGroup>";
+                if (SystemInfo.operatingSystemFamily != OperatingSystemFamily.Windows)
+                    expectedTemplate = expectedTemplate.Replace(Environment.NewLine, "\r\n");
                 const string additionalFileTemplate = @"    <AdditionalFiles Include=""{0}"" />";
 
                 expectedOutput = string.Format(expectedTemplate, string.Join("\r\n",paths.Select(x => string.Format(additionalFileTemplate, x))));
