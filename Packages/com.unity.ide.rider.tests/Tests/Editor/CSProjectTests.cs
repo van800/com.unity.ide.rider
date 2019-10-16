@@ -230,12 +230,10 @@ namespace Packages.Rider.Editor.Tests
                 string expectedTemplate = @"  <ItemGroup>
 {0}
   </ItemGroup>";
-                if (SystemInfo.operatingSystemFamily != OperatingSystemFamily.Windows)
-                    expectedTemplate = expectedTemplate.Replace(Environment.NewLine, "\r\n");
-                
+
                 const string additionalFileTemplate = @"    <Analyzer Include=""{0}"" />";
 
-                expectedOutput = string.Format(expectedTemplate, string.Join("\r\n",paths.Select(x => string.Format(additionalFileTemplate, x))));
+                expectedOutput = string.Format(expectedTemplate, string.Join(Environment.NewLine,paths.Select(x => string.Format(additionalFileTemplate, x))));
 
                 CheckOtherArgument(new[] {$"-a:{combined}"}, expectedOutput);
                 CheckOtherArgument(new[] {$"-analyzer:{combined}"}, expectedOutput);
@@ -256,11 +254,10 @@ namespace Packages.Rider.Editor.Tests
                 string expectedTemplate = @"  <ItemGroup>
 {0}
   </ItemGroup>";
-                if (SystemInfo.operatingSystemFamily != OperatingSystemFamily.Windows)
-                    expectedTemplate = expectedTemplate.Replace(Environment.NewLine, "\r\n");
+
                 const string additionalFileTemplate = @"    <AdditionalFiles Include=""{0}"" />";
 
-                expectedOutput = string.Format(expectedTemplate, string.Join("\r\n",paths.Select(x => string.Format(additionalFileTemplate, x))));
+                expectedOutput = string.Format(expectedTemplate, string.Join(Environment.NewLine,paths.Select(x => string.Format(additionalFileTemplate, x))));
 
                 CheckOtherArgument(new[] {$"-additionalfile:{combined}"}, expectedOutput);
                 CheckOtherArgument(new[] {$"/additionalfile:{combined}"}, expectedOutput);
@@ -372,7 +369,7 @@ namespace Packages.Rider.Editor.Tests
                 var csprojFileContents = m_Builder.ReadProjectFile(m_Builder.Assembly);
                 foreach (string expectedContent in expectedContents)
                 {
-                    StringAssert.Contains(expectedContent, csprojFileContents,  "Arguments: " + string.Join(";", argumentString));
+                    StringAssert.Contains(expectedContent.Replace(Environment.NewLine, "NewLine"), csprojFileContents.Replace(Environment.NewLine, "NewLine"),  "Arguments: " + string.Join(";", argumentString));
                 }
             }
         }
