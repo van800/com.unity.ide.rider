@@ -12,7 +12,6 @@ using UnityEditor.Compilation;
 using UnityEditor.PackageManager;
 using UnityEditorInternal;
 using UnityEngine;
-using UnityScript.Scripting;
 
 namespace Packages.Rider.Editor
 {
@@ -92,8 +91,6 @@ namespace Packages.Rider.Editor
 
     public static readonly string MSBuildNamespaceUri = "http://schemas.microsoft.com/developer/msbuild/2003";
 
-    const string k_WindowsNewline = "\r\n";
-
     /// <summary>
     /// Map source extensions to ScriptingLanguages
     /// </summary>
@@ -112,11 +109,11 @@ namespace Packages.Rider.Editor
         {"raytrace", ScriptingLanguage.None}
       };
 
-    string m_SolutionProjectEntryTemplate = string.Join("\r\n",
+    string m_SolutionProjectEntryTemplate = string.Join(Environment.NewLine,
       @"Project(""{{{0}}}"") = ""{1}"", ""{2}"", ""{{{3}}}""",
       @"EndProject").Replace("    ", "\t");
 
-    string m_SolutionProjectConfigurationTemplate = string.Join("\r\n",
+    string m_SolutionProjectConfigurationTemplate = string.Join(Environment.NewLine,
       @"        {{{0}}}.Debug|Any CPU.ActiveCfg = Debug|Any CPU",
       @"        {{{0}}}.Debug|Any CPU.Build.0 = Debug|Any CPU",
       @"        {{{0}}}.Release|Any CPU.ActiveCfg = Release|Any CPU",
@@ -371,7 +368,7 @@ namespace Packages.Rider.Editor
           }
 
           projectBuilder.Append("     <None Include=\"").Append(EscapedRelativePathFor(asset)).Append("\" />")
-            .Append(k_WindowsNewline);
+            .Append(Environment.NewLine);
         }
       }
 
@@ -566,6 +563,7 @@ namespace Packages.Rider.Editor
       var references = new List<string>();
       var projectReferences = new List<Match>();
 
+      var kWindowsNewline = Environment.NewLine;
       foreach (string file in assembly.sourceFiles)
       {
         if (!ShouldFileBePartOfSolution(file))
@@ -575,7 +573,7 @@ namespace Packages.Rider.Editor
         var fullFile = EscapedRelativePathFor(file);
         if (".dll" != extension)
         {
-          projectBuilder.Append("     <Compile Include=\"").Append(fullFile).Append("\" />").Append(k_WindowsNewline);
+          projectBuilder.Append("     <Compile Include=\"").Append(fullFile).Append("\" />").Append(kWindowsNewline);
         }
         else
         {
@@ -631,13 +629,13 @@ namespace Packages.Rider.Editor
           var referencedProject = reference.Groups["project"].Value;
 
           projectBuilder.Append("    <ProjectReference Include=\"").Append(referencedProject)
-            .Append(GetProjectExtension()).Append("\">").Append(k_WindowsNewline);
+            .Append(GetProjectExtension()).Append("\">").Append(kWindowsNewline);
           projectBuilder
             .Append("      <Project>{")
             .Append(m_GUIDGenerator.ProjectGuid(m_ProjectName, reference.Groups["project"].Value))
             .Append("}</Project>")
-            .Append(k_WindowsNewline);
-          projectBuilder.Append("      <Name>").Append(referencedProject).Append("</Name>").Append(k_WindowsNewline);
+            .Append(kWindowsNewline);
+          projectBuilder.Append("      <Name>").Append(referencedProject).Append("</Name>").Append(kWindowsNewline);
           projectBuilder.AppendLine("    </ProjectReference>");
         }
       }
@@ -651,10 +649,11 @@ namespace Packages.Rider.Editor
       //replace \ with / and \\ with /
       var escapedFullPath = SecurityElement.Escape(fullReference);
       escapedFullPath = escapedFullPath.Replace("\\\\", "/").Replace("\\", "/");
+      var kWindowsNewline = Environment.NewLine;
       projectBuilder.Append(" <Reference Include=\"").Append(FileSystemUtil.FileNameWithoutExtension(escapedFullPath))
-        .Append("\">").Append(k_WindowsNewline);
-      projectBuilder.Append(" <HintPath>").Append(escapedFullPath).Append("</HintPath>").Append(k_WindowsNewline);
-      projectBuilder.Append(" </Reference>").Append(k_WindowsNewline);
+        .Append("\">").Append(kWindowsNewline);
+      projectBuilder.Append(" <HintPath>").Append(escapedFullPath).Append("</HintPath>").Append(kWindowsNewline);
+      projectBuilder.Append(" </Reference>").Append(kWindowsNewline);
     }
 
     public string ProjectFile(Assembly assembly)
@@ -715,7 +714,7 @@ namespace Packages.Rider.Editor
         return String.Empty;
       
       
-      return $"\r\n{string.Join("\r\n", paths.Select(a => $"  <DocumentationFile>{a}</DocumentationFile>"))}";
+      return $"{Environment.NewLine}{string.Join(Environment.NewLine, paths.Select(a => $"  <DocumentationFile>{a}</DocumentationFile>"))}";
     }
 
     private string GenerateWarningAsError(IEnumerable<string> enumerable)
@@ -737,10 +736,10 @@ namespace Packages.Rider.Editor
       returnValue += $@"    <TreatWarningsAsErrors>{allWarningsAsErrors}</TreatWarningsAsErrors>";
       if (warningIds.Any())
       {
-        returnValue += $"\r\n    <WarningsAsErrors>{string.Join(";", warningIds)}</WarningsAsErrors>";
+        returnValue += $"{Environment.NewLine}    <WarningsAsErrors>{string.Join(";", warningIds)}</WarningsAsErrors>";
       }
 
-      return $"\r\n{returnValue}";
+      return $"{Environment.NewLine}{returnValue}";
     }
 
     private string GenerateWarningLevel(IEnumerable<string> warningLevel)
@@ -754,7 +753,7 @@ namespace Packages.Rider.Editor
 
     static string GetSolutionText()
     {
-      return string.Join("\r\n",
+      return string.Join(Environment.NewLine,
         @"",
         @"Microsoft Visual Studio Solution File, Format Version {0}",
         @"# Visual Studio {1}",
@@ -776,7 +775,7 @@ namespace Packages.Rider.Editor
 
     static string GetProjectFooterTemplate()
     {
-      return string.Join("\r\n",
+      return string.Join(Environment.NewLine,
         @"  </ItemGroup>",
         @"  <Import Project=""$(MSBuildToolsPath)\Microsoft.CSharp.targets"" />",
         @"  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. ",
@@ -868,7 +867,7 @@ namespace Packages.Rider.Editor
       };
 
       var pieces = header.Concat(forceExplicitReferences).Concat(itemGroupStart).Concat(footer).ToArray();
-      return string.Join("\r\n", pieces);
+      return string.Join(Environment.NewLine, pieces);
     }
 
     void SyncSolution(IEnumerable<Assembly> islands, Type[] types)
@@ -883,8 +882,9 @@ namespace Packages.Rider.Editor
 
       var relevantIslands = RelevantIslandsForMode(islands);
       string projectEntries = GetProjectEntries(relevantIslands);
-      string projectConfigurations = string.Join(k_WindowsNewline,
-        relevantIslands.Select(i => GetProjectActiveConfigurations(m_GUIDGenerator.ProjectGuid(m_ProjectName, i.outputPath))).ToArray());
+
+      string projectConfigurations = string.Join(Environment.NewLine,
+        relevantIslands.Select(i => GetProjectActiveConfigurations(m_GUIDGenerator.ProjectGuid(m_ProjectName, i.name))).ToArray());
       return string.Format(GetSolutionText(), fileversion, vsversion, projectEntries, projectConfigurations);
     }
     
@@ -897,10 +897,12 @@ namespace Packages.Rider.Editor
         if (!paths.Any())
             return string.Empty;
 
-        var list = new List<string> {"\r\n  <ItemGroup>"};
-        list.AddRange(paths.Select(a => $"    <Analyzer Include=\"{a}\" />"));
-        list.Add("  </ItemGroup>");
-        return string.Join("\r\n", list.ToArray());
+        return string.Join(Environment.NewLine, new []
+        {
+          $"{Environment.NewLine}  <ItemGroup>",
+          string.Join(Environment.NewLine, paths.Select(a => $"    <Analyzer Include=\"{a}\" />")),          
+          "  </ItemGroup>"
+        });
     }
 
     private static ILookup<string, string> GetOtherArgumentsFromResponseFilesData(List<ResponseFileData> responseFilesData)
@@ -946,7 +948,7 @@ namespace Packages.Rider.Editor
         if (!paths.Any())
             return string.Empty;
       
-        return $"\r\n{string.Join("\r\n", paths.Select(a => $"  <CodeAnalysisRuleSet>{a}</CodeAnalysisRuleSet>"))}";
+        return $"{Environment.NewLine}{string.Join(Environment.NewLine, paths.Select(a => $"  <CodeAnalysisRuleSet>{a}</CodeAnalysisRuleSet>"))}";
     }
     
     private static string GenerateAnalyserAdditionalFiles(string[] paths)
@@ -954,10 +956,12 @@ namespace Packages.Rider.Editor
       if (!paths.Any())
         return string.Empty;
       
-      var list = new List<string> {"\r\n  <ItemGroup>"};
-      list.AddRange(paths.Select(a => $"    <AdditionalFiles Include=\"{a}\" />"));
-      list.Add("  </ItemGroup>");
-      return string.Join("\r\n", list.ToArray());
+      return string.Join(Environment.NewLine, new []
+      {
+        $"{Environment.NewLine}  <ItemGroup>",
+        string.Join(Environment.NewLine, paths.Select(a => $"    <AdditionalFiles Include=\"{a}\" />")),          
+        "  </ItemGroup>"
+      });
     }
     
     private static string GenerateNoWarn(string[] codes)
@@ -988,7 +992,7 @@ namespace Packages.Rider.Editor
         m_GUIDGenerator.ProjectGuid(m_ProjectName, i.outputPath)
       ));
 
-      return string.Join(k_WindowsNewline, projectEntries.ToArray());
+      return string.Join(Environment.NewLine, projectEntries.ToArray());
     }
 
     /// <summary>
