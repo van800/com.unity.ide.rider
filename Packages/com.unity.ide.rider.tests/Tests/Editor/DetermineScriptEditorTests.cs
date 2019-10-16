@@ -1,7 +1,6 @@
 using System.IO;
 using Moq;
 using NUnit.Framework;
-using Packages.Rider.Editor;
 using Unity.CodeEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
