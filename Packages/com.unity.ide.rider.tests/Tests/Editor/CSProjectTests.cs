@@ -369,7 +369,8 @@ namespace Packages.Rider.Editor.Tests
                 var csprojFileContents = m_Builder.ReadProjectFile(m_Builder.Assembly);
                 foreach (string expectedContent in expectedContents)
                 {
-                    StringAssert.Contains(expectedContent.Replace(Environment.NewLine, "NewLine"), csprojFileContents.Replace(Environment.NewLine, "NewLine"),  "Arguments: " + string.Join(";", argumentString));
+                    StringAssert.Contains(expectedContent.Replace("\r", "\\r").Replace("\n", "\\n"), 
+                        csprojFileContents.Replace("\r", "\\r").Replace("\n", "\\n"),  "Arguments: " + string.Join(";", argumentString));
                 }
             }
         }
