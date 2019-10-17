@@ -5,7 +5,6 @@ using System.Text.RegularExpressions;
 using System.Xml;
 using NUnit.Framework;
 using UnityEditor.Compilation;
-using UnityEngine;
 
 namespace Packages.Rider.Editor.Tests
 {
@@ -224,17 +223,9 @@ namespace Packages.Rider.Editor.Tests
             public void AddAnalyzers(params string[] paths)
             {
                 var combined = string.Join(";", paths);
-
-                var expectedOutput = string.Empty;
-
-                string expectedTemplate = @"  <ItemGroup>
-{0}
-  </ItemGroup>";
-
                 const string additionalFileTemplate = @"    <Analyzer Include=""{0}"" />";
-
-                expectedOutput = string.Format(expectedTemplate, string.Join(Environment.NewLine,paths.Select(x => string.Format(additionalFileTemplate, x))));
-
+                var expectedOutput = paths.Select(x => string.Format(additionalFileTemplate, x)).ToArray();
+                
                 CheckOtherArgument(new[] {$"-a:{combined}"}, expectedOutput);
                 CheckOtherArgument(new[] {$"-analyzer:{combined}"}, expectedOutput);
                 CheckOtherArgument(new[] {$"/a:{combined}"}, expectedOutput);
@@ -248,16 +239,8 @@ namespace Packages.Rider.Editor.Tests
             public void AddAdditionalFile(params string[] paths)
             {
                 var combined = string.Join(";", paths);
-
-                string expectedOutput = string.Empty;
-
-                string expectedTemplate = @"  <ItemGroup>
-{0}
-  </ItemGroup>";
-
                 const string additionalFileTemplate = @"    <AdditionalFiles Include=""{0}"" />";
-
-                expectedOutput = string.Format(expectedTemplate, string.Join(Environment.NewLine,paths.Select(x => string.Format(additionalFileTemplate, x))));
+                var expectedOutput = paths.Select(x => string.Format(additionalFileTemplate, x)).ToArray();
 
                 CheckOtherArgument(new[] {$"-additionalfile:{combined}"}, expectedOutput);
                 CheckOtherArgument(new[] {$"/additionalfile:{combined}"}, expectedOutput);
