@@ -897,12 +897,14 @@ namespace Packages.Rider.Editor
         if (!paths.Any())
             return string.Empty;
 
-        return string.Join(Environment.NewLine, new []
+        var analyserBuilder = new StringBuilder();
+        analyserBuilder.AppendLine("  <ItemGroup>");
+        foreach (var path in paths)
         {
-          $"{Environment.NewLine}  <ItemGroup>",
-          string.Join(Environment.NewLine, paths.Select(a => $"    <Analyzer Include=\"{a}\" />")),          
-          "  </ItemGroup>"
-        });
+          analyserBuilder.AppendLine($"    <Analyzer Include=\"{path}\" />");
+        }
+        analyserBuilder.AppendLine("  </ItemGroup>");
+        return analyserBuilder.ToString();
     }
 
     private static ILookup<string, string> GetOtherArgumentsFromResponseFilesData(List<ResponseFileData> responseFilesData)
@@ -956,12 +958,15 @@ namespace Packages.Rider.Editor
       if (!paths.Any())
         return string.Empty;
       
-      return string.Join(Environment.NewLine, new []
+      
+      var analyserBuilder = new StringBuilder();
+      analyserBuilder.AppendLine("  <ItemGroup>");
+      foreach (var path in paths)
       {
-        $"{Environment.NewLine}  <ItemGroup>",
-        string.Join(Environment.NewLine, paths.Select(a => $"    <AdditionalFiles Include=\"{a}\" />")),          
-        "  </ItemGroup>"
-      });
+        analyserBuilder.AppendLine($"    <AdditionalFiles Include=\"{path}\" />");
+      }
+      analyserBuilder.AppendLine("  </ItemGroup>");
+      return analyserBuilder.ToString();
     }
     
     private static string GenerateNoWarn(string[] codes)
