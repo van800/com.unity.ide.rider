@@ -7,7 +7,7 @@ namespace RiderEditor
 {
     public class Package
     {
-        [Test][UnityPlatform(exclude = new[] {RuntimePlatform.LinuxEditor })]
+        [Test]
         public void Validate()
         {
             const string package = "com.unity.ide.rider@1.1.3-preview.1";

@@ -30,12 +30,13 @@ platforms:
       - linux
       - macos
       - windows
-  - os: linux
-    components:
-      - editor
-      - linux
-      - macos
-      - windows
+# Validation suite still not fixed on Linux when we go to production
+#  - os: linux
+#    components:
+#      - editor
+#      - linux
+#      - macos
+#      - windows
 
 testables:
   # Add any package and/or project folders here - upm ci will automatically grab both packages referenced in the project
