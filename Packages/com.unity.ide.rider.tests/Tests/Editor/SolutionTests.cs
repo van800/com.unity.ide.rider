@@ -129,7 +129,7 @@ namespace Packages.Rider.Editor.Tests
                     .Build();
 
                 // solutionguid, solutionname, projectguid
-                var solutionExpected = string.Join("\r\n", new[]
+                var solutionExpected = string.Join(Environment.NewLine, new[]
                 {
                     @"",
                     @"Microsoft Visual Studio Solution File, Format Version 11.00",
