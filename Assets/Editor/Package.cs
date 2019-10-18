@@ -10,7 +10,7 @@ namespace RiderEditor
         [Test]
         public void Validate()
         {
-            const string package = "com.unity.ide.rider@1.1.3-preview.1";
+            const string package = "com.unity.ide.rider@1.1.3";
             var result = ValidationSuite.ValidatePackage(package, ValidationType.LocalDevelopment);
             Debug.Log(ValidationSuite.GetValidationSuiteReport(package));
             Assert.True(result);
