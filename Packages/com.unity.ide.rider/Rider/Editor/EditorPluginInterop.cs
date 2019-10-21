@@ -9,7 +9,9 @@ namespace Packages.Rider.Editor
 {
   public static class EditorPluginInterop
   {
-    public static string EditorPluginAssemblyName = "JetBrains.Rider.Unity.Editor.Plugin.Full.Repacked";
+    private static string EditorPluginAssemblyNamePrefix = "JetBrains.Rider.Unity.Editor.Plugin.";
+    public static readonly string EditorPluginAssemblyName = $"{EditorPluginAssemblyNamePrefix}Net46.Repacked";
+    public static readonly string EditorPluginAssemblyNameFallback = $"{EditorPluginAssemblyNamePrefix}Full.Repacked";
     private static string ourEntryPointTypeName = "JetBrains.Rider.Unity.Editor.PluginEntryPoint";
 
     private static Assembly ourEditorPluginAssembly;
@@ -21,7 +23,7 @@ namespace Packages.Rider.Editor
         if (ourEditorPluginAssembly != null)
           return ourEditorPluginAssembly;
         var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-        ourEditorPluginAssembly = assemblies.FirstOrDefault(a => a.GetName().Name.Equals(EditorPluginAssemblyName));
+        ourEditorPluginAssembly = assemblies.FirstOrDefault(a => a.GetName().Name.StartsWith(EditorPluginAssemblyNamePrefix));
         return ourEditorPluginAssembly;
       }
     }

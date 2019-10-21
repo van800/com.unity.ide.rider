@@ -16,11 +16,14 @@ namespace Packages.Rider.Editor
           return;
         }
 
-        var dllName = $"{EditorPluginInterop.EditorPluginAssemblyName}.dll";
         var relPath = "../../plugins/rider-unity/EditorPlugin";
         if (SystemInfo.operatingSystemFamily == OperatingSystemFamily.MacOSX)
           relPath = "Contents/plugins/rider-unity/EditorPlugin";
-        var dllFile = new FileInfo(Path.Combine(Path.Combine(editorPath, relPath), dllName));
+        var baseDir = Path.Combine(editorPath, relPath);
+        var dllFile = new FileInfo(Path.Combine(baseDir, $"{EditorPluginInterop.EditorPluginAssemblyName}.dll"));
+        
+        if (!dllFile.Exists)
+          dllFile = new FileInfo(Path.Combine(baseDir, $"{EditorPluginInterop.EditorPluginAssemblyNameFallback}.dll"));
 
         if (dllFile.Exists)
         {
