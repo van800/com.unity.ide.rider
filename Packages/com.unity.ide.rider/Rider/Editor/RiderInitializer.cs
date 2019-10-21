@@ -16,7 +16,7 @@ namespace Packages.Rider.Editor
           return;
         }
 
-        var dllName = "JetBrains.Rider.Unity.Editor.Plugin.Full.Repacked.dll";
+        var dllName = $"{EditorPluginInterop.EditorPluginAssemblyName}.dll";
         var relPath = "../../plugins/rider-unity/EditorPlugin";
         if (SystemInfo.operatingSystemFamily == OperatingSystemFamily.MacOSX)
           relPath = "Contents/plugins/rider-unity/EditorPlugin";

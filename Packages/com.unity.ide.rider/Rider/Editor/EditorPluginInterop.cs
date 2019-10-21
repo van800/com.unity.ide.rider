@@ -9,6 +9,7 @@ namespace Packages.Rider.Editor
 {
   public static class EditorPluginInterop
   {
+    public static string EditorPluginAssemblyName = "JetBrains.Rider.Unity.Editor.Plugin.Full.Repacked";
     private static string ourEntryPointTypeName = "JetBrains.Rider.Unity.Editor.PluginEntryPoint";
 
     private static Assembly ourEditorPluginAssembly;
@@ -20,11 +21,10 @@ namespace Packages.Rider.Editor
         if (ourEditorPluginAssembly != null)
           return ourEditorPluginAssembly;
         var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-        ourEditorPluginAssembly = assemblies.FirstOrDefault(a => a.GetName().Name.Equals("JetBrains.Rider.Unity.Editor.Plugin.Full.Repacked"));
+        ourEditorPluginAssembly = assemblies.FirstOrDefault(a => a.GetName().Name.Equals(EditorPluginAssemblyName));
         return ourEditorPluginAssembly;
       }
     }
-
 
     private static void DisableSyncSolutionOnceCallBack()
     {
