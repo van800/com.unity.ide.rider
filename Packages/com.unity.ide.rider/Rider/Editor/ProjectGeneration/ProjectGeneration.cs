@@ -1064,23 +1064,11 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
     static string ComputeGuidHashFor(string input)
     {
-      var hash = MD5.Create().ComputeHash(Encoding.Default.GetBytes(input));
-      return HashAsGuid(HashToString(hash));
-    }
-
-    static string HashAsGuid(string hash)
-    {
-      var guid = hash.Substring(0, 8) + "-" + hash.Substring(8, 4) + "-" + hash.Substring(12, 4) + "-" +
-                 hash.Substring(16, 4) + "-" + hash.Substring(20, 12);
-      return guid.ToUpper();
-    }
-
-    static string HashToString(byte[] bs)
-    {
-      var sb = new StringBuilder();
-      foreach (byte b in bs)
-        sb.Append(b.ToString("x2"));
-      return sb.ToString();
+      using (var md5 = MD5.Create())
+      {
+        var hash = md5.ComputeHash(Encoding.Default.GetBytes(input));
+        return new Guid(hash).ToString();
+      }
     }
   }
 }
