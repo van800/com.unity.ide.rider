@@ -13,7 +13,7 @@ using UnityEditor.PackageManager;
 using UnityEditorInternal;
 using UnityEngine;
 
-namespace Packages.Rider.Editor
+namespace Packages.Rider.Editor.ProjectGeneration
 {
   public interface IGenerator
   {
