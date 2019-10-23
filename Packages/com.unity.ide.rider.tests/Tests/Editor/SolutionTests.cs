@@ -1,7 +1,6 @@
 using System;
 using NUnit.Framework;
 using UnityEditor.Compilation;
-using UnityEditor.VisualStudioIntegration;
 
 namespace Packages.Rider.Editor.Tests
 {
@@ -24,9 +23,22 @@ namespace Packages.Rider.Editor.Tests
             {
                 var synchronizer = m_Builder.Build();
 
+                Assert.False(m_Builder.FileExists(synchronizer.SolutionFile()), "Should not create solution file before we call sync.");
+
                 synchronizer.Sync();
 
                 Assert.True(m_Builder.FileExists(synchronizer.SolutionFile()), "Should create solution file.");
+            }
+
+            [Test]
+            public void WhenSynced_ThenDeleted_SolutionFileDoesNotExist()
+            {
+                var synchronizer = m_Builder.Build();
+
+                synchronizer.Sync();
+                m_Builder.DeleteFile(synchronizer.SolutionFile());
+
+                Assert.False(m_Builder.FileExists(synchronizer.SolutionFile()), "Synchronizer should sync state with file system, after file has been deleted.");
             }
 
             [Test]
@@ -75,6 +87,8 @@ namespace Packages.Rider.Editor.Tests
             {
                 var synchronizer = m_Builder.Build();
 
+                Assert.IsFalse(synchronizer.SyncIfNeeded(new string[0], new[] { $"reimport.{reimportedFile}" }), "Before sync has been called, we should not allow SyncIfNeeded");
+
                 synchronizer.Sync();
 
                 Assert.IsTrue(synchronizer.SyncIfNeeded(new string[0], new[] { $"reimport.{reimportedFile}" }));
@@ -104,6 +118,8 @@ namespace Packages.Rider.Editor.Tests
             public void AfterSync_WillResync_WhenAffectedFileTypes(string fileExtension)
             {
                 var synchronizer = m_Builder.Build();
+
+                Assert.IsFalse(synchronizer.SyncIfNeeded(new[] { $"reimport.{fileExtension}" }, new string[0]), "Before sync has been called, we should not allow SyncIfNeeded");
 
                 synchronizer.Sync();
 

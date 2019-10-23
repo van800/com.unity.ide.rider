@@ -1,11 +1,9 @@
 using System;
 using System.IO;
 using System.Linq;
-using JetBrains.Annotations;
 using Moq;
 using Packages.Rider.Editor.ProjectGeneration;
 using UnityEditor.Compilation;
-using UnityEditor.VisualStudioIntegration;
 
 namespace Packages.Rider.Editor.Tests
 {
@@ -27,6 +25,7 @@ namespace Packages.Rider.Editor.Tests
         public string ReadFile(string fileName) => m_FileIoMock.ReadAllText(fileName);
         public string ReadProjectFile(Assembly assembly) => ReadFile(Path.Combine(k_ProjectDirectory, $"{assembly.name}.csproj"));
         public bool FileExists(string fileName) => m_FileIoMock.Exists(fileName);
+        public void DeleteFile(string fileName) => m_FileIoMock.DeleteFile(fileName);
         public int WriteTimes => m_FileIoMock.WriteTimes;
         public int ReadTimes => m_FileIoMock.ReadTimes;
 
