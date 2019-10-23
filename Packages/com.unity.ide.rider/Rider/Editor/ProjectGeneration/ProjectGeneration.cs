@@ -153,7 +153,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
     const string k_ProductVersion = "10.0.20506";
     const string k_BaseDirectory = ".";
     const string k_TargetFrameworkVersion = "v4.7.1";
-    const string k_TargetLanguageVersion = "7.3";
+    const string k_TargetLanguageVersion = "latest";
 
     public ProjectGeneration() : this(Directory.GetParent(Application.dataPath).FullName)
     {
