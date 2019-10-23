@@ -87,7 +87,7 @@ namespace Packages.Rider.Editor.Tests
             {
                 var synchronizer = m_Builder.Build();
 
-                Assert.IsFalse(synchronizer.SyncIfNeeded(new string[0], new[] { $"reimport.{reimportedFile}" }), "Before sync has been called, we should not allow SyncIfNeeded");
+                Assert.True(synchronizer.SyncIfNeeded(new string[0], new[] { $"reimport.{reimportedFile}" }), "Before sync has been called, we should allow SyncIfNeeded");
 
                 synchronizer.Sync();
 
@@ -119,7 +119,7 @@ namespace Packages.Rider.Editor.Tests
             {
                 var synchronizer = m_Builder.Build();
 
-                Assert.IsFalse(synchronizer.SyncIfNeeded(new[] { $"reimport.{fileExtension}" }, new string[0]), "Before sync has been called, we should not allow SyncIfNeeded");
+                Assert.True(synchronizer.SyncIfNeeded(new[] { $"reimport.{fileExtension}" }, new string[0]), "Before sync has been called, we should allow SyncIfNeeded");
 
                 synchronizer.Sync();
 
