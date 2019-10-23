@@ -772,7 +772,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
       return string.Join(Environment.NewLine,
         @"  </ItemGroup>",
         @"  <Import Project=""$(MSBuildToolsPath)\Microsoft.CSharp.targets"" />",
-        @"  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. ",
+        @"  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.",
         @"       Other similar extension points exist, see Microsoft.Common.targets.",
         @"  <Target Name=""BeforeBuild"">",
         @"  </Target>",
@@ -1023,7 +1023,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
     static string SkipPathPrefix(string path, string prefix)
     {
-      if (path.Replace("\\", "/").StartsWith($"{prefix}/"))
+      if (path.StartsWith($@"{prefix}\"))
         return path.Substring(prefix.Length + 1);
       return path;
     }
