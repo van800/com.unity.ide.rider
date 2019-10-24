@@ -49,8 +49,8 @@ namespace Packages.Rider.Editor
               }
             }
             
-            // is non toolbox and outdated - notify
-            if (installations.Any() && installations.All(a => a.Path != path))
+            // exists, is non toolbox and outdated - notify
+            if (installations.Any() && FileSystemUtil.EditorPathExists(path) && installations.All(a => a.Path != path))
             {
               var newEditorName = installations.Last().Name;
               Debug.LogWarning($"Consider updating External Editor in Unity to Rider {newEditorName}.");
@@ -60,7 +60,6 @@ namespace Packages.Rider.Editor
             RiderScriptEditorData.instance.InitializedOnce = true;
           }
 
-          RiderScriptEditorData.instance.Init();
           if (!FileSystemUtil.EditorPathExists(path)) // previously used rider was removed
           {
             var installations = editor.Installations;
@@ -71,6 +70,7 @@ namespace Packages.Rider.Editor
               path = newEditor;  
             }
           }
+          RiderScriptEditorData.instance.Init();
 
           editor.CreateSolutionIfDoesntExist();
           if (RiderScriptEditorData.instance.shouldLoadEditorPlugin)
