@@ -1,11 +1,9 @@
 using System;
 using System.IO;
 using System.Linq;
-using JetBrains.Annotations;
 using Moq;
 using Packages.Rider.Editor.ProjectGeneration;
 using UnityEditor.Compilation;
-using UnityEditor.VisualStudioIntegration;
 
 namespace Packages.Rider.Editor.Tests
 {
@@ -19,14 +17,16 @@ namespace Packages.Rider.Editor.Tests
 
         IGenerator m_Synchronizer;
         Mock<IAssemblyNameProvider> m_AssemblyProvider = new Mock<IAssemblyNameProvider>();
-        const string k_ProjectDirectory = "/FullPath/Example";
+        public const string projectDirectory = "/FullPath/Example";
 
         MockFileIO m_FileIoMock = new MockFileIO();
         Mock<IGUIDGenerator> m_GUIDGenerator = new Mock<IGUIDGenerator>();
 
         public string ReadFile(string fileName) => m_FileIoMock.ReadAllText(fileName);
-        public string ReadProjectFile(Assembly assembly) => ReadFile(Path.Combine(k_ProjectDirectory, $"{assembly.name}.csproj"));
+        public string ProjectFilePath(Assembly assembly) => Path.Combine(projectDirectory, $"{assembly.name}.csproj");
+        public string ReadProjectFile(Assembly assembly) => ReadFile(ProjectFilePath(assembly));
         public bool FileExists(string fileName) => m_FileIoMock.Exists(fileName);
+        public void DeleteFile(string fileName) => m_FileIoMock.DeleteFile(fileName);
         public int WriteTimes => m_FileIoMock.WriteTimes;
         public int ReadTimes => m_FileIoMock.ReadTimes;
 
@@ -52,7 +52,7 @@ namespace Packages.Rider.Editor.Tests
 
         public IGenerator Build()
         {
-            return m_Synchronizer = new ProjectGeneration.ProjectGeneration(k_ProjectDirectory, m_AssemblyProvider.Object, m_FileIoMock, m_GUIDGenerator.Object);
+            return m_Synchronizer = new ProjectGeneration.ProjectGeneration(projectDirectory, m_AssemblyProvider.Object, m_FileIoMock, m_GUIDGenerator.Object);
         }
 
         public SynchronizerBuilder WithSolutionText(string solutionText)
@@ -68,13 +68,13 @@ namespace Packages.Rider.Editor.Tests
 
         public SynchronizerBuilder WithSolutionGuid(string solutionGuid)
         {
-            m_GUIDGenerator.Setup(x => x.SolutionGuid(Path.GetFileName(k_ProjectDirectory), "cs")).Returns(solutionGuid);
+            m_GUIDGenerator.Setup(x => x.SolutionGuid(Path.GetFileName(projectDirectory), "cs")).Returns(solutionGuid);
             return this;
         }
 
         public SynchronizerBuilder WithProjectGuid(string projectGuid, Assembly assembly)
         {
-            m_GUIDGenerator.Setup(x => x.ProjectGuid(Path.GetFileName(k_ProjectDirectory), assembly.name)).Returns(projectGuid);
+            m_GUIDGenerator.Setup(x => x.ProjectGuid(Path.GetFileName(projectDirectory), assembly.name)).Returns(projectGuid);
             return this;
         }
 
@@ -85,17 +85,19 @@ namespace Packages.Rider.Editor.Tests
             return this;
         }
 
-        public SynchronizerBuilder WithAssemblyData(string[] files = null, string[] defines = null, Assembly[] assemblyReferences = null, string[] compiledAssemblyReferences = null)
+        public SynchronizerBuilder WithAssemblyData(string[] files = null, string[] defines = null, Assembly[] assemblyReferences = null, string[] compiledAssemblyReferences = null, bool unsafeSettings = false)
         {
+            var assembly = new Assembly(
+                "Test",
+                "some/path/file.dll",
+                files ?? new[] { "test.cs" },
+                defines ?? new string[0],
+                assemblyReferences ?? new Assembly[0],
+                compiledAssemblyReferences ?? new string[0],
+                AssemblyFlags.None);
+            assembly.compilerOptions.AllowUnsafeCode = unsafeSettings;
             return WithAssembly(
-                new Assembly(
-                    "Test",
-                    "some/path/file.dll",
-                    files ?? new[] { "test.cs" },
-                    defines ?? new string[0],
-                    assemblyReferences ?? new Assembly[0],
-                    compiledAssemblyReferences ?? new string[0],
-                    AssemblyFlags.None)
+                assembly
             );
         }
 
@@ -119,7 +121,7 @@ namespace Packages.Rider.Editor.Tests
         public SynchronizerBuilder WithResponseFileData(Assembly assembly, string responseFile, string[] defines = null, string[] errors = null, string[] fullPathReferences = null, string[] otherArguments = null, bool _unsafe = false)
         {
             assembly.compilerOptions.ResponseFiles = new[] { responseFile };
-            m_AssemblyProvider.Setup(x => x.ParseResponseFile(responseFile, k_ProjectDirectory, It.IsAny<string[]>())).Returns(new ResponseFileData
+            m_AssemblyProvider.Setup(x => x.ParseResponseFile(responseFile, projectDirectory, It.IsAny<string[]>())).Returns(new ResponseFileData
             {
                 Defines = defines ?? new string[0],
                 Errors = errors ?? new string[0],
@@ -127,6 +129,12 @@ namespace Packages.Rider.Editor.Tests
                 OtherArguments = otherArguments ?? new string[0],
                 Unsafe = _unsafe,
             });
+            return this;
+        }
+
+        public SynchronizerBuilder WithPackageInfo(string assetPath)
+        {
+            m_AssemblyProvider.Setup(x => x.FindForAssetPath(assetPath)).Returns(default(UnityEditor.PackageManager.PackageInfo));
             return this;
         }
     }

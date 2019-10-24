@@ -4,7 +4,10 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Xml;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEditor.Compilation;
+using UnityEditorInternal;
+using UnityEngine;
 
 namespace Packages.Rider.Editor.Tests
 {
@@ -18,11 +21,12 @@ namespace Packages.Rider.Editor.Tests
             }
         }
 
-        public class Formatting : ProjectGenerationTestBase
+        class Formatting : ProjectGenerationTestBase
         {
             [TestCase(@"x & y.cs", @"x &amp; y.cs")]
             [TestCase(@"x ' y.cs", @"x &apos; y.cs")]
-            [TestCase(@"Dimmer&/foo.cs", @"Dimmer&amp;\foo.cs")]
+            [TestCase(@"Dimmer&\foo.cs", @"Dimmer&amp;\foo.cs")]
+            [TestCase(@"C:\Dimmer/foo.cs", @"C:\Dimmer\foo.cs")]
             public void Escape_SpecialCharsInFileName(string illegalFormattedFileName, string expectedFileName)
             {
                 var synchronizer = m_Builder.WithAssemblyData(files: new[] { illegalFormattedFileName }).Build();
@@ -33,9 +37,126 @@ namespace Packages.Rider.Editor.Tests
                 StringAssert.DoesNotContain(illegalFormattedFileName, csprojContent);
                 StringAssert.Contains(expectedFileName, csprojContent);
             }
+
+            [Test]
+            public void NoExtension_IsNotValid()
+            {
+                var validFile = "dimmer.cs";
+                var invalidFile = "foo";
+                var file = new[] { validFile, invalidFile };
+                var synchronizer = m_Builder.WithAssemblyData(files: file).Build();
+
+                synchronizer.Sync();
+
+                var csprojContent = m_Builder.ReadProjectFile(m_Builder.Assembly);
+                XmlDocument scriptProject = XMLUtilities.FromText(csprojContent);
+                XMLUtilities.AssertCompileItemsMatchExactly(scriptProject, new[] { validFile });
+            }
+
+            [Test]
+            public void AbsoluteSourceFilePaths_WillBeMadeRelativeToProjectDirectory()
+            {
+                var absoluteFilePath = Path.Combine(SynchronizerBuilder.projectDirectory, "dimmer.cs");
+                var synchronizer = m_Builder.WithAssemblyData(files: new[] { absoluteFilePath }).Build();
+
+                synchronizer.Sync();
+
+                var csprojContent = m_Builder.ReadProjectFile(m_Builder.Assembly);
+                XmlDocument scriptProject = XMLUtilities.FromText(csprojContent);
+                XMLUtilities.AssertCompileItemsMatchExactly(scriptProject, new[] { "dimmer.cs" });
+            }
+
+            [Test]
+            public void DefaultSyncSettings_WhenSynced_CreatesProjectFileFromDefaultTemplate()
+            {
+                var projectGuid = "ProjectGuid";
+                var synchronizer = m_Builder.WithProjectGuid(projectGuid, m_Builder.Assembly).Build();
+
+                synchronizer.Sync();
+
+                var csprojContent = m_Builder.ReadProjectFile(m_Builder.Assembly);
+                var defines = string.Join(";", new[] { "DEBUG", "TRACE" }.Concat(EditorUserBuildSettings.activeScriptCompilationDefines).Concat(m_Builder.Assembly.defines).Distinct().ToArray());
+                var content = new[]
+                {
+                    "<?xml version=\"1.0\" encoding=\"utf-8\"?>",
+                    "<Project ToolsVersion=\"4.0\" DefaultTargets=\"Build\" xmlns=\"http://schemas.microsoft.com/developer/msbuild/2003\">",
+                    "  <PropertyGroup>",
+                    "    <LangVersion>latest</LangVersion>",
+                    "    <_TargetFrameworkDirectories>non_empty_path_generated_by_unity.rider.package</_TargetFrameworkDirectories>",
+                    "    <_FullFrameworkReferenceAssemblyPaths>non_empty_path_generated_by_unity.rider.package</_FullFrameworkReferenceAssemblyPaths>",
+                    "    <DisableHandlePackageFileConflicts>true</DisableHandlePackageFileConflicts>",
+                    "  </PropertyGroup>",
+                    "  <PropertyGroup>",
+                    "    <Configuration Condition=\" '$(Configuration)' == '' \">Debug</Configuration>",
+                    "    <Platform Condition=\" '$(Platform)' == '' \">AnyCPU</Platform>",
+                    "    <ProductVersion>10.0.20506</ProductVersion>",
+                    "    <SchemaVersion>2.0</SchemaVersion>",
+                    "    <RootNamespace></RootNamespace>",
+                    $"    <ProjectGuid>{{{projectGuid}}}</ProjectGuid>",
+                    "    <OutputType>Library</OutputType>",
+                    "    <AppDesignerFolder>Properties</AppDesignerFolder>",
+                    $"    <AssemblyName>{m_Builder.Assembly.name}</AssemblyName>",
+                    "    <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>",
+                    "    <FileAlignment>512</FileAlignment>",
+                    "    <BaseDirectory>.</BaseDirectory>",
+                    "  </PropertyGroup>",
+                    "  <PropertyGroup Condition=\" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' \">",
+                    "    <DebugSymbols>true</DebugSymbols>",
+                    "    <DebugType>full</DebugType>",
+                    "    <Optimize>false</Optimize>",
+                    "    <OutputPath>Temp\\bin\\Debug\\</OutputPath>",
+                    $"    <DefineConstants>{defines}</DefineConstants>",
+                    "    <ErrorReport>prompt</ErrorReport>",
+                    "    <WarningLevel>4</WarningLevel>",
+                    "    <NoWarn>0169</NoWarn>",
+                    "    <AllowUnsafeBlocks>False</AllowUnsafeBlocks>",
+                    "    <TreatWarningsAsErrors>False</TreatWarningsAsErrors>",
+                    "  </PropertyGroup>",
+                    "  <PropertyGroup Condition=\" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' \">",
+                    "    <DebugType>pdbonly</DebugType>",
+                    "    <Optimize>true</Optimize>",
+                    "    <OutputPath>Temp\\bin\\Release\\</OutputPath>",
+                    "    <ErrorReport>prompt</ErrorReport>",
+                    "    <WarningLevel>4</WarningLevel>",
+                    "    <NoWarn>0169</NoWarn>",
+                    "    <AllowUnsafeBlocks>False</AllowUnsafeBlocks>",
+                    "    <TreatWarningsAsErrors>False</TreatWarningsAsErrors>",
+                    "  </PropertyGroup>",
+                    "  <PropertyGroup>",
+                    "    <NoConfig>true</NoConfig>",
+                    "    <NoStdLib>true</NoStdLib>",
+                    "    <AddAdditionalExplicitAssemblyReferences>false</AddAdditionalExplicitAssemblyReferences>",
+                    "    <ImplicitlyExpandNETStandardFacades>false</ImplicitlyExpandNETStandardFacades>",
+                    "    <ImplicitlyExpandDesignTimeFacades>false</ImplicitlyExpandDesignTimeFacades>",
+                    "  </PropertyGroup>",
+                    "  <ItemGroup>",
+                    "    <Reference Include=\"UnityEngine\">",
+                    $"      <HintPath>{InternalEditorUtility.GetEngineAssemblyPath()}</HintPath>",
+                    "    </Reference>",
+                    "    <Reference Include=\"UnityEditor\">",
+                    $"      <HintPath>{InternalEditorUtility.GetEditorAssemblyPath()}</HintPath>",
+                    "    </Reference>",
+                    "  </ItemGroup>",
+                    "  <ItemGroup>",
+                    "     <Compile Include=\"test.cs\" />",
+                    "  </ItemGroup>",
+                    "  <Import Project=\"$(MSBuildToolsPath)\\Microsoft.CSharp.targets\" />",
+                    "  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.",
+                    "       Other similar extension points exist, see Microsoft.Common.targets.",
+                    "  <Target Name=\"BeforeBuild\">",
+                    "  </Target>",
+                    "  <Target Name=\"AfterBuild\">",
+                    "  </Target>",
+                    "  -->",
+                    "</Project>",
+                    ""
+                };
+
+                StringAssert.AreEqualIgnoringCase(string.Join(Environment.NewLine, content), csprojContent);
+            }
         }
 
-        public class GUID : ProjectGenerationTestBase
+        class GUID : ProjectGenerationTestBase
         {
             [Test]
             public void ProjectReference_MatchAssemblyGUID()
@@ -47,8 +168,8 @@ namespace Packages.Rider.Editor.Tests
 
                 synchronizer.Sync();
 
-                var assemblyACSproject = Path.Combine(synchronizer.ProjectDirectory, $"{assemblyA.name}.csproj");
-                var assemblyBCSproject = Path.Combine(synchronizer.ProjectDirectory, $"{assemblyB.name}.csproj");
+                var assemblyACSproject = Path.Combine(SynchronizerBuilder.projectDirectory, $"{assemblyA.name}.csproj");
+                var assemblyBCSproject = Path.Combine(SynchronizerBuilder.projectDirectory, $"{assemblyB.name}.csproj");
 
                 Assert.True(m_Builder.FileExists(assemblyACSproject));
                 Assert.True(m_Builder.FileExists(assemblyBCSproject));
@@ -56,16 +177,13 @@ namespace Packages.Rider.Editor.Tests
                 XmlDocument scriptProject = XMLUtilities.FromText(m_Builder.ReadFile(assemblyACSproject));
                 XmlDocument scriptPluginProject = XMLUtilities.FromText(m_Builder.ReadFile(assemblyBCSproject));
 
-                var xmlNamespaces = new XmlNamespaceManager(scriptProject.NameTable);
-                xmlNamespaces.AddNamespace("msb", "http://schemas.microsoft.com/developer/msbuild/2003");
-
-                var a = scriptPluginProject.SelectSingleNode("/msb:Project/msb:PropertyGroup/msb:ProjectGuid", xmlNamespaces).InnerText;
-                var b = scriptProject.SelectSingleNode("/msb:Project/msb:ItemGroup/msb:ProjectReference/msb:Project", xmlNamespaces).InnerText;
+                var a = XMLUtilities.GetInnerText(scriptPluginProject, "/msb:Project/msb:PropertyGroup/msb:ProjectGuid");
+                var b = XMLUtilities.GetInnerText(scriptProject, "/msb:Project/msb:ItemGroup/msb:ProjectReference/msb:Project");
                 Assert.AreEqual(a, b);
             }
         }
 
-        public class Synchronization : ProjectGenerationTestBase
+        class Synchronization : ProjectGenerationTestBase
         {
             [Test]
             public void WontSynchronize_WhenNoFilesChanged()
@@ -78,10 +196,47 @@ namespace Packages.Rider.Editor.Tests
                 synchronizer.Sync();
                 Assert.AreEqual(2, m_Builder.WriteTimes, "No more files should be written");
             }
+
+            [Test]
+            public void WhenSynchronized_WillCreateCSProjectForAssembly()
+            {
+                var synchronizer = m_Builder.Build();
+
+                Assert.IsFalse(m_Builder.FileExists(m_Builder.ProjectFilePath(m_Builder.Assembly)));
+
+                synchronizer.Sync();
+
+                Assert.IsTrue(m_Builder.FileExists(m_Builder.ProjectFilePath(m_Builder.Assembly)));
+            }
+
+            [Test]
+            public void WhenSynchronized_WithTwoAssemblies_TwoProjectFilesAreGenerated()
+            {
+                var assemblyA = new Assembly("assemblyA", "path/to/a.dll", new[] { "file.cs" }, new string[0], new Assembly[0], new string[0], AssemblyFlags.None);
+                var assemblyB = new Assembly("assemblyB", "path/to/b.dll", new[] { "file.cs" }, new string[0], new Assembly[0], new string[0], AssemblyFlags.None);
+                var synchronizer = m_Builder.WithAssemblies(new[] { assemblyA, assemblyB }).Build();
+
+                synchronizer.Sync();
+
+                Assert.IsTrue(m_Builder.FileExists(m_Builder.ProjectFilePath(assemblyA)));
+                Assert.IsTrue(m_Builder.FileExists(m_Builder.ProjectFilePath(assemblyB)));
+            }
         }
 
-        public class SourceFiles : ProjectGenerationTestBase
+        class SourceFiles : ProjectGenerationTestBase
         {
+            [Test]
+            public void NoCSFile_CreatesNoProjectFile()
+            {
+                var synchronizer = m_Builder.WithAssemblyData(files: new string[0]).Build();
+
+                synchronizer.Sync();
+
+                Assert.False(
+                    m_Builder.FileExists(Path.Combine(SynchronizerBuilder.projectDirectory, $"{m_Builder.Assembly.name}.csproj")),
+                    "Should not create csproj file for assembly with no cs file");
+            }
+
             [Test]
             public void NotContributedAnAssembly_WillNotGetAdded()
             {
@@ -94,11 +249,44 @@ namespace Packages.Rider.Editor.Tests
             }
 
             [Test]
+            public void MultipleSourceFiles_WillAllBeAdded()
+            {
+                var files = new[] { "fileA.cs", "fileB.cs", "fileC.cs" };
+                var synchronizer = m_Builder
+                    .WithAssemblyData(files: files)
+                    .Build();
+
+                synchronizer.Sync();
+
+                var csprojectContent = m_Builder.ReadProjectFile(m_Builder.Assembly);
+                var xmlDocument = XMLUtilities.FromText(csprojectContent);
+                XMLUtilities.AssertCompileItemsMatchExactly(xmlDocument, files);
+            }
+
+            [Test]
+            public void FullPathAsset_WillBeConvertedToRelativeFromProjectDirectory()
+            {
+                var assetPath = "Assets/Asset.cs";
+                var synchronizer = m_Builder
+                    .WithAssemblyData(files: new[] { Path.Combine(SynchronizerBuilder.projectDirectory, assetPath) })
+                    .Build();
+
+                synchronizer.Sync();
+
+                var csprojectContent = m_Builder.ReadProjectFile(m_Builder.Assembly);
+                var xmlDocument = XMLUtilities.FromText(csprojectContent);
+                XMLUtilities.AssertCompileItemsMatchExactly(xmlDocument, new[] { assetPath });
+            }
+
+            [Test]
             public void InRelativePackages_GetsPathResolvedCorrectly()
             {
                 var assetPath = "/FullPath/ExamplePackage/Packages/Asset.cs";
                 var assembly = new Assembly("ExamplePackage", "/FullPath/Example/ExamplePackage/ExamplePackage.dll", new[] { assetPath }, new string[0], new Assembly[0], new string[0], AssemblyFlags.None);
-                var synchronizer = m_Builder.WithAssemblies(new[] { assembly }).Build();
+                var synchronizer = m_Builder
+                    .WithAssemblies(new[] { assembly })
+                    .WithPackageInfo(assetPath)
+                    .Build();
 
                 synchronizer.Sync();
 
@@ -136,6 +324,37 @@ namespace Packages.Rider.Editor.Tests
                 var xmlDocument = XMLUtilities.FromText(csprojectContent);
                 XMLUtilities.AssertCompileItemsMatchExactly(xmlDocument, m_Builder.Assembly.sourceFiles);
                 XMLUtilities.AssertNonCompileItemsMatchExactly(xmlDocument, nonCompileItems);
+            }
+
+            [Test]
+            public void UnsupportedExtensions_WillNotBeAdded()
+            {
+                var unsupported = new[] { "file.unsupported" };
+                var synchronizer = m_Builder
+                    .WithAssetFiles(unsupported)
+                    .AssignFilesToAssembly(unsupported, m_Builder.Assembly)
+                    .Build();
+
+                synchronizer.Sync();
+
+                var csprojectContent = m_Builder.ReadProjectFile(m_Builder.Assembly);
+                var xmlDocument = XMLUtilities.FromText(csprojectContent);
+                XMLUtilities.AssertCompileItemsMatchExactly(xmlDocument, m_Builder.Assembly.sourceFiles);
+                XMLUtilities.AssertNonCompileItemsMatchExactly(xmlDocument, new string[0]);
+            }
+
+            [TestCase(@"path\com.unity.cs")]
+            [TestCase(@"..\path\file.cs")]
+            public void IsValidFileName(string filePath)
+            {
+                var synchronizer = m_Builder
+                    .WithAssemblyData(files: new[] { filePath })
+                    .Build();
+
+                synchronizer.Sync();
+
+                var csprojContent = m_Builder.ReadProjectFile(m_Builder.Assembly);
+                StringAssert.Contains(filePath, csprojContent);
             }
 
             [Test]
@@ -198,12 +417,52 @@ namespace Packages.Rider.Editor.Tests
                 StringAssert.Contains(filesAfter[0], csprojContentAfter);
                 StringAssert.DoesNotContain(filesBefore[0], csprojContentAfter);
             }
+
+            [Test, TestCaseSource(nameof(s_BuiltinSupportedExtensionsForSourceFiles))]
+            public void BuiltinSupportedExtensions_InsideAssemblySourceFiles_WillBeAddedToCompileItems(string fileExtension)
+            {
+                var compileItem = new[] { "file.cs", $"anotherFile.{fileExtension}" };
+                var synchronizer = m_Builder.WithAssemblyData(files: compileItem).Build();
+
+                synchronizer.Sync();
+
+                var csprojContent = m_Builder.ReadProjectFile(m_Builder.Assembly);
+                XmlDocument scriptProject = XMLUtilities.FromText(csprojContent);
+                XMLUtilities.AssertCompileItemsMatchExactly(scriptProject, compileItem);
+            }
+
+            static string[] s_BuiltinSupportedExtensionsForSourceFiles =
+            {
+                "asmdef", "cs", "uxml", "uss", "shader", "compute", "cginc", "hlsl", "glslinc", "template", "raytrace"
+            };
+
+            [Test, TestCaseSource(nameof(s_BuiltinSupportedExtensionsForAssets))]
+            public void BuiltinSupportedExtensions_InsideAssetFolder_WillBeAddedToNonCompileItems(string fileExtension)
+            {
+                var nonCompileItem = new[] { $"anotherFile.{fileExtension}" };
+                var synchronizer = m_Builder
+                    .WithAssetFiles(files: nonCompileItem)
+                    .AssignFilesToAssembly(nonCompileItem, m_Builder.Assembly)
+                    .Build();
+
+                synchronizer.Sync();
+
+                var csprojContent = m_Builder.ReadProjectFile(m_Builder.Assembly);
+                XmlDocument scriptProject = XMLUtilities.FromText(csprojContent);
+                XMLUtilities.AssertCompileItemsMatchExactly(scriptProject, m_Builder.Assembly.sourceFiles);
+                XMLUtilities.AssertNonCompileItemsMatchExactly(scriptProject, nonCompileItem);
+            }
+
+            static string[] s_BuiltinSupportedExtensionsForAssets =
+            {
+                "asmdef", "uxml", "uss", "shader", "compute", "cginc", "hlsl", "glslinc", "template", "raytrace"
+            };
         }
 
-        public class CompilerOptions : ProjectGenerationTestBase
+        class CompilerOptions : ProjectGenerationTestBase
         {
             [Test]
-            public void AllowUnsafeBlock()
+            public void AllowUnsafeFromResponseFile_AddBlockToCsproj()
             {
                 const string responseFile = "csc.rsp";
                 var synchronizer = m_Builder
@@ -225,13 +484,13 @@ namespace Packages.Rider.Editor.Tests
                 var combined = string.Join(";", paths);
                 const string additionalFileTemplate = @"    <Analyzer Include=""{0}"" />";
                 var expectedOutput = paths.Select(x => string.Format(additionalFileTemplate, x)).ToArray();
-                
+
                 CheckOtherArgument(new[] {$"-a:{combined}"}, expectedOutput);
                 CheckOtherArgument(new[] {$"-analyzer:{combined}"}, expectedOutput);
                 CheckOtherArgument(new[] {$"/a:{combined}"}, expectedOutput);
                 CheckOtherArgument(new[] {$"/analyzer:{combined}"}, expectedOutput);
             }
-            
+
             [TestCase(new object[] {"C:/Analyzer.dll"})]
             [TestCase(new object[] {"C:/Analyzer.dll", "C:/Analyzer2.dll"})]
             [TestCase(new object[] {"../Analyzer.dll"})]
@@ -245,7 +504,7 @@ namespace Packages.Rider.Editor.Tests
                 CheckOtherArgument(new[] {$"-additionalfile:{combined}"}, expectedOutput);
                 CheckOtherArgument(new[] {$"/additionalfile:{combined}"}, expectedOutput);
             }
-            
+
             [TestCase("0169", "0123")]
             [TestCase("0169")]
             [TestCase("0169;0123", "0234")]
@@ -269,7 +528,7 @@ namespace Packages.Rider.Editor.Tests
                 CheckOtherArgument(new[] {$"-warnaserror{value}"}, $"<TreatWarningsAsErrors>{state}</TreatWarningsAsErrors>");
                 CheckOtherArgument(new[] {$"/warnaserror{value}"}, $"<TreatWarningsAsErrors>{state}</TreatWarningsAsErrors>");
             }
-            
+
             [TestCase(true)]
             [TestCase(false)]
             public void SetWarnAsErrorCombined(bool state, params string[] errorCodes)
@@ -282,7 +541,7 @@ namespace Packages.Rider.Editor.Tests
                 CheckOtherArgument(new[] {$"-warnaserror{value}", $"-warnaserror:{combined}"}, expectedTreatWarningsAsErrors, expectedWarningsAsErrorsOutput);
                 CheckOtherArgument(new[] {$"/warnaserror{value}", $"/warnaserror:{combined}"}, expectedTreatWarningsAsErrors, expectedWarningsAsErrorsOutput);
             }
-            
+
             [TestCase(0)]
             [TestCase(4)]
             public void SetWarningLevel(int level)
@@ -293,7 +552,7 @@ namespace Packages.Rider.Editor.Tests
                 CheckOtherArgument(new[] {$"/w:{level}"}, warningLevelString);
                 CheckOtherArgument(new[] {$"/warn:{level}"}, warningLevelString);
             }
-            
+
             [TestCase("C:/rules.ruleset")]
             [TestCase("../rules.ruleset")]
             [TestCase(new object[]{"../rules.ruleset", "C:/rules.ruleset"})]
@@ -303,7 +562,7 @@ namespace Packages.Rider.Editor.Tests
                 CheckOtherArgument(paths.Select(x=>$"-ruleset:{x}").ToArray(), paths.Select(x=>string.Format(rulesetTemplate, x)).ToArray());
                 CheckOtherArgument(paths.Select(x=>$"/ruleset:{x}").ToArray(), paths.Select(x=>string.Format(rulesetTemplate, x)).ToArray());
             }
-            
+
             [TestCase("C:/docs.xml")]
             [TestCase("../docs.xml")]
             [TestCase(new object[]{"../docs.xml", "C:/docs.xml"})]
@@ -313,13 +572,13 @@ namespace Packages.Rider.Editor.Tests
                 CheckOtherArgument(paths.Select(x=>$"-doc:{x}").ToArray(), paths.Select(x=>string.Format(docTemplate, x)).ToArray());
                 CheckOtherArgument(paths.Select(x=>$"/doc:{x}").ToArray(), paths.Select(x=>string.Format(docTemplate, x)).ToArray());
             }
-            
+
             [Test]
             public void CheckDefaultWarningLevel()
             {
                 CheckOtherArgument(new string[0], $"<WarningLevel>4</WarningLevel>");
             }
-            
+
             [TestCase(new []{"-nowarn:10"}, ",10")]
             [TestCase(new []{"-nowarn:10,11"}, ",10,11")]
             [TestCase(new []{"-nowarn:10,11", "-nowarn:12"}, ",10,11,12")]
@@ -331,13 +590,13 @@ namespace Packages.Rider.Editor.Tests
             [Test]
             public void CheckLangVersion()
             {
-                CheckOtherArgument(new []{"-langversion:7.2"}, $"<LangVersion>7.2</LangVersion>");
+                CheckOtherArgument(new []{"-langversion:7.2"}, "<LangVersion>7.2</LangVersion>");
             }
-            
+
             [Test]
             public void CheckDefaultLangVersion()
             {
-                CheckOtherArgument(new string[0], $"<LangVersion>latest</LangVersion>");
+                CheckOtherArgument(new string[0], "<LangVersion>latest</LangVersion>");
             }
 
             public void CheckOtherArgument(string[] argumentString, params string[] expectedContents)
@@ -352,7 +611,8 @@ namespace Packages.Rider.Editor.Tests
                 var csprojFileContents = m_Builder.ReadProjectFile(m_Builder.Assembly);
                 foreach (string expectedContent in expectedContents)
                 {
-                    StringAssert.Contains(expectedContent,
+                    StringAssert.Contains(
+                        expectedContent,
                         csprojFileContents,
                         $"Arguments: {string.Join(";", argumentString)} {Environment.NewLine}"
                         + Environment.NewLine
@@ -361,10 +621,40 @@ namespace Packages.Rider.Editor.Tests
                         + $"Actual: {csprojFileContents.Replace("\r", "\\r").Replace("\n", "\\n")}");
                 }
             }
+
+            [Test]
+            public void AllowUnsafeFromAssemblySettings_AddBlockToCsproj()
+            {
+                var synchronizer = m_Builder
+                    .WithAssemblyData(unsafeSettings: true)
+                    .Build();
+
+                synchronizer.Sync();
+
+                var csprojFileContents = m_Builder.ReadProjectFile(m_Builder.Assembly);
+                StringAssert.Contains("<AllowUnsafeBlocks>True</AllowUnsafeBlocks>", csprojFileContents);
+            }
         }
 
-        public class References : ProjectGenerationTestBase
+        class References : ProjectGenerationTestBase
         {
+            [Test]
+            public void DllInSourceFiles_WillBeAddedAsReference()
+            {
+                var referenceDll = "reference.dll";
+                var synchronizer = m_Builder
+                    .WithAssemblyData(files: new[] { "file.cs", referenceDll })
+                    .Build();
+
+                synchronizer.Sync();
+
+                var csprojFileContents = m_Builder.ReadProjectFile(m_Builder.Assembly);
+                XmlDocument scriptProject = XMLUtilities.FromText(csprojFileContents);
+                XMLUtilities.AssertCompileItemsMatchExactly(scriptProject, new[] { "file.cs" });
+                XMLUtilities.AssertNonCompileItemsMatchExactly(scriptProject, new string[0]);
+                Assert.IsTrue(csprojFileContents.MatchesRegex($"<Reference Include=\"reference\">\\W*<HintPath>{SynchronizerBuilder.projectDirectory}/{referenceDll}\\W*</HintPath>\\W*</Reference>"));
+            }
+
             [Test]
             public void Containing_PathWithSpaces_IsParsedCorrectly()
             {
@@ -377,6 +667,20 @@ namespace Packages.Rider.Editor.Tests
 
                 var csprojFileContents = m_Builder.ReadProjectFile(m_Builder.Assembly);
                 Assert.IsTrue(csprojFileContents.MatchesRegex("<Reference Include=\"Goodbye\">\\W*<HintPath>Folder/Path With Space/Goodbye.dll\\W*</HintPath>\\W*</Reference>"));
+            }
+
+            [Test]
+            public void Containing_PathWithDotCS_IsParsedCorrectly()
+            {
+                var assembly = new Assembly("name", "/path/with.cs/assembly.dll", new[] { "file.cs" }, new string[0], new Assembly[0], new string[0], AssemblyFlags.None);
+                var synchronizer = m_Builder
+                    .WithAssemblyData(assemblyReferences: new[] { assembly })
+                    .Build();
+
+                synchronizer.Sync();
+
+                var csprojFileContents = m_Builder.ReadProjectFile(m_Builder.Assembly);
+                Assert.IsTrue(csprojFileContents.MatchesRegex($"<Reference Include=\"assembly\">\\W*<HintPath>{assembly.outputPath}\\W*</HintPath>\\W*</Reference>"));
             }
 
             [Test]
@@ -456,7 +760,7 @@ namespace Packages.Rider.Editor.Tests
             }
         }
 
-        public class Defines : ProjectGenerationTestBase
+        class Defines : ProjectGenerationTestBase
         {
             [Test]
             public void ResponseFiles_CanAddDefines()

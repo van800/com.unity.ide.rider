@@ -32,6 +32,16 @@ namespace Packages.Rider.Editor.Tests
             byte[] utfBytes = utf8.GetBytes(content);
             fileToContent[fileName] = utf8.GetString(utfBytes, 0, utfBytes.Length);
         }
+
+        public void DeleteFile(string fileName)
+        {
+            if (!fileToContent.ContainsKey(fileName))
+            {
+                throw new Exception($"{fileName}: has not been created.");
+            }
+
+            fileToContent.Remove(fileName);
+        }
     }
 
     public class MockFileIOTests
@@ -77,6 +87,27 @@ namespace Packages.Rider.Editor.Tests
             m_FileIo.WriteAllText(fileName, content);
             m_FileIo.WriteAllText(fileName, content2);
             Assert.AreEqual(content2, m_FileIo.ReadAllText(fileName));
+        }
+
+        [Test]
+        public void WhenWrite_ThenDelete_FillDoesNotExist()
+        {
+            var fileName = "fileName";
+            var content = "content";
+            m_FileIo.WriteAllText(fileName, content);
+            m_FileIo.DeleteFile(fileName);
+
+            Assert.IsFalse(m_FileIo.Exists(fileName), "File Should not exist are deleting it");
+        }
+
+        [Test]
+        public void BeforeWrite_IfDelete_ExceptionOccurs()
+        {
+            var fileName = "fileName";
+
+            var exception = Assert.Throws<Exception>(() => m_FileIo.DeleteFile(fileName));
+
+            StringAssert.AreEqualIgnoringCase($"{fileName}: has not been created.", exception.Message);
         }
 
         [Test]
