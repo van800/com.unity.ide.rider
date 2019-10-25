@@ -209,6 +209,11 @@ namespace Packages.Rider.Editor
 
     public void OnGUI()
     {
+      if (RiderScriptEditorData.instance.shouldLoadEditorPlugin)
+      {
+        HandledExtensionsString = EditorGUILayout.TextField(new GUIContent("Extensions handled: "), HandledExtensionsString);  
+      }
+      
       var prevGenerate = EditorPrefs.GetBool(unity_generate_all, false);
       var generateAll = EditorGUILayout.Toggle("Generate all .csproj files.", prevGenerate);
       if (generateAll != prevGenerate)
@@ -217,11 +222,6 @@ namespace Packages.Rider.Editor
       }
       
       m_ProjectGeneration.GenerateAll(generateAll);
-
-      if (RiderScriptEditorData.instance.shouldLoadEditorPlugin)
-      {
-        HandledExtensionsString = EditorGUILayout.TextField(new GUIContent("Extensions handled: "), HandledExtensionsString);  
-      }
     }
 
     public void SyncIfNeeded(string[] addedFiles, string[] deletedFiles, string[] movedFiles, string[] movedFromFiles,
