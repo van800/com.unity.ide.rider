@@ -214,17 +214,17 @@ namespace Packages.Rider.Editor
       return string.Empty;
     }
     
-    internal static string GetBuildVersion(string path)
+    internal static ProductInfo GetBuildVersion(string path)
     {
       var buildTxtFileInfo = new FileInfo(Path.Combine(path, GetRelativePathToBuildTxt()));
       var dir = buildTxtFileInfo.DirectoryName;
       if (!Directory.Exists(dir))
-        return string.Empty;
+        return null;
       var buildVersionFile = new FileInfo(Path.Combine(dir, "product-info.json"));
       if (!buildVersionFile.Exists) 
-        return string.Empty;
+        return null;
       var json = File.ReadAllText(buildVersionFile.FullName);
-      return ProductInfo.GetVersion(json);
+      return ProductInfo.GetProductInfo(json);
     }
     
     internal static string GetBuildNumber(string path)
@@ -387,17 +387,18 @@ namespace Packages.Rider.Editor
     }
 
     [Serializable]
-    class ProductInfo
+    public class ProductInfo
     {
       public string version;
+      public string versionSuffix;
 
       [CanBeNull]
-      public static string GetVersion(string json)
+      internal static ProductInfo GetProductInfo(string json)
       {
         try
         {
           var productInfo = JsonUtility.FromJson<ProductInfo>(json);
-          return productInfo.version;
+          return productInfo;
         }
         catch (Exception)
         {
@@ -452,7 +453,7 @@ namespace Packages.Rider.Editor
       public bool IsToolbox;
       public string Presentation;
       public string BuildNumber;
-      public string BuildVersion;
+      public ProductInfo ProductInfo;
       public string Path;
 
       public RiderInfo(string path, bool isToolbox)
@@ -461,18 +462,18 @@ namespace Packages.Rider.Editor
         {
           RiderScriptEditorData.instance.Init();
           BuildNumber = RiderScriptEditorData.instance.editorBuildNumber;
-          BuildVersion = RiderScriptEditorData.instance.editorVersion;
+          ProductInfo = RiderScriptEditorData.instance.productInfo;
         }
         else
         {
           BuildNumber = GetBuildNumber(path);
-          BuildVersion = GetBuildVersion(path);
+          ProductInfo = GetBuildVersion(path);
         }
         Path = new FileInfo(path).FullName; // normalize separators
         var presentation = $"Rider {BuildNumber}";
 
-        if (!string.IsNullOrEmpty(BuildVersion))
-          presentation = $"Rider {BuildVersion} {BuildNumber}";
+        if (!string.IsNullOrEmpty(ProductInfo.version) && !string.IsNullOrEmpty(ProductInfo.versionSuffix))
+          presentation = $"Rider {ProductInfo.version} {ProductInfo.versionSuffix}";
         
         if (isToolbox)
           presentation += " (JetBrains Toolbox)";

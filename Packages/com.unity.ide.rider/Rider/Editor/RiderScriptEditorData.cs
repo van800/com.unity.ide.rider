@@ -1,7 +1,6 @@
 using System;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace Packages.Rider.Editor
 {
@@ -11,7 +10,7 @@ namespace Packages.Rider.Editor
     [SerializeField] internal bool shouldLoadEditorPlugin;
     [SerializeField] internal bool initializedOnce;
     [SerializeField] internal string editorBuildNumber;
-    [SerializeField] internal string editorVersion;
+    [SerializeField] internal RiderPathLocator.ProductInfo productInfo;
 
     public void Init()
     {
@@ -24,7 +23,7 @@ namespace Packages.Rider.Editor
     public void Invalidate(string editorInstallationPath)
     {
       editorBuildNumber = RiderPathLocator.GetBuildNumber(editorInstallationPath);
-      editorVersion = RiderPathLocator.GetBuildVersion(editorInstallationPath);
+      productInfo = RiderPathLocator.GetBuildVersion(editorInstallationPath);
       if (!Version.TryParse(editorBuildNumber, out var version))
         shouldLoadEditorPlugin = false;
 
