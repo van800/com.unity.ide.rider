@@ -6,7 +6,7 @@ editors:
 platforms:
   - name: win
     type: Unity::VM
-    image: sdet/gamecode_win10:latest
+    image: package-ci/win10:stable
     flavor: b1.large
     envsetup:
   - name: mac
@@ -16,7 +16,7 @@ platforms:
     envsetup:
   - name: linux
     type: Unity::VM
-    image: cds-ops/ubuntu-18.04-agent:latest
+    image: package-ci/ubuntu:stable
     flavor: b1.large
     envsetup: npm config set prefix '~/npm-global'
 
@@ -64,11 +64,17 @@ run_test_project_{{ platform.name }}_{{ editor.version }}:
     type: {{ platform.type }}
     image: {{ platform.image }}
     flavor: {{ platform.flavor}}
+  {% if platform.name == "linux" %}
+  variables:
+    PATH: /home/bokken/bin:/home/bokken/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin:/home/bokken/.npm-global/bin::/home/bokken/npm-global/bin
+    DISPLAY: ":0"
+  {% endif %}
   commands:
-    - git clone git@github.cds.internal.unity3d.com:henrikp/yamtato-runtime-utils.git
+    - pip install unity-downloader-cli --upgrade --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple
     - {{ platform.envsetup }}
-    - npm install git+ssh://git@gitlab.cds.internal.unity3d.com:upm-packages/project-templates/upm-template-utils.git#henrik-playground -g --no-progress
-    - python -u yamtato-runtime-utils/upm_ci_wrapper_with_release.py {{ editor.version }} project test --extra-unity-components windows --extra-unity-components macos --extra-unity-components linux
+    - unity-downloader-cli -u {{editor.version}} -c editor -c linux -c macos -c windows --wait --published-only
+    - npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+    - upm-ci project test -u .Editor --project-path . --platform editmode
   artifacts:
     logs:
       paths:
@@ -117,8 +123,7 @@ publish_release:
     flavor: b1.large
   commands:
     - npm install upm-ci-utils --registry https://api.bintray.com/npm/unity/unity-npm
-    - node node_modules/upm-ci-utils package publish --package-path Packages/com.unity.ide.{{codeeditor}}
-    - node node_modules/upm-ci-utils package publish --package-path Packages/com.unity.ide.{{codeeditor}}.tests
+    - node node_modules/upm-ci-utils project publish
     - git push origin HEAD:refs/heads/next/master HEAD:refs/heads/master
 
 

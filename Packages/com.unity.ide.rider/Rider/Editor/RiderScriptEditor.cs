@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using Packages.Rider.Editor.ProjectGeneration;
 using Packages.Rider.Editor.Util;
 using Unity.CodeEditor;
 using UnityEditor;
@@ -21,7 +22,7 @@ namespace Packages.Rider.Editor
     {
       try
       {
-        var projectGeneration = new ProjectGeneration();
+        var projectGeneration = new ProjectGeneration.ProjectGeneration();
         var editor = new RiderScriptEditor(new Discovery(), projectGeneration);
         CodeEditor.Register(editor);
         var path = GetEditorRealPath(CodeEditor.CurrentEditorInstallation);
@@ -208,6 +209,11 @@ namespace Packages.Rider.Editor
 
     public void OnGUI()
     {
+      if (RiderScriptEditorData.instance.shouldLoadEditorPlugin)
+      {
+        HandledExtensionsString = EditorGUILayout.TextField(new GUIContent("Extensions handled: "), HandledExtensionsString);  
+      }
+      
       var prevGenerate = EditorPrefs.GetBool(unity_generate_all, false);
       var generateAll = EditorGUILayout.Toggle("Generate all .csproj files.", prevGenerate);
       if (generateAll != prevGenerate)
@@ -216,11 +222,6 @@ namespace Packages.Rider.Editor
       }
       
       m_ProjectGeneration.GenerateAll(generateAll);
-
-      if (RiderScriptEditorData.instance.shouldLoadEditorPlugin)
-      {
-        HandledExtensionsString = EditorGUILayout.TextField(new GUIContent("Extensions handled: "), HandledExtensionsString);  
-      }
     }
 
     public void SyncIfNeeded(string[] addedFiles, string[] deletedFiles, string[] movedFiles, string[] movedFromFiles,

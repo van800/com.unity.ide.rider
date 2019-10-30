@@ -1,17 +1,18 @@
 using System.IO;
 using Moq;
 using NUnit.Framework;
-using Packages.Rider.Editor;
+using Packages.Rider.Editor.ProjectGeneration;
 using Unity.CodeEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
 
-namespace Packages.Rider.Tests.Editor
+namespace Packages.Rider.Editor.Tests
 {
     [TestFixture]
     public class DetermineScriptEditorTests
     {
         [UnityPlatform(RuntimePlatform.OSXEditor)]
+        [Test]
         public void OSXPathDiscovery()
         {
             var path = new FileInfo(@"Packages/com.unity.ide.rider.tests/Tests/Data/DetermineScriptEditorTests/Rider.app").FullName;
@@ -28,6 +29,7 @@ namespace Packages.Rider.Tests.Editor
         }
 
         [UnityPlatform(RuntimePlatform.LinuxEditor)]
+        [Test]
         public void LinuxPathDiscovery()
         {
             var path = new FileInfo(@"Packages/com.unity.ide.rider.tests/Tests/Data/DetermineScriptEditorTests/191.7141.355/bin/rider.sh").FullName;
