@@ -29,7 +29,7 @@ namespace Packages.Rider.Editor
         
         if (IsRiderInstallation(path))
         {
-          if (!RiderScriptEditorData.instance.InitializedOnce)
+          if (!RiderScriptEditorData.instance.initializedOnce)
           {
             var installations = editor.Installations;
             // is toolbox and outdated - update
@@ -58,7 +58,7 @@ namespace Packages.Rider.Editor
             }
 
             ShowWarningOnUnexpectedScriptEditor(path);
-            RiderScriptEditorData.instance.InitializedOnce = true;
+            RiderScriptEditorData.instance.initializedOnce = true;
           }
 
           RiderScriptEditorData.instance.Init();
@@ -130,7 +130,7 @@ namespace Packages.Rider.Editor
     {
       var extension = Path.GetExtension(e.FullPath);
       if (extension == ".sln" || extension == ".csproj") 
-        RiderScriptEditorData.instance.HasChanges = true;
+        RiderScriptEditorData.instance.hasChanges = true;
     }
 
     internal static string GetEditorRealPath(string path)
@@ -234,10 +234,10 @@ namespace Packages.Rider.Editor
     public void SyncAll()
     {
       AssetDatabase.Refresh();
-      if (RiderScriptEditorData.instance.HasChanges)
+      if (RiderScriptEditorData.instance.hasChanges)
       {
         m_ProjectGeneration.Sync();
-        RiderScriptEditorData.instance.HasChanges = false;
+        RiderScriptEditorData.instance.hasChanges = false;
       }
     }
 
