@@ -331,7 +331,7 @@ namespace Packages.Rider.Editor.Tests
             [Test]
             public void InInternalizedPackage_WithoutGenerateAll_WillNotBeAddedToNonInclude()
             {
-                var nonCompileItem = "packageAsset.txt";
+                var nonCompileItem = "packageAsset.shader";
                 var nonCompileItems = new[] { nonCompileItem };
                 var synchronizer = m_Builder
                     .WithAssetFiles(nonCompileItems)
@@ -342,10 +342,11 @@ namespace Packages.Rider.Editor.Tests
                 var xmlDocument = XMLUtilities.FromText(m_Builder.ReadProjectFile(m_Builder.Assembly));
                 XMLUtilities.AssertNonCompileItemsMatchExactly(xmlDocument, new string[0]);
             }
+
             [Test]
             public void InInternalizedPackage_WithGenerateAll_WillBeAddedToNonInclude()
             {
-                var nonCompileItem = "packageAsset.txt";
+                var nonCompileItem = "packageAsset.shader";
                 var nonCompileItems = new[] { nonCompileItem };
                 var synchronizer = m_Builder
                     .WithAssetFiles(nonCompileItems)
@@ -374,8 +375,8 @@ namespace Packages.Rider.Editor.Tests
             {
                 var nonCompileItems = new[]
                 {
-                    "ClassDiagram1.cd",
-                    "text.txt",
+                    "UnityShader.uss",
+                    "ComputerGraphic.cginc",
                     "Test.shader",
                 };
                 var synchronizer = m_Builder
@@ -406,6 +407,21 @@ namespace Packages.Rider.Editor.Tests
                 var xmlDocument = XMLUtilities.FromText(csprojectContent);
                 XMLUtilities.AssertCompileItemsMatchExactly(xmlDocument, m_Builder.Assembly.sourceFiles);
                 XMLUtilities.AssertNonCompileItemsMatchExactly(xmlDocument, new string[0]);
+            }
+
+            [Test]
+            public void UnsupportedExtension_IsOverWrittenBy_UserSupportedExtensions()
+            {
+                var unsupported = new[] { "file.unsupported" };
+                var synchronizer = m_Builder
+                    .WithAssetFiles(unsupported)
+                    .AssignFilesToAssembly(unsupported, m_Builder.Assembly)
+                    .WithUserSupportedExtensions(new[] {"unsupported"})
+                    .Build();
+                synchronizer.Sync();
+                var xmlDocument = XMLUtilities.FromText(m_Builder.ReadProjectFile(m_Builder.Assembly));
+                XMLUtilities.AssertNonCompileItemsMatchExactly(xmlDocument, unsupported);
+ 
             }
 
             [TestCase(@"path\com.unity.cs")]
@@ -520,7 +536,7 @@ namespace Packages.Rider.Editor.Tests
 
             static string[] s_BuiltinSupportedExtensionsForAssets =
             {
-                "asmdef", "uxml", "uss", "shader", "compute", "cginc", "hlsl", "glslinc", "template", "raytrace"
+                "uxml", "uss", "shader", "compute", "cginc", "hlsl", "glslinc", "template", "raytrace"
             };
         }
 
