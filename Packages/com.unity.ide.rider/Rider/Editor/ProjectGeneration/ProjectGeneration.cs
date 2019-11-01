@@ -41,6 +41,8 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
   public interface IAssemblyNameProvider
   {
+    string[] ProjectSupportedExtensions { get; }
+    string ProjectGenerationRootNamespace { get; }
     string GetAssemblyNameFromScriptPath(string path);
     bool IsInternalizedPackagePath(string path);
     IEnumerable<Assembly> GetAssemblies(Func<string, bool> shouldFileBePartOfSolution);
@@ -51,6 +53,10 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
   class AssemblyNameProvider : IAssemblyNameProvider
   {
+    public string[] ProjectSupportedExtensions => EditorSettings.projectGenerationUserExtensions;
+
+    public string ProjectGenerationRootNamespace => EditorSettings.projectGenerationRootNamespace;
+
     public string GetAssemblyNameFromScriptPath(string path)
     {
       return CompilationPipeline.GetAssemblyNameFromScriptPath(path);
@@ -245,7 +251,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
     void SetupProjectSupportedExtensions()
     {
-      m_ProjectSupportedExtensions = EditorSettings.projectGenerationUserExtensions;
+      m_ProjectSupportedExtensions = m_AssemblyNameProvider.ProjectSupportedExtensions;
     }
 
     bool ShouldFileBePartOfSolution(string file)
@@ -675,7 +681,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
             .Concat(responseFilesData.SelectMany(x => x.Defines)).Distinct().ToArray()),
         MSBuildNamespaceUri,
         assembly.name,
-        EditorSettings.projectGenerationRootNamespace,
+        m_AssemblyNameProvider.ProjectGenerationRootNamespace,
         k_TargetFrameworkVersion,
         GenerateLangVersion(otherResponseFilesData["langversion"]),
         k_BaseDirectory,
