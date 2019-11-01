@@ -105,13 +105,23 @@ namespace Packages.Rider.Editor.Tests
             }
 
             [Test]
-            public void AfterSync_WontReimport_WithoutSpeciifcAffectedFileExtension()
+            public void AfterSync_WontReimport_WithoutSpecificAffectedFileExtension()
             {
                 var synchronizer = m_Builder.Build();
 
                 synchronizer.Sync();
 
-                Assert.IsFalse(synchronizer.SyncIfNeeded(new[] { " reimport.random" }, new string[0]));
+                Assert.IsFalse(synchronizer.SyncIfNeeded(new[] { "reimport.random" }, new string[0]));
+            }
+
+            [Test]
+            public void AfterSync_WillResync_IfExtensionIsInUserSupportedExtension()
+            {
+                var synchronizer = m_Builder.Build();
+                synchronizer.Sync();
+                m_Builder.WithUserSupportedExtensions(new[] { "random" });
+                Assert.IsTrue(synchronizer.SyncIfNeeded(new[] { "reimport.random" }, new string[0]));
+ 
             }
 
             [Test, TestCaseSource(nameof(s_ExtensionsRequireReSync))]

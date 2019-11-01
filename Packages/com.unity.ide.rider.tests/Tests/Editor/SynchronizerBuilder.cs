@@ -137,5 +137,17 @@ namespace Packages.Rider.Editor.Tests
             m_AssemblyProvider.Setup(x => x.FindForAssetPath(assetPath)).Returns(default(UnityEditor.PackageManager.PackageInfo));
             return this;
         }
+
+        public SynchronizerBuilder WithPackageAsset(string assetPath, bool isInternalPackageAsset)
+        {
+            m_AssemblyProvider.Setup(x => x.IsInternalizedPackagePath(assetPath)).Returns(isInternalPackageAsset);
+            return this;
+        }
+
+        public SynchronizerBuilder WithUserSupportedExtensions(string[] extensions)
+        {
+            m_AssemblyProvider.Setup(x => x.ProjectSupportedExtensions).Returns(extensions);
+            return this;
+        }
     }
 }
