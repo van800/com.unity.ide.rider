@@ -48,7 +48,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
     ResponseFileData ParseResponseFile(string responseFilePath, string projectDirectory, string[] systemReferenceDirectories);
   }
 
-  class AssemblyNameProvider : IAssemblyNameProvider
+  public class AssemblyNameProvider : IAssemblyNameProvider
   {
     public string GetAssemblyNameFromScriptPath(string path)
     {
@@ -57,7 +57,18 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
     public IEnumerable<Assembly> GetAssemblies(Func<string, bool> shouldFileBePartOfSolution)
     {
-      return CompilationPipeline.GetAssemblies()
+      List<Assembly> playerAssemblies = CompilationPipeline.GetAssemblies(AssembliesType.Player).Select(assembly =>
+        new Assembly(assembly.name + "-player", assembly.outputPath, assembly.sourceFiles, assembly.defines, assembly.assemblyReferences, assembly.compiledAssemblyReferences, assembly.flags)
+        {
+          compilerOptions =
+          {
+            ResponseFiles = assembly.compilerOptions.ResponseFiles,
+            AllowUnsafeCode = assembly.compilerOptions.AllowUnsafeCode,
+            ApiCompatibilityLevel = assembly.compilerOptions.ApiCompatibilityLevel
+          }
+        }).ToList();
+
+      return CompilationPipeline.GetAssemblies().Concat(playerAssemblies)
         .Where(i => 0 < i.sourceFiles.Length && i.sourceFiles.Any(shouldFileBePartOfSolution));
     }
 
@@ -583,12 +594,6 @@ namespace Packages.Rider.Editor.ProjectGeneration
       var islandRefs = references.Union(assembly.allReferences);
       foreach (string reference in islandRefs)
       {
-        if (reference.EndsWith("/UnityEditor.dll", StringComparison.Ordinal)
-            || reference.EndsWith("/UnityEngine.dll", StringComparison.Ordinal)
-            || reference.EndsWith("\\UnityEditor.dll", StringComparison.Ordinal)
-            || reference.EndsWith("\\UnityEngine.dll", StringComparison.Ordinal))
-          continue;
-
         var match = k_ScriptReferenceExpression.Match(reference);
         if (match.Success)
         {
@@ -668,7 +673,9 @@ namespace Packages.Rider.Editor.ProjectGeneration
       var otherResponseFilesData = GetOtherArgumentsFromResponseFilesData(responseFilesData);
       var arguments = new object[]
       {
-        k_ToolsVersion, k_ProductVersion, m_GUIDGenerator.ProjectGuid(m_ProjectName, assembly.name),
+        k_ToolsVersion,
+        k_ProductVersion,
+        m_GUIDGenerator.ProjectGuid(m_ProjectName, assembly.name),
         InternalEditorUtility.GetEngineAssemblyPath(),
         InternalEditorUtility.GetEditorAssemblyPath(),
         string.Join(";",
@@ -702,21 +709,20 @@ namespace Packages.Rider.Editor.ProjectGeneration
       }
     }
 
-    private string GenerateDocumentationFile(IEnumerable<string> paths)
+    private static string GenerateDocumentationFile(IEnumerable<string> paths)
     {
       if (!paths.Any())
         return String.Empty;
-      
-      
+
       return $"{Environment.NewLine}{string.Join(Environment.NewLine, paths.Select(a => $"  <DocumentationFile>{a}</DocumentationFile>"))}";
     }
 
-    private string GenerateWarningAsError(IEnumerable<string> enumerable)
+    private static string GenerateWarningAsError(IEnumerable<string> enumerable)
     {
       string returnValue = String.Empty;
       bool allWarningsAsErrors = false;
       List<string> warningIds = new List<string>();
-      
+
       foreach (string s in enumerable)
       {
         if (s == "+") allWarningsAsErrors = true;
@@ -736,7 +742,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
       return $"{Environment.NewLine}{returnValue}";
     }
 
-    private string GenerateWarningLevel(IEnumerable<string> warningLevel)
+    private static string GenerateWarningLevel(IEnumerable<string> warningLevel)
     {
       var level = warningLevel.FirstOrDefault();
       if (!string.IsNullOrWhiteSpace(level))
@@ -842,25 +848,13 @@ namespace Packages.Rider.Editor.ProjectGeneration
         @"  </PropertyGroup>"
       };
 
-      var itemGroupStart = new[]
-      {
-        @"  <ItemGroup>"
-      };
-
       var footer = new[]
       {
-        @"    <Reference Include=""UnityEngine"">",
-        @"      <HintPath>{3}</HintPath>",
-        @"    </Reference>",
-        @"    <Reference Include=""UnityEditor"">",
-        @"      <HintPath>{4}</HintPath>",
-        @"    </Reference>",
-        @"  </ItemGroup>{14}{15}",
-        @"  <ItemGroup>",
+        @"  {14}{15}<ItemGroup>",
         @""
       };
 
-      var pieces = header.Concat(forceExplicitReferences).Concat(itemGroupStart).Concat(footer).ToArray();
+      var pieces = header.Concat(forceExplicitReferences).Concat(footer).ToArray();
       return string.Join(Environment.NewLine, pieces);
     }
 
