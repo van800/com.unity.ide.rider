@@ -2,16 +2,19 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Security;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
+using NUnit.Framework;
 using Packages.Rider.Editor.Util;
 using UnityEditor;
 using UnityEditor.Compilation;
 using UnityEditor.PackageManager;
 using UnityEditorInternal;
 using UnityEngine;
+using Assembly = UnityEditor.Compilation.Assembly;
 
 namespace Packages.Rider.Editor.ProjectGeneration
 {
@@ -22,6 +25,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
     bool HasSolutionBeenGenerated();
     string SolutionFile();
     string ProjectDirectory { get; }
+    IAssemblyNameProvider AssemblyNameProvider { get; }
     void GenerateAll(bool generateAll);
   }
 
@@ -46,10 +50,13 @@ namespace Packages.Rider.Editor.ProjectGeneration
     IEnumerable<string> GetAllAssetPaths();
     UnityEditor.PackageManager.PackageInfo FindForAssetPath(string assetPath);
     ResponseFileData ParseResponseFile(string responseFilePath, string projectDirectory, string[] systemReferenceDirectories);
+    void GeneratePlayerProjects(bool generatePlayerProjects);
   }
 
   public class AssemblyNameProvider : IAssemblyNameProvider
   {
+    bool m_generatePlayerProjects;
+
     public string GetAssemblyNameFromScriptPath(string path)
     {
       return CompilationPipeline.GetAssemblyNameFromScriptPath(path);
@@ -57,19 +64,31 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
     public IEnumerable<Assembly> GetAssemblies(Func<string, bool> shouldFileBePartOfSolution)
     {
-      List<Assembly> playerAssemblies = CompilationPipeline.GetAssemblies(AssembliesType.Player).Select(assembly =>
-        new Assembly(assembly.name + "-player", assembly.outputPath, assembly.sourceFiles, assembly.defines, assembly.assemblyReferences, assembly.compiledAssemblyReferences, assembly.flags)
+      foreach (var assembly in CompilationPipeline.GetAssemblies())
+      {
+        if (0 < assembly.sourceFiles.Length && assembly.sourceFiles.Any(shouldFileBePartOfSolution))
         {
-          compilerOptions =
+          yield return assembly;
+        }
+      }
+      if (m_generatePlayerProjects)
+      {
+        foreach (var assembly in CompilationPipeline.GetAssemblies(AssembliesType.Player))
+        {
+          if (0 < assembly.sourceFiles.Length && assembly.sourceFiles.Any(shouldFileBePartOfSolution))
           {
-            ResponseFiles = assembly.compilerOptions.ResponseFiles,
-            AllowUnsafeCode = assembly.compilerOptions.AllowUnsafeCode,
-            ApiCompatibilityLevel = assembly.compilerOptions.ApiCompatibilityLevel
+            yield return new Assembly(assembly.name + "-player", assembly.outputPath, assembly.sourceFiles, assembly.defines, assembly.assemblyReferences, assembly.compiledAssemblyReferences, assembly.flags)
+            {
+              compilerOptions =
+              {
+                ResponseFiles = assembly.compilerOptions.ResponseFiles,
+                AllowUnsafeCode = assembly.compilerOptions.AllowUnsafeCode,
+                ApiCompatibilityLevel = assembly.compilerOptions.ApiCompatibilityLevel
+              }
+            };
           }
-        }).ToList();
-
-      return CompilationPipeline.GetAssemblies().Concat(playerAssemblies)
-        .Where(i => 0 < i.sourceFiles.Length && i.sourceFiles.Any(shouldFileBePartOfSolution));
+        }
+      }
     }
 
     public IEnumerable<string> GetAllAssetPaths()
@@ -89,6 +108,11 @@ namespace Packages.Rider.Editor.ProjectGeneration
         projectDirectory,
         systemReferenceDirectories
       );
+    }
+
+    public void GeneratePlayerProjects(bool generatePlayerProjects)
+    {
+      m_generatePlayerProjects = generatePlayerProjects;
     }
   }
 
@@ -165,6 +189,8 @@ namespace Packages.Rider.Editor.ProjectGeneration
     const string k_BaseDirectory = ".";
     const string k_TargetFrameworkVersion = "v4.7.1";
     const string k_TargetLanguageVersion = "latest";
+
+    IAssemblyNameProvider IGenerator.AssemblyNameProvider => m_AssemblyNameProvider;
 
     public ProjectGeneration() : this(Directory.GetParent(Application.dataPath).FullName)
     {
