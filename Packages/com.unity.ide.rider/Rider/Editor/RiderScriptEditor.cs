@@ -167,6 +167,7 @@ namespace Packages.Rider.Editor
     }
 
     const string unity_generate_all = "unity_generate_all_csproj";
+    const string unity_generate_player_projects = "unity_generate_player_projects";
 
     public RiderScriptEditor(IDiscovery discovery, IGenerator projectGeneration)
     {
@@ -211,17 +212,27 @@ namespace Packages.Rider.Editor
     {
       if (RiderScriptEditorData.instance.shouldLoadEditorPlugin)
       {
-        HandledExtensionsString = EditorGUILayout.TextField(new GUIContent("Extensions handled: "), HandledExtensionsString);  
+        HandledExtensionsString = EditorGUILayout.TextField(new GUIContent("Extensions handled: "), HandledExtensionsString);
       }
-      
-      var prevGenerate = EditorPrefs.GetBool(unity_generate_all, false);
-      var generateAll = EditorGUILayout.Toggle("Generate all .csproj files.", prevGenerate);
-      if (generateAll != prevGenerate)
+
+      EditorGUILayout.LabelField("Generate .csproj files for:");
+      EditorGUI.indentLevel++;
+      m_ProjectGeneration.GenerateAll(SettingsButton(unity_generate_all, "All packages", "Generate csproj files for all packages, including packages marked as internal."));
+      m_ProjectGeneration.AssemblyNameProvider.GeneratePlayerProjects(SettingsButton(unity_generate_player_projects, "Player assemblies", "For each player assembly generate an additional csproj with the name 'assembly-player.csproj'."));
+      EditorGUI.indentLevel--;
+    }
+
+    static bool SettingsButton(string preference, string guiMessage, string toolTip)
+    {
+      var prevValue = EditorPrefs.GetBool(preference, false);
+      ;
+      var newValue = EditorGUILayout.Toggle(new GUIContent(guiMessage, toolTip), prevValue);
+      if (newValue != prevValue)
       {
-        EditorPrefs.SetBool(unity_generate_all, generateAll);
+        EditorPrefs.SetBool(preference, newValue);
       }
-      
-      m_ProjectGeneration.GenerateAll(generateAll);
+
+      return newValue;
     }
 
     public void SyncIfNeeded(string[] addedFiles, string[] deletedFiles, string[] movedFiles, string[] movedFromFiles,
