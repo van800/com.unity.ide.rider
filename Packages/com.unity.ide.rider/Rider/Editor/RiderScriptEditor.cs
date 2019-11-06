@@ -217,8 +217,8 @@ namespace Packages.Rider.Editor
 
       EditorGUILayout.LabelField("Generate .csproj files for:");
       EditorGUI.indentLevel++;
-      m_ProjectGeneration.GenerateAll(SettingsButton(unity_generate_all, "All packages", "Generate csproj files for all packages, including packages marked as internal."));
-      m_ProjectGeneration.AssemblyNameProvider.GeneratePlayerProjects(SettingsButton(unity_generate_player_projects, "Player assemblies", "For each player assembly generate an additional csproj with the name 'assembly-player.csproj'."));
+      m_ProjectGeneration.GenerateAll(SettingsButton(unity_generate_all, "Internal packages", "Generate csproj files for all packages, including packages marked as internal."));
+      m_ProjectGeneration.AssemblyNameProvider.GeneratePlayerProjects(SettingsButton(unity_generate_player_projects, "Player projects", "For each player project generate an additional csproj with the name 'project-player.csproj'."));
       EditorGUI.indentLevel--;
     }
 
