@@ -41,10 +41,24 @@ namespace Packages.Rider.Editor.Tests
         }
 
         [Test]
-        public void AllPlayerAssemblies_AreCollected()
+        public void PlayerAssemblies_AreNotCollected_BeforeToggling()
         {
             var playerAssemblies = CompilationPipeline.GetAssemblies(AssembliesType.Player);
 
+            var collectedAssemblies = m_AssemblyNameProvider.GetAssemblies(s => true).ToList();
+
+            foreach (Assembly playerAssembly in playerAssemblies)
+            {
+                Assert.IsFalse(collectedAssemblies.Any(assembly => assembly.name == playerAssembly.name + "-player" && assembly.outputPath == playerAssembly.outputPath), $"{playerAssembly.name}: was found in collection.");
+            }
+        }
+
+        [Test]
+        public void AllPlayerAssemblies_AreCollected_AfterToggling()
+        {
+            var playerAssemblies = CompilationPipeline.GetAssemblies(AssembliesType.Player);
+
+            m_AssemblyNameProvider.GeneratePlayerProjects(true);
             var collectedAssemblies = m_AssemblyNameProvider.GetAssemblies(s => true).ToList();
 
             foreach (Assembly playerAssembly in playerAssemblies)
