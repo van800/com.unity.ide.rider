@@ -43,7 +43,10 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
   public interface IAssemblyNameProvider
   {
+    string[] ProjectSupportedExtensions { get; }
+    string ProjectGenerationRootNamespace { get; }
     string GetAssemblyNameFromScriptPath(string path);
+    bool IsInternalizedPackagePath(string path);
     IEnumerable<Assembly> GetAssemblies(Func<string, bool> shouldFileBePartOfSolution);
     IEnumerable<string> GetAllAssetPaths();
     UnityEditor.PackageManager.PackageInfo FindForAssetPath(string assetPath);
@@ -54,6 +57,10 @@ namespace Packages.Rider.Editor.ProjectGeneration
   public class AssemblyNameProvider : IAssemblyNameProvider
   {
     bool m_generatePlayerProjects;
+
+    public string[] ProjectSupportedExtensions => EditorSettings.projectGenerationUserExtensions;
+
+    public string ProjectGenerationRootNamespace => EditorSettings.projectGenerationRootNamespace;
 
     public string GetAssemblyNameFromScriptPath(string path)
     {
@@ -97,6 +104,21 @@ namespace Packages.Rider.Editor.ProjectGeneration
     public UnityEditor.PackageManager.PackageInfo FindForAssetPath(string assetPath)
     {
       return UnityEditor.PackageManager.PackageInfo.FindForAssetPath(assetPath);
+    }
+
+    public bool IsInternalizedPackagePath(string path)
+    {
+      if (string.IsNullOrEmpty(path.Trim()))
+      {
+        return false;
+      }
+      var packageInfo = FindForAssetPath(path);
+      if (packageInfo == null)
+      {
+        return false;
+      }
+      var packageSource = packageInfo.source;
+      return packageSource != PackageSource.Embedded && packageSource != PackageSource.Local;
     }
 
     public ResponseFileData ParseResponseFile(string responseFilePath, string projectDirectory, string[] systemReferenceDirectories)
@@ -264,7 +286,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
     void SetupProjectSupportedExtensions()
     {
-      m_ProjectSupportedExtensions = EditorSettings.projectGenerationUserExtensions;
+      m_ProjectSupportedExtensions = m_AssemblyNameProvider.ProjectSupportedExtensions;
     }
 
     bool ShouldFileBePartOfSolution(string file)
@@ -272,7 +294,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
       string extension = Path.GetExtension(file);
 
       // Exclude files coming from packages except if they are internalized.
-      if (!m_ShouldGenerateAll && IsInternalizedPackagePath(file))
+      if (!m_ShouldGenerateAll && m_AssemblyNameProvider.IsInternalizedPackagePath(file))
       {
         return false;
       }
@@ -374,7 +396,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
       foreach (string asset in m_AssemblyNameProvider.GetAllAssetPaths())
       {
         // Exclude files coming from packages except if they are internalized.
-        if (!m_ShouldGenerateAll && IsInternalizedPackagePath(asset))
+        if (!m_ShouldGenerateAll && m_AssemblyNameProvider.IsInternalizedPackagePath(asset))
         {
           continue;
         }
@@ -409,23 +431,6 @@ namespace Packages.Rider.Editor.ProjectGeneration
         result[entry.Key] = entry.Value.ToString();
 
       return result;
-    }
-
-    bool IsInternalizedPackagePath(string file)
-    {
-      if (string.IsNullOrWhiteSpace(file))
-      {
-        return false;
-      }
-
-      var packageInfo = m_AssemblyNameProvider.FindForAssetPath(file);
-      if (packageInfo == null)
-      {
-        return false;
-      }
-
-      var packageSource = packageInfo.source;
-      return packageSource != PackageSource.Embedded && packageSource != PackageSource.Local;
     }
 
     void SyncProject(
@@ -707,7 +712,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
             .Concat(responseFilesData.SelectMany(x => x.Defines)).Distinct().ToArray()),
         MSBuildNamespaceUri,
         assembly.name,
-        EditorSettings.projectGenerationRootNamespace,
+        m_AssemblyNameProvider.ProjectGenerationRootNamespace,
         k_TargetFrameworkVersion,
         GenerateLangVersion(otherResponseFilesData["langversion"]),
         k_BaseDirectory,

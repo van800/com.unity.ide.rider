@@ -213,6 +213,26 @@ namespace Packages.Rider.Editor.Tests
                 Assert.IsTrue(m_Builder.FileExists(m_Builder.ProjectFilePath(assemblyA)));
                 Assert.IsTrue(m_Builder.FileExists(m_Builder.ProjectFilePath(assemblyB)));
             }
+
+            [Test]
+            public void InInternalizedPackage_WithoutGenerateAll_WillNotResync()
+            {
+                var synchronizer = m_Builder.Build();
+                synchronizer.Sync();
+                var packageAsset = "packageAsset.cs";
+                m_Builder.WithPackageAsset(packageAsset, true);
+                Assert.IsFalse(synchronizer.SyncIfNeeded(new[] { packageAsset }, new string[0]));
+            }
+            [Test]
+            public void InInternalizedPackage_WithGenerateAll_WillResync()
+            {
+                var synchronizer = m_Builder.Build();
+                synchronizer.Sync();
+                synchronizer.GenerateAll(true);
+                var packageAsset = "packageAsset.cs";
+                m_Builder.WithPackageAsset(packageAsset, true);
+                Assert.IsTrue(synchronizer.SyncIfNeeded(new[] { packageAsset }, new string[0]));
+            }
         }
 
         class SourceFiles : ProjectGenerationTestBase
@@ -286,6 +306,52 @@ namespace Packages.Rider.Editor.Tests
             }
 
             [Test]
+            public void InInternalizedPackage_WithoutGenerateAll_WillNotBeAddedToCompileInclude()
+            {
+                var synchronizer = m_Builder.WithPackageAsset(m_Builder.Assembly.sourceFiles[0], true).Build();
+                synchronizer.Sync();
+                StringAssert.DoesNotContain(m_Builder.Assembly.sourceFiles[0], m_Builder.ReadProjectFile(m_Builder.Assembly));
+            }
+            [Test]
+            public void InInternalizedPackage_WithGenerateAll_WillBeAddedToCompileInclude()
+            {
+                var synchronizer = m_Builder.WithPackageAsset(m_Builder.Assembly.sourceFiles[0], true).Build();
+                synchronizer.GenerateAll(true);
+                synchronizer.Sync();
+                StringAssert.Contains(m_Builder.Assembly.sourceFiles[0], m_Builder.ReadProjectFile(m_Builder.Assembly));
+            }
+            [Test]
+            public void InInternalizedPackage_WithoutGenerateAll_WillNotBeAddedToNonInclude()
+            {
+                var nonCompileItem = "packageAsset.shader";
+                var nonCompileItems = new[] { nonCompileItem };
+                var synchronizer = m_Builder
+                    .WithAssetFiles(nonCompileItems)
+                    .AssignFilesToAssembly(nonCompileItems, m_Builder.Assembly)
+                    .WithPackageAsset(nonCompileItem, true)
+                    .Build();
+                synchronizer.Sync();
+                var xmlDocument = XMLUtilities.FromText(m_Builder.ReadProjectFile(m_Builder.Assembly));
+                XMLUtilities.AssertNonCompileItemsMatchExactly(xmlDocument, new string[0]);
+            }
+
+            [Test]
+            public void InInternalizedPackage_WithGenerateAll_WillBeAddedToNonInclude()
+            {
+                var nonCompileItem = "packageAsset.shader";
+                var nonCompileItems = new[] { nonCompileItem };
+                var synchronizer = m_Builder
+                    .WithAssetFiles(nonCompileItems)
+                    .AssignFilesToAssembly(nonCompileItems, m_Builder.Assembly)
+                    .WithPackageAsset(nonCompileItem, true)
+                    .Build();
+                synchronizer.GenerateAll(true);
+                synchronizer.Sync();
+                var xmlDocument = XMLUtilities.FromText(m_Builder.ReadProjectFile(m_Builder.Assembly));
+                XMLUtilities.AssertNonCompileItemsMatchExactly(xmlDocument, nonCompileItems);
+            }
+
+            [Test]
             public void CSharpFiles_WillBeIncluded()
             {
                 var synchronizer = m_Builder.Build();
@@ -301,8 +367,8 @@ namespace Packages.Rider.Editor.Tests
             {
                 var nonCompileItems = new[]
                 {
-                    "ClassDiagram1.cd",
-                    "text.txt",
+                    "UnityShader.uss",
+                    "ComputerGraphic.cginc",
                     "Test.shader",
                 };
                 var synchronizer = m_Builder
@@ -333,6 +399,21 @@ namespace Packages.Rider.Editor.Tests
                 var xmlDocument = XMLUtilities.FromText(csprojectContent);
                 XMLUtilities.AssertCompileItemsMatchExactly(xmlDocument, m_Builder.Assembly.sourceFiles);
                 XMLUtilities.AssertNonCompileItemsMatchExactly(xmlDocument, new string[0]);
+            }
+
+            [Test]
+            public void UnsupportedExtension_IsOverWrittenBy_UserSupportedExtensions()
+            {
+                var unsupported = new[] { "file.unsupported" };
+                var synchronizer = m_Builder
+                    .WithAssetFiles(unsupported)
+                    .AssignFilesToAssembly(unsupported, m_Builder.Assembly)
+                    .WithUserSupportedExtensions(new[] {"unsupported"})
+                    .Build();
+                synchronizer.Sync();
+                var xmlDocument = XMLUtilities.FromText(m_Builder.ReadProjectFile(m_Builder.Assembly));
+                XMLUtilities.AssertNonCompileItemsMatchExactly(xmlDocument, unsupported);
+ 
             }
 
             [TestCase(@"path\com.unity.cs")]
@@ -447,7 +528,7 @@ namespace Packages.Rider.Editor.Tests
 
             static string[] s_BuiltinSupportedExtensionsForAssets =
             {
-                "asmdef", "uxml", "uss", "shader", "compute", "cginc", "hlsl", "glslinc", "template", "raytrace"
+                "uxml", "uss", "shader", "compute", "cginc", "hlsl", "glslinc", "template", "raytrace"
             };
         }
 
