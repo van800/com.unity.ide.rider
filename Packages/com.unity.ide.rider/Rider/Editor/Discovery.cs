@@ -105,68 +105,128 @@ namespace Packages.Rider.Editor
 
     private static RiderInfo[] CollectAllRiderPathsLinux()
     {
+      var installInfos = new List<RiderInfo>();
       var home = Environment.GetEnvironmentVariable("HOME");
-      if (string.IsNullOrEmpty(home))
-        return new RiderInfo[0];
-
-      //$Home/.local/share/JetBrains/Toolbox/apps/Rider/ch-0/173.3994.1125/bin/rider.sh
-      //$Home/.local/share/JetBrains/Toolbox/apps/Rider/ch-0/.channel.settings.json
-      var toolboxRiderRootPath = Path.Combine(home, @".local/share/JetBrains/Toolbox/apps/Rider");
-      var paths = CollectPathsFromToolbox(toolboxRiderRootPath, "bin", "rider.sh", false)
-        .Select(a => new RiderInfo(a, true)).ToList();
-
-      //$Home/.local/share/applications/jetbrains-rider.desktop
-      var shortcut = new FileInfo(Path.Combine(home, @".local/share/applications/jetbrains-rider.desktop"));
-
-      if (shortcut.Exists)
+      if (!string.IsNullOrEmpty(home))
       {
-        var lines = File.ReadAllLines(shortcut.FullName);
-        foreach (var line in lines)
-        {
-          if (!line.StartsWith("Exec=\""))
-            continue;
-          var path = line.Split('"').Where((item, index) => index == 1).SingleOrDefault();
-          if (string.IsNullOrEmpty(path))
-            continue;
+        var toolboxRiderRootPath = GetToolboxBaseDir();
+        installInfos.AddRange(CollectPathsFromToolbox(toolboxRiderRootPath, "bin", "rider.sh", false)
+          .Select(a => new RiderInfo(a, true)).ToList());
 
-          if (paths.Any(a => a.Path == path)) // avoid adding similar build as from toolbox
-            continue;
-          paths.Add(new RiderInfo(path, false));
+        //$Home/.local/share/applications/jetbrains-rider.desktop
+        var shortcut = new FileInfo(Path.Combine(home, @".local/share/applications/jetbrains-rider.desktop"));
+
+        if (shortcut.Exists)
+        {
+          var lines = File.ReadAllLines(shortcut.FullName);
+          foreach (var line in lines)
+          {
+            if (!line.StartsWith("Exec=\""))
+              continue;
+            var path = line.Split('"').Where((item, index) => index == 1).SingleOrDefault();
+            if (string.IsNullOrEmpty(path))
+              continue;
+
+            if (installInfos.Any(a => a.Path == path)) // avoid adding similar build as from toolbox
+              continue;
+            installInfos.Add(new RiderInfo(path, false));
+          }
         }
       }
 
       // snap install
       var snapInstallPath = "/snap/rider/current/bin/rider.sh";
       if (new FileInfo(snapInstallPath).Exists)
-        paths.Add(new RiderInfo(snapInstallPath, false));
+        installInfos.Add(new RiderInfo(snapInstallPath, false));
       
-      return paths.ToArray();
+      return installInfos.ToArray();
     }
 
     private static RiderInfo[] CollectRiderInfosMac()
     {
+      var installInfos = new List<RiderInfo>();
       // "/Applications/*Rider*.app"
       var folder = new DirectoryInfo("/Applications");
-      if (!folder.Exists)
-        return new RiderInfo[0];
-
-      var results = folder.GetDirectories("*Rider*.app")
-        .Select(a => new RiderInfo(a.FullName, false))
-        .ToList();
-
-      // /Users/user/Library/Application Support/JetBrains/Toolbox/apps/Rider/ch-1/181.3870.267/Rider EAP.app
-      var home = Environment.GetEnvironmentVariable("HOME");
-      if (!string.IsNullOrEmpty(home))
+      if (folder.Exists)
       {
-        var toolboxRiderRootPath = Path.Combine(home, @"Library/Application Support/JetBrains/Toolbox/apps/Rider");
-        var paths = CollectPathsFromToolbox(toolboxRiderRootPath, "", "Rider*.app", true)
-          .Select(a => new RiderInfo(a, true));
-        results.AddRange(paths);
+        installInfos.AddRange(folder.GetDirectories("*Rider*.app")
+          .Select(a => new RiderInfo(a.FullName, false))
+          .ToList());
       }
 
-      return results.ToArray();
+      // /Users/user/Library/Application Support/JetBrains/Toolbox/apps/Rider/ch-1/181.3870.267/Rider EAP.app
+      var toolboxRiderRootPath = GetToolboxBaseDir();
+      var paths = CollectPathsFromToolbox(toolboxRiderRootPath, "", "Rider*.app", true)
+        .Select(a => new RiderInfo(a, true));
+      installInfos.AddRange(paths);
+
+      return installInfos.ToArray();
     }
 
+    private static RiderInfo[] CollectRiderInfosWindows()
+    {
+      var installInfos = new List<RiderInfo>();
+      var toolboxRiderRootPath = GetToolboxBaseDir();
+      var installPathsToolbox = CollectPathsFromToolbox(toolboxRiderRootPath, "bin", "rider64.exe", false).ToList();
+      installInfos.AddRange(installPathsToolbox.Select(a => new RiderInfo(a, true)).ToList());
+      
+      var installPaths = new List<string>();
+      const string registryKey = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall";
+      CollectPathsFromRegistry(registryKey, installPaths);
+      const string wowRegistryKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall";
+      CollectPathsFromRegistry(wowRegistryKey, installPaths);
+      
+      installInfos.AddRange(installPaths.Select(a => new RiderInfo(a, false)).ToList());
+
+      return installInfos.ToArray();
+    }
+
+    private static string GetToolboxBaseDir()
+    {
+      switch (SystemInfo.operatingSystemFamily)
+      {
+        case OperatingSystemFamily.Windows:
+        {
+          var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+          return Path.Combine(localAppData, @"JetBrains\Toolbox\apps\Rider");
+        }
+
+        case OperatingSystemFamily.MacOSX:
+        {
+          var home = Environment.GetEnvironmentVariable("HOME");
+          if (!string.IsNullOrEmpty(home))
+          {
+            return Path.Combine(home, @"Library/Application Support/JetBrains/Toolbox/apps/Rider");
+          }
+          break;
+        }
+
+        case OperatingSystemFamily.Linux:
+        {
+          var home = Environment.GetEnvironmentVariable("HOME");
+          if (!string.IsNullOrEmpty(home))
+          {
+            return Path.Combine(home, @".local/share/JetBrains/Toolbox/apps/Rider");
+          }
+          break;
+        }
+      }
+      return string.Empty;
+    }
+    
+    internal static ProductInfo GetBuildVersion(string path)
+    {
+      var buildTxtFileInfo = new FileInfo(Path.Combine(path, GetRelativePathToBuildTxt()));
+      var dir = buildTxtFileInfo.DirectoryName;
+      if (!Directory.Exists(dir))
+        return null;
+      var buildVersionFile = new FileInfo(Path.Combine(dir, "product-info.json"));
+      if (!buildVersionFile.Exists) 
+        return null;
+      var json = File.ReadAllText(buildVersionFile.FullName);
+      return ProductInfo.GetProductInfo(json);
+    }
+    
     internal static string GetBuildNumber(string path)
     {
       var file = new FileInfo(Path.Combine(path, GetRelativePathToBuildTxt()));
@@ -178,25 +238,9 @@ namespace Packages.Rider.Editor
       return string.Empty;
     }
 
-    private static RiderInfo[] CollectRiderInfosWindows()
+    internal static bool IsToolbox(string path)
     {
-      var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-      var toolboxRiderRootPath = Path.Combine(localAppData, @"JetBrains\Toolbox\apps\Rider");
-      var installPathsToolbox = CollectPathsFromToolbox(toolboxRiderRootPath, "bin", "rider64.exe", false).ToList();
-      var installInfosToolbox = installPathsToolbox
-        .Select(a => new RiderInfo(a, true)).ToList();
-
-      var installPaths = new List<string>();
-      const string registryKey = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall";
-      CollectPathsFromRegistry(registryKey, installPaths);
-      const string wowRegistryKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall";
-      CollectPathsFromRegistry(wowRegistryKey, installPaths);
-
-      var installInfos = installPaths
-        .Select(a => new RiderInfo(a, false)).ToList();
-      installInfos.AddRange(installInfosToolbox);
-
-      return installInfos.ToArray();
+      return path.StartsWith(GetToolboxBaseDir());
     }
 
     private static string GetRelativePathToBuildTxt()
@@ -342,6 +386,29 @@ namespace Packages.Rider.Editor
       public string build;
     }
 
+    [Serializable]
+    public class ProductInfo
+    {
+      public string version;
+      public string versionSuffix;
+
+      [CanBeNull]
+      internal static ProductInfo GetProductInfo(string json)
+      {
+        try
+        {
+          var productInfo = JsonUtility.FromJson<ProductInfo>(json);
+          return productInfo;
+        }
+        catch (Exception)
+        {
+          Logger.Warn($"Failed to get version from json {json}");
+        }
+
+        return null;
+      }
+    }
+
     // ReSharper disable once ClassNeverInstantiated.Global
     [Serializable]
     class ToolboxInstallData
@@ -383,8 +450,10 @@ namespace Packages.Rider.Editor
 
     public struct RiderInfo
     {
+      public bool IsToolbox;
       public string Presentation;
-      public string BuildVersion;
+      public string BuildNumber;
+      public ProductInfo ProductInfo;
       public string Path;
 
       public RiderInfo(string path, bool isToolbox)
@@ -392,16 +461,25 @@ namespace Packages.Rider.Editor
         if (path == RiderScriptEditor.CurrentEditor)
         {
           RiderScriptEditorData.instance.Init();
-          BuildVersion = RiderScriptEditorData.instance.currentEditorVersion;
+          BuildNumber = RiderScriptEditorData.instance.editorBuildNumber;
+          ProductInfo = RiderScriptEditorData.instance.productInfo;
         }
         else
-          BuildVersion = GetBuildNumber(path);
+        {
+          BuildNumber = GetBuildNumber(path);
+          ProductInfo = GetBuildVersion(path);
+        }
         Path = new FileInfo(path).FullName; // normalize separators
-        var presentation = "Rider " + BuildVersion;
+        var presentation = $"Rider {BuildNumber}";
+
+        if (ProductInfo !=null && !string.IsNullOrEmpty(ProductInfo.version) && !string.IsNullOrEmpty(ProductInfo.versionSuffix))
+          presentation = $"Rider {ProductInfo.version} {ProductInfo.versionSuffix}";
+        
         if (isToolbox)
           presentation += " (JetBrains Toolbox)";
 
         Presentation = presentation;
+        IsToolbox = isToolbox;
       }
     }
 

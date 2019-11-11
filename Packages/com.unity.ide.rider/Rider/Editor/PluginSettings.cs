@@ -1,4 +1,3 @@
-using System.Reflection;
 using Unity.CodeEditor;
 using UnityEditor;
 using UnityEngine;
@@ -14,18 +13,6 @@ namespace Packages.Rider.Editor
       {
         EditorPrefs.SetInt("Rider_SelectedLoggingLevel", (int) value);
       }
-    }
-
-    public static bool OverrideLangVersion
-    {
-      get { return EditorPrefs.GetBool("Rider_OverrideLangVersion", false); }
-      private set { EditorPrefs.SetBool("Rider_OverrideLangVersion", value);; }
-    }
-
-    public static string LangVersion
-    {
-      get { return EditorPrefs.GetString("Rider_LangVersion", "4"); }
-      private set { EditorPrefs.SetString("Rider_LangVersion", value); }
     }
 
     public static bool LogEventsCollectorEnabled
@@ -71,22 +58,6 @@ namespace Packages.Rider.Editor
             EditorGUILayout.Toggle(new GUIContent("Pass Console to Rider:"), LogEventsCollectorEnabled);
 
           GUILayout.EndVertical();
-
-          OverrideLangVersion = EditorGUILayout.Toggle(new GUIContent("Override LangVersion:"), OverrideLangVersion);
-          if (OverrideLangVersion)
-          {
-            var workaroundUrl = "https://gist.github.com/van800/875ce55eaf88d65b105d010d7b38a8d4";
-            var workaroundText = "Use this <color=#0000FF>workaround</color> if overriding doesn't work.";
-            var helpLangVersion = @"Avoid overriding, unless there is no particular need.";
-
-            LangVersion =
-              EditorGUILayout.TextField(
-                new GUIContent("LangVersion:",
-                  helpLangVersion), LangVersion);
-            LinkButton(caption: workaroundText, url: workaroundUrl);
-            EditorGUILayout.HelpBox(helpLangVersion, MessageType.None);
-          }
-
           GUILayout.Label("");
 
           if (!string.IsNullOrEmpty(EditorPluginInterop.LogPath))
@@ -116,9 +87,7 @@ namespace Packages.Rider.Editor
 
           EditorGUILayout.HelpBox(loggingMsg, MessageType.None);
 
-          var githubRepo = "https://github.com/JetBrains/resharper-unity";
-          var caption = $"<color=#0000FF>{githubRepo}</color>";
-          LinkButton(caption: caption, url: githubRepo);
+          LinkButton("https://github.com/JetBrains/resharper-unity");
 
           GUILayout.FlexibleSpace();
           GUILayout.BeginHorizontal();
@@ -130,7 +99,7 @@ namespace Packages.Rider.Editor
             var version = assembly.GetName().Version;
             GUILayout.Label("Plugin version: " + version, ourVersionInfoStyle);
           }
-          
+
           GUILayout.EndHorizontal();
 
           EditorGUILayout.EndVertical();
@@ -139,15 +108,14 @@ namespace Packages.Rider.Editor
       return provider;
     }
 
-    private static void LinkButton(string caption, string url)
+    private static void LinkButton(string url)
     {
-      var style = GUI.skin.label;
-      style.richText = true;
+      var style = EditorStyles.linkLabel;
 
-      var bClicked = GUILayout.Button(caption, style);
+      var bClicked = GUILayout.Button(url, style);
 
       var rect = GUILayoutUtility.GetLastRect();
-      rect.width = style.CalcSize(new GUIContent(caption)).x;
+      rect.width = style.CalcSize(new GUIContent(url)).x;
       EditorGUIUtility.AddCursorRect(rect, MouseCursor.Link);
 
       if (bClicked)
