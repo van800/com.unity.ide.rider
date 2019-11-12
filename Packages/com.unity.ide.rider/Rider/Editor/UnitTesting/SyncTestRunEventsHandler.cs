@@ -22,11 +22,12 @@ namespace Packages.Rider.Editor.UnitTesting
     
     internal void InitRun(string sessionId, string handlerCodeBase, string handlerTypeName, string[] handlerDependencies)
     {
-      Debug.Log("Rider Test Runner: initializing sync callbacks handler: " + 
-                $"sessionId={sessionId}, " + 
-                $"codeBase={handlerCodeBase}, " + 
-                $"typeName={handlerTypeName}, " + 
-                $"dependencies={(handlerDependencies == null ? "" : string.Join("; ", handlerDependencies))}");
+      if (PluginSettings.SelectedLoggingLevel >= LoggingLevel.TRACE)
+        Debug.Log("Rider Test Runner: initializing sync callbacks handler: " + 
+                  $"sessionId={sessionId}, " + 
+                  $"codeBase={handlerCodeBase}, " + 
+                  $"typeName={handlerTypeName}, " + 
+                  $"dependencies={(handlerDependencies == null ? "" : string.Join("; ", handlerDependencies))}");
     
       m_SessionId = sessionId;
       m_HandlerCodeBase = handlerCodeBase;
@@ -85,11 +86,12 @@ namespace Packages.Rider.Editor.UnitTesting
         if (m_HandlerDependencies != null)
           foreach (var dependency in m_HandlerDependencies)
           {
-            Debug.Log($"Rider Test Runner: loading assembly from {dependency}");
+            if (PluginSettings.SelectedLoggingLevel >= LoggingLevel.TRACE) 
+              Debug.Log($"Rider Test Runner: loading assembly from {dependency}");
             Assembly.LoadFrom(dependency);
           }
-
-        Debug.Log($"Rider Test Runner: loading assembly from {m_HandlerCodeBase}");
+        if (PluginSettings.SelectedLoggingLevel >= LoggingLevel.TRACE)
+          Debug.Log($"Rider Test Runner: loading assembly from {m_HandlerCodeBase}");
         var assembly = Assembly.LoadFrom(m_HandlerCodeBase);
         var type = assembly.GetType(m_HandlerTypeName);
         if (type == null)
@@ -98,7 +100,8 @@ namespace Packages.Rider.Editor.UnitTesting
           return;
         }
         
-        Debug.Log($"Rider Test Runner: creating instance of type '{type.AssemblyQualifiedName}'");
+        if (PluginSettings.SelectedLoggingLevel >= LoggingLevel.TRACE) 
+          Debug.Log($"Rider Test Runner: creating instance of type '{type.AssemblyQualifiedName}'");
         m_Handler = Activator.CreateInstance(type, m_SessionId);
 
         m_OnSessionStartedMethodInfo = type.GetMethod("OnSessionStarted", BindingFlags.Instance | BindingFlags.Public);
