@@ -91,19 +91,26 @@ namespace Packages.Rider.Editor
     private static void ShowWarningOnUnexpectedScriptEditor(string path)
     {
       // Show warning, when Unity was started from Rider, but external editor is different https://github.com/JetBrains/resharper-unity/issues/1127
-      var args = Environment.GetCommandLineArgs();
-      var commandlineParser = new CommandLineParser(args);
-      if (commandlineParser.Options.ContainsKey("-riderPath"))
+      try
       {
-        var originRiderPath = commandlineParser.Options["-riderPath"];
-        var originRealPath = GetEditorRealPath(originRiderPath);
-        var originVersion = RiderPathLocator.GetBuildNumber(originRealPath);
-        var version = RiderPathLocator.GetBuildNumber(path);
-        if (originVersion != string.Empty && originVersion != version)
+        var args = Environment.GetCommandLineArgs();
+        var commandlineParser = new CommandLineParser(args);
+        if (commandlineParser.Options.ContainsKey("-riderPath"))
         {
-          Debug.LogWarning("Unity was started by a version of Rider that is not the current default external editor. Advanced integration features cannot be enabled.");
-          Debug.Log($"Unity was started by Rider {originVersion}, but external editor is set to: {path}");
+          var originRiderPath = commandlineParser.Options["-riderPath"];
+          var originRealPath = GetEditorRealPath(originRiderPath);
+          var originVersion = RiderPathLocator.GetBuildNumber(originRealPath);
+          var version = RiderPathLocator.GetBuildNumber(path);
+          if (originVersion != string.Empty && originVersion != version)
+          {
+            Debug.LogWarning("Unity was started by a version of Rider that is not the current default external editor. Advanced integration features cannot be enabled.");
+            Debug.Log($"Unity was started by Rider {originVersion}, but external editor is set to: {path}");
+          }
         }
+      }
+      catch (Exception e)
+      {
+        Debug.LogException(e);
       }
     }
 
