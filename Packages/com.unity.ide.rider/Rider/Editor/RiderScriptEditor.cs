@@ -95,19 +95,26 @@ namespace Packages.Rider.Editor
     private static void ShowWarningOnUnexpectedScriptEditor(string path)
     {
       // Show warning, when Unity was started from Rider, but external editor is different https://github.com/JetBrains/resharper-unity/issues/1127
-      var args = Environment.GetCommandLineArgs();
-      var commandlineParser = new CommandLineParser(args);
-      if (commandlineParser.Options.ContainsKey("-riderPath"))
+      try
       {
-        var originRiderPath = commandlineParser.Options["-riderPath"];
-        var originRealPath = GetEditorRealPath(originRiderPath);
-        var originVersion = RiderPathLocator.GetBuildNumber(originRealPath);
-        var version = RiderPathLocator.GetBuildNumber(path);
-        if (originVersion != null && originVersion != version)
+        var args = Environment.GetCommandLineArgs();
+        var commandlineParser = new CommandLineParser(args);
+        if (commandlineParser.Options.ContainsKey("-riderPath"))
         {
-          Debug.LogWarning("Unity was started by a version of Rider that is not the current default external editor. Advanced integration features cannot be enabled.");
-          Debug.Log($"Unity was started by Rider {originVersion}, but external editor is set to: {path}");
+          var originRiderPath = commandlineParser.Options["-riderPath"];
+          var originRealPath = GetEditorRealPath(originRiderPath);
+          var originVersion = RiderPathLocator.GetBuildNumber(originRealPath);
+          var version = RiderPathLocator.GetBuildNumber(path);
+          if (originVersion != null && originVersion != version)
+          {
+            Debug.LogWarning("Unity was started by a version of Rider that is not the current default external editor. Advanced integration features cannot be enabled.");
+            Debug.Log($"Unity was started by Rider {originVersion}, but external editor is set to: {path}");
+          }
         }
+      }
+      catch (Exception e)
+      {
+        Debug.LogException(e);
       }
     }
 
@@ -171,6 +178,7 @@ namespace Packages.Rider.Editor
     }
 
     const string unity_generate_all = "unity_generate_all_csproj";
+    const string unity_generate_player_projects = "unity_generate_player_projects";
 
     public RiderScriptEditor(IDiscovery discovery, IGenerator projectGeneration)
     {
@@ -215,17 +223,27 @@ namespace Packages.Rider.Editor
     {
       if (RiderScriptEditorData.instance.shouldLoadEditorPlugin)
       {
-        HandledExtensionsString = EditorGUILayout.TextField(new GUIContent("Extensions handled: "), HandledExtensionsString);  
+        HandledExtensionsString = EditorGUILayout.TextField(new GUIContent("Extensions handled: "), HandledExtensionsString);
       }
-      
-      var prevGenerate = EditorPrefs.GetBool(unity_generate_all, false);
-      var generateAll = EditorGUILayout.Toggle("Generate all .csproj files.", prevGenerate);
-      if (generateAll != prevGenerate)
+
+      EditorGUILayout.LabelField("Generate .csproj files for:");
+      EditorGUI.indentLevel++;
+      m_ProjectGeneration.GenerateAll(SettingsButton(unity_generate_all, "Internal packages", "Generate csproj files for all packages, including packages marked as internal."));
+      m_ProjectGeneration.AssemblyNameProvider.GeneratePlayerProjects(SettingsButton(unity_generate_player_projects, "Player projects", "For each player project generate an additional csproj with the name 'project-player.csproj'."));
+      EditorGUI.indentLevel--;
+    }
+
+    static bool SettingsButton(string preference, string guiMessage, string toolTip)
+    {
+      var prevValue = EditorPrefs.GetBool(preference, false);
+      ;
+      var newValue = EditorGUILayout.Toggle(new GUIContent(guiMessage, toolTip), prevValue);
+      if (newValue != prevValue)
       {
-        EditorPrefs.SetBool(unity_generate_all, generateAll);
+        EditorPrefs.SetBool(preference, newValue);
       }
-      
-      m_ProjectGeneration.GenerateAll(generateAll);
+
+      return newValue;
     }
 
     public void SyncIfNeeded(string[] addedFiles, string[] deletedFiles, string[] movedFiles, string[] movedFromFiles,

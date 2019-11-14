@@ -12,6 +12,20 @@ namespace Packages.Rider.Editor.UnitTesting
 #if TEST_FRAMEWORK
     private static readonly TestsCallback Callback = ScriptableObject.CreateInstance<TestsCallback>();
 #endif
+    
+    [UsedImplicitly]
+    public static void RunTestsWithSyncCallbacks(string sessionId, int testMode, string[] assemblyNames, 
+      string[] testNames, string[] categoryNames, string[] groupNames, int? buildTarget,  
+      string callbacksHandlerCodeBase, string callbacksHandlerTypeName, string[] callbacksHandlerDependencies)
+    {
+#if !TEST_FRAMEWORK
+      Debug.LogError("Update Test Framework package to v.1.1.1+ to run tests from Rider.");
+#else
+      SyncTestRunEventsHandler.instance.InitRun(sessionId, callbacksHandlerCodeBase, callbacksHandlerTypeName, callbacksHandlerDependencies);
+      RunTests(testMode, assemblyNames, testNames, categoryNames, groupNames, buildTarget);
+#endif      
+    }
+    
     [UsedImplicitly]
     public static void RunTests(int testMode, string[] assemblyNames, string[] testNames, string[] categoryNames, string[] groupNames, int? buildTarget)
     {
