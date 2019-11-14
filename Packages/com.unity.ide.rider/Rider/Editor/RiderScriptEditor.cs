@@ -31,21 +31,9 @@ namespace Packages.Rider.Editor
         {
           RiderPathLocator.RiderInfo[] installations = null;
           
-          if (!FileSystemUtil.EditorPathExists(path)) // previously used rider was removed
-          { 
-            installations = RiderPathLocator.GetAllRiderPaths().OrderBy(a=>a.BuildNumber).ToArray();
-            if (installations.Any())
-            {
-              var newEditor = installations.Last().Path;
-              CodeEditor.SetExternalScriptEditor(newEditor);
-              path = newEditor;  
-            }
-          }
-          
           if (!RiderScriptEditorData.instance.initializedOnce)
           {
-            if (installations == null) 
-              installations = RiderPathLocator.GetAllRiderPaths().OrderBy(a=>a.BuildNumber).ToArray();
+            installations = RiderPathLocator.GetAllRiderPaths().OrderBy(a=>a.BuildNumber).ToArray();
             // is toolbox and outdated - update
             if (installations.Any() && RiderPathLocator.IsToolbox(path) && installations.All(a => a.Path != path))
             {
@@ -73,6 +61,18 @@ namespace Packages.Rider.Editor
 
             ShowWarningOnUnexpectedScriptEditor(path);
             RiderScriptEditorData.instance.initializedOnce = true;
+          }
+
+          if (!FileSystemUtil.EditorPathExists(path)) // previously used rider was removed
+          {
+            if (installations == null) 
+              installations = RiderPathLocator.GetAllRiderPaths().OrderBy(a=>a.BuildNumber).ToArray();
+            if (installations.Any())
+            {
+              var newEditor = installations.Last().Path;
+              CodeEditor.SetExternalScriptEditor(newEditor);
+              path = newEditor;  
+            }
           }
 
           RiderScriptEditorData.instance.Init();
