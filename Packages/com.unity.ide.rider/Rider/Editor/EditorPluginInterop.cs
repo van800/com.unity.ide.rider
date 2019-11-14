@@ -114,7 +114,8 @@ namespace Packages.Rider.Editor
     {
       try
       {
-        if (Version.TryParse(RiderScriptEditorData.instance.editorBuildNumber, out var version))
+        var version = RiderScriptEditorData.instance.editorBuildNumber;
+        if (version != null)
         {
           if (version.Major < 192)
             DisableSyncSolutionOnceCallBack(); // is require for Rider prior to 2019.2
