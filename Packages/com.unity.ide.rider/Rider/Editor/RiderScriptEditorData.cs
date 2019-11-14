@@ -9,12 +9,12 @@ namespace Packages.Rider.Editor
     [SerializeField] internal bool hasChanges = true; // sln/csproj files were changed 
     [SerializeField] internal bool shouldLoadEditorPlugin;
     [SerializeField] internal bool initializedOnce;
-    [SerializeField] internal string editorBuildNumber;
+    [SerializeField] internal Version editorBuildNumber;
     [SerializeField] internal RiderPathLocator.ProductInfo productInfo;
 
     public void Init()
     {
-      if (string.IsNullOrEmpty(editorBuildNumber))
+      if (editorBuildNumber == null)
       {
         Invalidate(RiderScriptEditor.CurrentEditor);
       }
@@ -24,10 +24,10 @@ namespace Packages.Rider.Editor
     {
       editorBuildNumber = RiderPathLocator.GetBuildNumber(editorInstallationPath);
       productInfo = RiderPathLocator.GetBuildVersion(editorInstallationPath);
-      if (!Version.TryParse(editorBuildNumber, out var version))
+      if (editorBuildNumber == null)
         shouldLoadEditorPlugin = false;
 
-      shouldLoadEditorPlugin = version >= new Version("191.7141.156");
+      shouldLoadEditorPlugin = editorBuildNumber >= new Version("191.7141.156");
     }
   }
 }

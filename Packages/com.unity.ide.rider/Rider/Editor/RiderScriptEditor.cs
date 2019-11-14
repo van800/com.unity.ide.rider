@@ -25,17 +25,31 @@ namespace Packages.Rider.Editor
         var projectGeneration = new ProjectGeneration.ProjectGeneration();
         var editor = new RiderScriptEditor(new Discovery(), projectGeneration);
         CodeEditor.Register(editor);
-        var path = GetEditorRealPath(CodeEditor.CurrentEditorInstallation);
+        var path = GetEditorRealPath(CurrentEditor);
         
         if (IsRiderInstallation(path))
         {
+          RiderPathLocator.RiderInfo[] installations = null;
+          
+          if (!FileSystemUtil.EditorPathExists(path)) // previously used rider was removed
+          { 
+            installations = RiderPathLocator.GetAllRiderPaths().OrderBy(a=>a.BuildNumber).ToArray();
+            if (installations.Any())
+            {
+              var newEditor = installations.Last().Path;
+              CodeEditor.SetExternalScriptEditor(newEditor);
+              path = newEditor;  
+            }
+          }
+          
           if (!RiderScriptEditorData.instance.initializedOnce)
           {
-            var installations = editor.Installations;
+            if (installations == null) 
+              installations = RiderPathLocator.GetAllRiderPaths().OrderBy(a=>a.BuildNumber).ToArray();
             // is toolbox and outdated - update
             if (installations.Any() && RiderPathLocator.IsToolbox(path) && installations.All(a => a.Path != path))
             {
-              var toolboxInstallations = installations.Where(a => a.Name.Contains("(JetBrains Toolbox)")).ToArray();
+              var toolboxInstallations = installations.Where(a => a.IsToolbox).ToArray();
               if (toolboxInstallations.Any())
               {
                 var newEditor = toolboxInstallations.Last().Path;
@@ -46,14 +60,14 @@ namespace Packages.Rider.Editor
               {
                 var newEditor = installations.Last().Path;
                 CodeEditor.SetExternalScriptEditor(newEditor);
-                path = newEditor;  
+                path = newEditor;
               }
             }
             
             // is non toolbox and outdated - notify
             if (installations.Any() && installations.All(a => a.Path != path))
             {
-              var newEditorName = installations.Last().Name;
+              var newEditorName = installations.Last().Presentation;
               Debug.LogWarning($"Consider updating External Editor in Unity to Rider {newEditorName}.");
             }
 
@@ -62,17 +76,7 @@ namespace Packages.Rider.Editor
           }
 
           RiderScriptEditorData.instance.Init();
-          if (!FileSystemUtil.EditorPathExists(path)) // previously used rider was removed
-          {
-            var installations = editor.Installations;
-            if (installations.Any())
-            {
-              var newEditor = installations.Last().Path;
-              CodeEditor.SetExternalScriptEditor(newEditor);
-              path = newEditor;  
-            }
-          }
-
+          
           editor.CreateSolutionIfDoesntExist();
           if (RiderScriptEditorData.instance.shouldLoadEditorPlugin)
           {
@@ -99,7 +103,7 @@ namespace Packages.Rider.Editor
         var originRealPath = GetEditorRealPath(originRiderPath);
         var originVersion = RiderPathLocator.GetBuildNumber(originRealPath);
         var version = RiderPathLocator.GetBuildNumber(path);
-        if (originVersion != string.Empty && originVersion != version)
+        if (originVersion != null && originVersion != version)
         {
           Debug.LogWarning("Unity was started by a version of Rider that is not the current default external editor. Advanced integration features cannot be enabled.");
           Debug.Log($"Unity was started by Rider {originVersion}, but external editor is set to: {path}");

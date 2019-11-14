@@ -227,15 +227,17 @@ namespace Packages.Rider.Editor
       return ProductInfo.GetProductInfo(json);
     }
     
-    internal static string GetBuildNumber(string path)
+    internal static Version GetBuildNumber(string path)
     {
       var file = new FileInfo(Path.Combine(path, GetRelativePathToBuildTxt()));
       if (!file.Exists) 
-        return string.Empty;
+        return null;
       var text = File.ReadAllText(file.FullName);
-      if (text.Length > 3)
-        return text.Substring(3);
-      return string.Empty;
+      if (text.Length <= 3) 
+        return null;
+      
+      var versionText = text.Substring(3);
+      return Version.TryParse(versionText, out var v) ? v : null;
     }
 
     internal static bool IsToolbox(string path)
@@ -452,7 +454,7 @@ namespace Packages.Rider.Editor
     {
       public bool IsToolbox;
       public string Presentation;
-      public string BuildNumber;
+      public Version BuildNumber;
       public ProductInfo ProductInfo;
       public string Path;
 
