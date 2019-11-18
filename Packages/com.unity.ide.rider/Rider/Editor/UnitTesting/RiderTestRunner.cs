@@ -3,6 +3,8 @@ using UnityEngine;
 #if TEST_FRAMEWORK
 using UnityEditor;
 using UnityEditor.TestTools.TestRunner.Api;
+#else
+using System;
 #endif
 
 namespace Packages.Rider.Editor.UnitTesting
@@ -20,6 +22,7 @@ namespace Packages.Rider.Editor.UnitTesting
     {
 #if !TEST_FRAMEWORK
       Debug.LogError("Update Test Framework package to v.1.1.1+ to run tests from Rider.");
+      throw new NotSupportedException("Incompatible `Test Framework` package in Unity. Update to v.1.1.1+");
 #else
       SyncTestRunEventsHandler.instance.InitRun(sessionId, callbacksHandlerCodeBase, callbacksHandlerTypeName, callbacksHandlerDependencies);
       RunTests(testMode, assemblyNames, testNames, categoryNames, groupNames, buildTarget);
@@ -31,6 +34,7 @@ namespace Packages.Rider.Editor.UnitTesting
     {
 #if !TEST_FRAMEWORK
       Debug.LogError("Update Test Framework package to v.1.1.1+ to run tests from Rider.");
+      throw new NotSupportedException("Incompatible `Test Framework` package in Unity. Update to v.1.1.1+");
 #else
       CallbackData.instance.isRider = true;
             
