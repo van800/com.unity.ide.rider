@@ -74,6 +74,7 @@ namespace Packages.Rider.Editor
               path = newEditor;  
             }
           }
+          RiderScriptEditorData.instance.Init();
 
           RiderScriptEditorData.instance.Init();
           

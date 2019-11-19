@@ -121,7 +121,6 @@ namespace Packages.Rider.Editor.Tests
                 synchronizer.Sync();
                 m_Builder.WithUserSupportedExtensions(new[] { "random" });
                 Assert.IsTrue(synchronizer.SyncIfNeeded(new[] { "reimport.random" }, new string[0]));
- 
             }
 
             [Test, TestCaseSource(nameof(s_ExtensionsRequireReSync))]

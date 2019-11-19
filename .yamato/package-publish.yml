@@ -36,10 +36,6 @@ publish:{{ test.name }}:
     packages:
         paths:
             - "upm-ci~/packages/*.tgz"
-  triggers:
-    branches:
-      only:
-        - /^\d+\.\d+\.\d+-preview(\.\d+)?$/
   dependencies:
     - .yamato/package-test.yml#pack:{{ test.name }}
 {% for editor in editors -%}
@@ -59,6 +55,7 @@ publish:{{ test.name }}:
 {% endfor -%}
 {% endif -%} # publish_source
 {% endfor -%}
+    
 
 {% for test in testables -%}
 {% if test.publish_source == "true" -%}
