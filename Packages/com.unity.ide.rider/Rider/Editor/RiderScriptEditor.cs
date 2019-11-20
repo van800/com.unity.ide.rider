@@ -34,29 +34,30 @@ namespace Packages.Rider.Editor
           if (!RiderScriptEditorData.instance.initializedOnce)
           {
             installations = RiderPathLocator.GetAllRiderPaths().OrderBy(a=>a.BuildNumber).ToArray();
-            // is toolbox and outdated - update
-            if (installations.Any() && RiderPathLocator.IsToolbox(path) && installations.All(a => a.Path != path))
+            // is likely outdated
+            if (installations.Any() && installations.All(a => GetEditorRealPath(a.Path) != path))
             {
-              var toolboxInstallations = installations.Where(a => a.IsToolbox).ToArray();
-              if (toolboxInstallations.Any())
+              if (RiderPathLocator.IsToolbox(path)) // is toolbox - update
               {
-                var newEditor = toolboxInstallations.Last().Path;
-                CodeEditor.SetExternalScriptEditor(newEditor);
-                path = newEditor;  
+                var toolboxInstallations = installations.Where(a => a.IsToolbox).ToArray();
+                if (toolboxInstallations.Any())
+                {
+                  var newEditor = toolboxInstallations.Last().Path;
+                  CodeEditor.SetExternalScriptEditor(newEditor);
+                  path = newEditor;  
+                }
+                else
+                {
+                  var newEditor = installations.Last().Path;
+                  CodeEditor.SetExternalScriptEditor(newEditor);
+                  path = newEditor;
+                }  
               }
-              else
+              else // is non toolbox - notify
               {
-                var newEditor = installations.Last().Path;
-                CodeEditor.SetExternalScriptEditor(newEditor);
-                path = newEditor;
+                var newEditorName = installations.Last().Presentation;
+                Debug.LogWarning($"Consider updating External Editor in Unity to Rider {newEditorName}.");
               }
-            }
-            
-            // is non toolbox and outdated - notify
-            if (installations.Any() && installations.All(a => a.Path != path))
-            {
-              var newEditorName = installations.Last().Presentation;
-              Debug.LogWarning($"Consider updating External Editor in Unity to Rider {newEditorName}.");
             }
 
             ShowWarningOnUnexpectedScriptEditor(path);
