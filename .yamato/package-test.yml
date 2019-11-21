@@ -155,7 +155,7 @@ scripting_backends:
     {{ v[0] }}: {{ v[1]}}
 {% endfor -%}
   commands:
-    - pip install unity-downloader-cli --upgrade --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple
+      - pip install unity-downloader-cli --upgrade --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple
       - npm install upm-ci-utils@stable --registry https://api.bintray.com/npm/unity/unity-npm -g
       - unity-downloader-cli --source-file unity_revision.txt {% for component in platform.components %}-c {{ component }} {% endfor %}--wait --published-only
 {% if test.standalone == "true" -%}
@@ -291,39 +291,39 @@ dependency:{{ test.name }}:{{ platform.os }}:{{ editor.version }}:
 {% endfor %}
 {% endfor %}
 {% endfor %}
-{% for test in testables %}
-dependency:test:trigger:{{ test.name }}:
-  name: Dependency Tests Trigger for {{ test.name }}
-  agent:
-    type: Unity::VM
-    image: package-ci/win10:stable
-    flavor: b1.large
-  commands:
-    - npm install upm-ci-utils@experimental -g --registry https://api.bintray.com/npm/unity/unity-npm
-{% if test.type == "package" %}
-    - upm-ci package izon -d
-{% elsif test.type == "project" %}
-    - upm-ci project izon -d
-{% endif %}   
-  artifacts:
-    logs:
-      paths:
-        - "upm-ci~/test-results/**/*"
-    packages:
-      paths:
-        - "upm-ci~/packages/**/*"
-  triggers:
-    recurring:
-      - branch: master
-        frequency: 22 * * ?
-  dependencies:
-    - .yamato/package-test.yml#pack:{{ test.name }}
-{% for editor in editors %}
-{% for platform in platforms %}
-    - .yamato/package-test.yml#dependency:{{ test.name }}:{{ platform.os }}:{{ editor.version }}
-{% endfor %}
-{% endfor %}
-{% endfor %}
+#{% for test in testables %}
+#dependency:test:trigger:{{ test.name }}:
+#  name: Dependency Tests Trigger for {{ test.name }}
+#  agent:
+#    type: Unity::VM
+#    image: package-ci/win10:stable
+#    flavor: b1.large
+#  commands:
+#    - npm install upm-ci-utils@experimental -g --registry https://api.bintray.com/npm/unity/unity-npm
+#{% if test.type == "package" %}
+#    - upm-ci package izon -d
+#{% elsif test.type == "project" %}
+#    - upm-ci project izon -d
+#{% endif %}   
+#  artifacts:
+#    logs:
+#      paths:
+#        - "upm-ci~/test-results/**/*"
+#    packages:
+#      paths:
+#        - "upm-ci~/packages/**/*"
+#  triggers:
+#    recurring:
+#      - branch: master
+#        frequency: 22 * * ?
+#  dependencies:
+#    - .yamato/package-test.yml#pack:{{ test.name }}
+#{% for editor in editors %}
+#{% for platform in platforms %}
+#    - .yamato/package-test.yml#dependency:{{ test.name }}:{{ platform.os }}:{{ editor.version }}
+#{% endfor %}
+#{% endfor %}
+#{% endfor %}
 auto-version:
   name: Auto version {{ test.name }}
   agent:
