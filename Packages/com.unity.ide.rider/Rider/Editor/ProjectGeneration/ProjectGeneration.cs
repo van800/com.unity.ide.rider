@@ -842,7 +842,7 @@ namespace Packages.Rider.Editor
         @"    <NoStdLib>true</NoStdLib>",
         @"    <AddAdditionalExplicitAssemblyReferences>false</AddAdditionalExplicitAssemblyReferences>",
         @"    <ImplicitlyExpandNETStandardFacades>false</ImplicitlyExpandNETStandardFacades>",
-        @"    <ImplicitlyExpandDesignTimeFacades>false</ImplicitlyExpandDesignTimeFacades>{16}",
+        @"    <ImplicitlyExpandDesignTimeFacades>false</ImplicitlyExpandDesignTimeFacades>",
         @"  </PropertyGroup>"
       };
 
@@ -880,7 +880,6 @@ namespace Packages.Rider.Editor
 
       var relevantIslands = RelevantIslandsForMode(islands);
       string projectEntries = GetProjectEntries(relevantIslands);
-
       string projectConfigurations = string.Join(Environment.NewLine,
         relevantIslands.Select(i => GetProjectActiveConfigurations(m_GUIDGenerator.ProjectGuid(m_ProjectName, i.name))).ToArray());
       return string.Format(GetSolutionText(), fileversion, vsversion, projectEntries, projectConfigurations);
@@ -992,7 +991,7 @@ namespace Packages.Rider.Editor
         m_GUIDGenerator.SolutionGuid(m_ProjectName, GetExtensionOfSourceFiles(i.sourceFiles)),
         i.name,
         Path.GetFileName(ProjectFile(i)),
-        m_GUIDGenerator.ProjectGuid(m_ProjectName, i.outputPath)
+        m_GUIDGenerator.ProjectGuid(m_ProjectName, i.name)
       ));
 
       return string.Join(Environment.NewLine, projectEntries.ToArray());

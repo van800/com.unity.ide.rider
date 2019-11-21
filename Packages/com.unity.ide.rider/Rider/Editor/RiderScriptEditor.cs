@@ -383,8 +383,9 @@ namespace Packages.Rider.Editor
     {
 #if UNITY_2019_3_OR_NEWER
       return UnityEditor.Experimental.AssetDatabaseExperimental.IsAssetImportWorkerProcess();
-#endif
+#else
       return false;
+#endif
     }
 
     public static string CurrentEditor // works fast, doesn't validate if executable really exists
