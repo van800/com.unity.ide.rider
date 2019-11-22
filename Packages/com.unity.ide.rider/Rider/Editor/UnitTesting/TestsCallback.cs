@@ -16,13 +16,20 @@ namespace Packages.Rider.Editor.UnitTesting
             new TestEvent(EventType.RunFinished, "", "","", 0, ParseTestStatus(result.TestStatus), ""));
           CallbackData.instance.RaiseChangedEvent();
         }
+        
+        public void RunStarted(ITestAdaptor testsToRun)
+        {
+          CallbackData.instance.events.Add(
+            new TestEvent(EventType.RunStarted, "", "","", 0, NUnit.Framework.Interfaces.TestStatus.Passed, ""));
+          CallbackData.instance.RaiseChangedEvent();
+        }
 
         public void TestStarted(ITestAdaptor result)
         {
           if (result.Method == null) return;
           
           CallbackData.instance.events.Add(
-            new TestEvent(EventType.TestStarted, GetUniqueName(result), result.Method.TypeInfo.Assembly.GetName().Name, "", 0, ParseTestStatus(TestStatus.Passed), result.ParentFullName));
+            new TestEvent(EventType.TestStarted, GetUniqueName(result), result.Method.TypeInfo.Assembly.GetName().Name, "", 0, NUnit.Framework.Interfaces.TestStatus.Passed, result.ParentFullName));
           CallbackData.instance.RaiseChangedEvent();
         }
 
@@ -51,10 +58,6 @@ namespace Packages.Rider.Editor.UnitTesting
           return str;
         }
 
-        public void RunStarted(ITestAdaptor testsToRun)
-        {
-        }
-        
         private static NUnit.Framework.Interfaces.TestStatus ParseTestStatus(TestStatus testStatus)
         {
           return (NUnit.Framework.Interfaces.TestStatus)Enum.Parse(typeof(NUnit.Framework.Interfaces.TestStatus), testStatus.ToString());
