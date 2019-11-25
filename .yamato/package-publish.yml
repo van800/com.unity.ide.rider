@@ -1,5 +1,5 @@
 # This template contains all package publishing jobs to candidates, including nightly auto-publishing
-{% metadata_file .yamato/template-config.yml %}
+{% metadata_file .yamato/template-config.metafile %}
 
 template_environment_variables:
   # Do not touch
