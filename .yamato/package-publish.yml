@@ -36,6 +36,10 @@ publish:{{ test.name }}:
     packages:
         paths:
             - "upm-ci~/packages/*.tgz"
+  triggers:
+    branches:
+      only:
+        - /^\d+\.\d+\.\d+-preview(\.\d+)?$/
   dependencies:
     - .yamato/package-test.yml#pack:{{ test.name }}
 {% for editor in editors -%}
