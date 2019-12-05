@@ -77,8 +77,6 @@ namespace Packages.Rider.Editor
           }
           RiderScriptEditorData.instance.Init();
 
-          RiderScriptEditorData.instance.Init();
-          
           editor.CreateSolutionIfDoesntExist();
           if (RiderScriptEditorData.instance.shouldLoadEditorPlugin)
           {
