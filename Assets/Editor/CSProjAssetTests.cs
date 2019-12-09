@@ -6,7 +6,6 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using NUnit.Framework;
 using Packages.Rider.Editor;
-using Packages.Rider.Editor.ProjectGeneration;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;

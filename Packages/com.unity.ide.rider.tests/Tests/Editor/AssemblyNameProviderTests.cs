@@ -1,6 +1,5 @@
 using System.Linq;
 using NUnit.Framework;
-using Packages.Rider.Editor.ProjectGeneration;
 using UnityEditor.Compilation;
 
 namespace Packages.Rider.Editor.Tests
