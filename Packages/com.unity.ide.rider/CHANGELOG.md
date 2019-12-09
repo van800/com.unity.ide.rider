@@ -8,6 +8,14 @@
 - Added support for Player Project generation
 - Breaking API changes
 
+## [1.1.6] - 2019-12-09
+
+- Load optimised EditorPlugin version compiled to net 461, with fallback to previous version.
+- On ExternalEditor settings page: reorder Generate all ... after Extensions handled
+- Better presentation for Rider of some version in ExternalEditors list
+- Initial support for Code Coverage with dotCover plugin in Rider
+- Added support for Player Project generation
+
 ## [1.1.4] - 2019-11-21
  - Fix warning - unreachable code
 
