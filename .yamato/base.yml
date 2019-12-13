@@ -13,7 +13,7 @@
 ######################################################
 # Avoid tampering with stuff below here if you can
 
-{% metadata_file .yamato/template-config.yml %}
+{% metadata_file .yamato/template-config.metafile %}
 
 template_environment_variables:
   # Do not touch

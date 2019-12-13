@@ -1,5 +1,3 @@
-using System;
-
 namespace Packages.Rider.Editor {
   class GUIDProvider : IGUIDGenerator
   {

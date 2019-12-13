@@ -1,7 +1,7 @@
 using NUnit.Framework;
 using Packages.Rider.Editor.Util;
 
-namespace Packages.Rider.Tests.Editor
+namespace Packages.Rider.Editor.Tests
 {
     [TestFixture]
     public class CommandLineParserTests

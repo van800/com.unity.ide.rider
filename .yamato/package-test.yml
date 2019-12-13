@@ -9,7 +9,7 @@
 #_________________________________________________
 ######################################################
 # Avoid tampering with stuff below here if you can
-{% metadata_file .yamato/template-config.yml %}
+{% metadata_file .yamato/template-config.metafile %}
 template_environment_variables:
   # Do not touch
   JOB_TEMPLATE_VERSION: 2
@@ -155,13 +155,13 @@ scripting_backends:
     {{ v[0] }}: {{ v[1]}}
 {% endfor -%}
   commands:
-      - pip install unity-downloader-cli --upgrade --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple
-      - npm install upm-ci-utils@stable --registry https://api.bintray.com/npm/unity/unity-npm -g
-      - unity-downloader-cli --source-file unity_revision.txt {% for component in platform.components %}-c {{ component }} {% endfor %}--wait --published-only
+    - pip install unity-downloader-cli --upgrade --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple
+    - npm install upm-ci-utils@stable --registry https://api.bintray.com/npm/unity/unity-npm -g
+    - unity-downloader-cli --source-file unity_revision.txt {% for component in platform.components %}-c {{ component }} {% endfor %}--wait --published-only
 {% if test.standalone == "true" -%}
-      - upm-ci project test -u .Editor --project-path {{ test.path }}
+    - upm-ci project test -u .Editor --project-path {{ test.path }}
 {% else -%}
-      - upm-ci project test -u .Editor --project-path {{ test.path }} --platform editmode
+    - upm-ci project test -u .Editor --project-path {{ test.path }} --platform editmode
 {% endif -%}
   artifacts:
     logs.zip:
@@ -232,7 +232,7 @@ test:trigger:
     image: package-ci/win10:stable
     flavor: b1.large
   commands:
-    - npm install upm-ci-utils@experimental -g --registry https://api.bintray.com/npm/unity/unity-npm
+    - npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
     - upm-ci package izon --tests-complete
   artifacts:
     logs:
@@ -271,7 +271,7 @@ dependency:{{ test.name }}:{{ platform.os }}:{{ editor.version }}:
   commands:
     - pip install unity-downloader-cli --upgrade --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple
     - unity-downloader-cli --source-file unity_revision.txt {% for component in platform.components %}-c {{ component }} {% endfor %}--wait --published-only
-    - npm install upm-ci-utils@experimental -g --registry https://api.bintray.com/npm/unity/unity-npm
+    - npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
 {% if test.type == "package" %}
     - upm-ci package test -u {{ editor.version }} --type updated-dependencies-tests --package-path {{ test.path }}
 {% elsif test.type == "project" %}
@@ -299,7 +299,7 @@ dependency:{{ test.name }}:{{ platform.os }}:{{ editor.version }}:
 #    image: package-ci/win10:stable
 #    flavor: b1.large
 #  commands:
-#    - npm install upm-ci-utils@experimental -g --registry https://api.bintray.com/npm/unity/unity-npm
+#    - npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
 #{% if test.type == "package" %}
 #    - upm-ci package izon -d
 #{% elsif test.type == "project" %}
@@ -370,7 +370,7 @@ promotion:test:{{ test.name }}:{{ platform.os }}:{{ editor.version }}:
   commands:
     - pip install unity-downloader-cli --upgrade --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple
     - unity-downloader-cli --source-file unity_revision.txt {% for component in platform.components %}-c {{ component }} {% endfor %}--wait --published-only
-    - npm install upm-ci-utils@experimental -g --registry https://api.bintray.com/npm/unity/unity-npm
+    - npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
 {% if test.type == "package" %}
     - upm-ci package test -u {{ editor.version }} --package-path {{ test.path }}
 {% elsif test.type == "project" %}
