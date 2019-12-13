@@ -39,17 +39,12 @@ pack:
 
 commit_ci:
   name: CI Per Commit
-  agent:
-    name: whatever
-    type: Unity::VM
-    image: cds-ops/ubuntu-18.04-agent:latest
-    flavor: b1.small
-  commands:
-    - true
   triggers:
     branches:
       only:
         - "/.*/"
+      except:
+        - next/master
   dependencies:
   {% for editor in editors %}
   - .yamato/CI.yml#run_test_project_linux_{{ editor.version }}
@@ -101,7 +96,7 @@ prepare_release:
   commands:
     - git clone git@github.cds.internal.unity3d.com:nicklas/Nicklas-CI.git /tmp/Nicklas-CI
     - python3 /tmp/Nicklas-CI/prepare_release.py
-    - git push origin HEAD:refs/heads/publish-release -f
+    - git push origin HEAD:refs/heads/publish-release
 
 
 publish_release:
@@ -124,7 +119,7 @@ publish_release:
   commands:
     - npm install upm-ci-utils --registry https://api.bintray.com/npm/unity/unity-npm
     - node node_modules/upm-ci-utils project publish
-    - git push origin HEAD:refs/heads/next/master HEAD:refs/heads/master
+    - git push origin HEAD:refs/heads/next/master HEAD:refs/heads/master -f
 
 
 prepare_promotion:
@@ -133,10 +128,13 @@ prepare_promotion:
     branches:
       only:
         - master
+  dependencies:
+    - .yamato/CI.yml#pack
   agent:
     type: Unity::VM
-    image: cds-ops/ubuntu-18.04-agent:latest
+    image: cds-ops/win10-katana-agent:stable
     flavor: b1.large
   commands:
-    - git clone git@github.cds.internal.unity3d.com:nicklas/Nicklas-CI.git /tmp/Nicklas-CI
-    - python3 /tmp/Nicklas-CI/prepare_promotion.py
+    - choco install --no-progress -y python3 -source https://artifactory.bf.unity3d.com/artifactory/api/nuget/unity-choco-local
+    - git clone git@github.cds.internal.unity3d.com:nicklas/Nicklas-CI.git C:\buildslave\Nicklas-CI
+    - py -3 C:\buildslave\Nicklas-CI\prepare_promotion.py C:\buildslave\unity\build upm-ci~/packages/packages.json {{test_suite_name}}
