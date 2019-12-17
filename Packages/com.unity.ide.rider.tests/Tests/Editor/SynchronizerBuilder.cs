@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using Moq;
+using Packages.Rider.Editor.ProjectGeneration;
 using UnityEditor.Compilation;
 
 namespace Packages.Rider.Editor.Tests
@@ -51,7 +52,7 @@ namespace Packages.Rider.Editor.Tests
 
         public IGenerator Build()
         {
-            return m_Synchronizer = new ProjectGeneration(projectDirectory, m_AssemblyProvider.Object, m_FileIoMock, m_GUIDGenerator.Object);
+            return m_Synchronizer = new ProjectGeneration.ProjectGeneration(projectDirectory, m_AssemblyProvider.Object, m_FileIoMock, m_GUIDGenerator.Object);
         }
 
         public SynchronizerBuilder WithSolutionText(string solutionText)

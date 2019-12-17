@@ -14,7 +14,7 @@ using UnityEditorInternal;
 using UnityEngine;
 using Assembly = UnityEditor.Compilation.Assembly;
 
-namespace Packages.Rider.Editor
+namespace Packages.Rider.Editor.ProjectGeneration
 {
   public interface IGenerator
   {

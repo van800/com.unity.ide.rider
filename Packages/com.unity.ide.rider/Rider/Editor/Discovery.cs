@@ -455,13 +455,11 @@ namespace Packages.Rider.Editor
       public bool IsToolbox;
       public string Presentation;
       public Version BuildNumber;
-      public string BuildVersion; // added for backward compatibility
       public ProductInfo ProductInfo;
       public string Path;
 
       public RiderInfo(string path, bool isToolbox)
       {
-        BuildVersion = string.Empty;
         if (path == RiderScriptEditor.CurrentEditor)
         {
           RiderScriptEditorData.instance.Init();
