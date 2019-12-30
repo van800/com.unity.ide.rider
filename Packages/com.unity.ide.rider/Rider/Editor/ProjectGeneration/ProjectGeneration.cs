@@ -837,6 +837,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
         @"    <SchemaVersion>2.0</SchemaVersion>",
         @"    <RootNamespace>{8}</RootNamespace>",
         @"    <ProjectGuid>{{{2}}}</ProjectGuid>",
+        @"    <ProjectTypeGuids>{E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>",
         @"    <OutputType>Library</OutputType>",
         @"    <AppDesignerFolder>Properties</AppDesignerFolder>",
         @"    <AssemblyName>{7}</AssemblyName>",
