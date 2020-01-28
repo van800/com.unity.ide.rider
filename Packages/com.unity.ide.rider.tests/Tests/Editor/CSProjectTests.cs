@@ -712,7 +712,7 @@ namespace Packages.Rider.Editor.Tests
             [Test]
             public void RoslynAnalyzerDlls_WillBeIncluded()
             {
-                var roslynAnalyzerDllPath = "Assets/RoslynAnalyzer.dll";
+                var roslynAnalyzerDllPath = "Assets\\RoslynAnalyzer.dll";
                 var synchronizer = m_Builder.WithRoslynAnalyzers(new[] {roslynAnalyzerDllPath}).Build();
                 
                 synchronizer.Sync();
