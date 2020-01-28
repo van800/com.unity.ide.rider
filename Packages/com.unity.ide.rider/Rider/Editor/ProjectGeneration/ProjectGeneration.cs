@@ -614,7 +614,7 @@ namespace Packages.Rider.Editor
       List<Assembly> allProjectIslands,
       string[] roslynAnalyzerDllPaths)
     {
-      var projectBuilder = new StringBuilder(ProjectHeader(assembly, responseFilesData));
+      var projectBuilder = new StringBuilder(ProjectHeader(assembly, responseFilesData, roslynAnalyzerDllPaths));
       var references = new List<string>();
       var projectReferences = new List<Match>();
 
@@ -634,11 +634,6 @@ namespace Packages.Rider.Editor
           references.Add(fullFile);
         }
       }
-      foreach (string dllPath in roslynAnalyzerDllPaths)
-      {
-        projectBuilder.AppendLine($"     <Analyzer Include=\"{dllPath.Replace("/", "\\")}\"/>");
-      }
-
       // Append additional non-script files that should be included in project generation.
       if (allAssetsProjectParts.TryGetValue(assembly.name, out var additionalAssetsForProject))
         projectBuilder.Append(additionalAssetsForProject);
@@ -719,7 +714,8 @@ namespace Packages.Rider.Editor
 
     string ProjectHeader(
       Assembly assembly,
-      List<ResponseFileData> responseFilesData
+      List<ResponseFileData> responseFilesData,
+      string[] roslynAnalyzerDllPaths
     )
     {
       var otherResponseFilesData = GetOtherArgumentsFromResponseFilesData(responseFilesData);
@@ -741,7 +737,12 @@ namespace Packages.Rider.Editor
         k_BaseDirectory,
         assembly.compilerOptions.AllowUnsafeCode | responseFilesData.Any(x => x.Unsafe),
         GenerateNoWarn(otherResponseFilesData["nowarn"].Distinct().ToArray()),
-        GenerateAnalyserItemGroup(otherResponseFilesData["analyzer"].Concat(otherResponseFilesData["a"]).SelectMany(x=>x.Split(';')).Distinct().ToArray()),
+        GenerateAnalyserItemGroup(
+          otherResponseFilesData["analyzer"].Concat(otherResponseFilesData["a"])
+                                                  .SelectMany(x=>x.Split(';'))
+                                                  .Distinct()
+                                                  .Concat(roslynAnalyzerDllPaths)
+                                                  .ToArray()),
         GenerateAnalyserAdditionalFiles(otherResponseFilesData["additionalfile"].SelectMany(x=>x.Split(';')).Distinct().ToArray()),
         GenerateAnalyserRuleSet(otherResponseFilesData["ruleset"].Distinct().ToArray()),
         GenerateWarningLevel(otherResponseFilesData["warn"].Concat(otherResponseFilesData["w"]).Distinct()),
