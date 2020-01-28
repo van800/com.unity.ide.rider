@@ -227,12 +227,14 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
       var monoIslands = assemblies.ToList();
 
+      var roslynAnalyzerDllPaths = GetAllRoslynAnalyzerPaths().ToArray();
+
       SyncSolution(monoIslands, types);
       var allProjectIslands = RelevantIslandsForMode(monoIslands).ToList();
       foreach (Assembly assembly in allProjectIslands)
       {
         var responseFileData = ParseResponseFileData(assembly);
-        SyncProject(assembly, allAssetProjectParts, responseFileData, allProjectIslands, types, GetAllRoslynAnalyzerPaths().ToArray());
+        SyncProject(assembly, allAssetProjectParts, responseFileData, allProjectIslands, types, roslynAnalyzerDllPaths);
       }
     }
 
