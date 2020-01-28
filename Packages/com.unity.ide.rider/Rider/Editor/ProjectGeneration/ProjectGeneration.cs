@@ -52,6 +52,7 @@ namespace Packages.Rider.Editor
     UnityEditor.PackageManager.PackageInfo FindForAssetPath(string assetPath);
     ResponseFileData ParseResponseFile(string responseFilePath, string projectDirectory, string[] systemReferenceDirectories);
     void GeneratePlayerProjects(bool generatePlayerProjects);
+    IEnumerable<string> GetRoslynAnalyzers();
   }
 
   public class AssemblyNameProvider : IAssemblyNameProvider
@@ -133,6 +134,13 @@ namespace Packages.Rider.Editor
     public void GeneratePlayerProjects(bool generatePlayerProjects)
     {
       m_generatePlayerProjects = generatePlayerProjects;
+    }
+
+    public IEnumerable<string> GetRoslynAnalyzers()
+    {
+      return PluginImporter.GetAllImporters()
+                           .Where(i => !i.isNativePlugin && AssetDatabase.GetLabels(i).SingleOrDefault(l => l == "RoslynAnalyzer") != null)
+                           .Select(i => i.assetPath);
     }
   }
 
@@ -353,12 +361,14 @@ namespace Packages.Rider.Editor
 
       var monoIslands = assemblies.ToList();
 
+      IEnumerable<string> roslynAnalyzerDllPaths = GetAllRoslynAnalyzers();
+
       SyncSolution(monoIslands, types);
       var allProjectIslands = RelevantIslandsForMode(monoIslands).ToList();
       foreach (Assembly assembly in allProjectIslands)
       {
         var responseFileData = ParseResponseFileData(assembly);
-        SyncProject(assembly, allAssetProjectParts, responseFileData, allProjectIslands, types);
+        SyncProject(assembly, allAssetProjectParts, responseFileData, allProjectIslands, types, roslynAnalyzerDllPaths);
       }
     }
 
@@ -387,6 +397,11 @@ namespace Packages.Rider.Editor
       }
 
       return responseFilesData.Select(x => x.Value);
+    }
+    
+    private IEnumerable<string> GetAllRoslynAnalyzers()
+    {
+      return m_AssemblyNameProvider.GetRoslynAnalyzers();
     }
 
     Dictionary<string, string> GenerateAllAssetProjectParts()
@@ -438,10 +453,13 @@ namespace Packages.Rider.Editor
       Dictionary<string, string> allAssetsProjectParts,
       IEnumerable<ResponseFileData> responseFilesData,
       List<Assembly> allProjectIslands,
-      Type[] types)
+      Type[] types,
+      IEnumerable<string> roslynAnalyzerDllPaths)
     {
-      SyncProjectFileIfNotChanged(ProjectFile(island),
-        ProjectText(island, allAssetsProjectParts, responseFilesData.ToList(), allProjectIslands), types);
+      SyncProjectFileIfNotChanged(
+        ProjectFile(island),
+        ProjectText(island, allAssetsProjectParts, responseFilesData.ToList(), allProjectIslands, roslynAnalyzerDllPaths), 
+        types);
     }
 
     void SyncProjectFileIfNotChanged(string path, string newContents, Type[] types)
@@ -593,7 +611,8 @@ namespace Packages.Rider.Editor
     string ProjectText(Assembly assembly,
       Dictionary<string, string> allAssetsProjectParts,
       List<ResponseFileData> responseFilesData,
-      List<Assembly> allProjectIslands)
+      List<Assembly> allProjectIslands,
+      IEnumerable<string> roslynAnalyzerDllPaths)
     {
       var projectBuilder = new StringBuilder(ProjectHeader(assembly, responseFilesData));
       var references = new List<string>();
@@ -614,6 +633,10 @@ namespace Packages.Rider.Editor
         {
           references.Add(fullFile);
         }
+      }
+      foreach (string dllPath in roslynAnalyzerDllPaths)
+      {
+        projectBuilder.AppendLine($"     <Analyzer Include=\"{dllPath.Replace("/", "\\")}\"/>");
       }
 
       // Append additional non-script files that should be included in project generation.
