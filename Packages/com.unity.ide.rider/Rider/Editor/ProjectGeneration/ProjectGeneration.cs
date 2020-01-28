@@ -210,8 +210,10 @@ namespace Packages.Rider.Editor
     readonly IAssemblyNameProvider m_AssemblyNameProvider;
     readonly IFileIO m_FileIOProvider;
     readonly IGUIDGenerator m_GUIDGenerator;
+    private string[] m_RoslynAnalyzerDllPaths;
+    
     internal static bool isRiderProjectGeneration; // workaround to https://github.cds.internal.unity3d.com/unity/com.unity.ide.rider/issues/28
-
+    
     const string k_ToolsVersion = "4.0";
     const string k_ProductVersion = "10.0.20506";
     const string k_BaseDirectory = ".";
@@ -361,14 +363,14 @@ namespace Packages.Rider.Editor
 
       var monoIslands = assemblies.ToList();
 
-      string[] roslynAnalyzerDllPaths = GetAllRoslynAnalyzerPaths().ToArray();
+      m_RoslynAnalyzerDllPaths = GetAllRoslynAnalyzerPaths().ToArray();
 
       SyncSolution(monoIslands, types);
       var allProjectIslands = RelevantIslandsForMode(monoIslands).ToList();
       foreach (Assembly assembly in allProjectIslands)
       {
         var responseFileData = ParseResponseFileData(assembly);
-        SyncProject(assembly, allAssetProjectParts, responseFileData, allProjectIslands, types, roslynAnalyzerDllPaths);
+        SyncProject(assembly, allAssetProjectParts, responseFileData, allProjectIslands, types, m_RoslynAnalyzerDllPaths);
       }
     }
 
@@ -638,7 +640,7 @@ namespace Packages.Rider.Editor
       if (allAssetsProjectParts.TryGetValue(assembly.name, out var additionalAssetsForProject))
         projectBuilder.Append(additionalAssetsForProject);
 
-      var islandRefs = references.Union(assembly.allReferences);
+      var islandRefs = references.Union(assembly.allReferences.Except(m_RoslynAnalyzerDllPaths));
       foreach (string reference in islandRefs)
       {
         var match = k_ScriptReferenceExpression.Match(reference);
