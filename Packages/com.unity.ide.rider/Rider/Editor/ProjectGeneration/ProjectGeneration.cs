@@ -361,7 +361,7 @@ namespace Packages.Rider.Editor
 
       var monoIslands = assemblies.ToList();
 
-      IEnumerable<string> roslynAnalyzerDllPaths = GetAllRoslynAnalyzerPaths();
+      string[] roslynAnalyzerDllPaths = GetAllRoslynAnalyzerPaths().ToArray();
 
       SyncSolution(monoIslands, types);
       var allProjectIslands = RelevantIslandsForMode(monoIslands).ToList();
@@ -454,7 +454,7 @@ namespace Packages.Rider.Editor
       IEnumerable<ResponseFileData> responseFilesData,
       List<Assembly> allProjectIslands,
       Type[] types,
-      IEnumerable<string> roslynAnalyzerDllPaths)
+      string[] roslynAnalyzerDllPaths)
     {
       SyncProjectFileIfNotChanged(
         ProjectFile(island),
@@ -612,7 +612,7 @@ namespace Packages.Rider.Editor
       Dictionary<string, string> allAssetsProjectParts,
       List<ResponseFileData> responseFilesData,
       List<Assembly> allProjectIslands,
-      IEnumerable<string> roslynAnalyzerDllPaths)
+      string[] roslynAnalyzerDllPaths)
     {
       var projectBuilder = new StringBuilder(ProjectHeader(assembly, responseFilesData));
       var references = new List<string>();
