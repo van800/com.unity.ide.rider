@@ -637,7 +637,7 @@ namespace Packages.Rider.Editor
       if (allAssetsProjectParts.TryGetValue(assembly.name, out var additionalAssetsForProject))
         projectBuilder.Append(additionalAssetsForProject);
 
-      var islandRefs = references.Union(assembly.allReferences.Except(roslynAnalyzerDllPaths));
+      var islandRefs = references.Union(assembly.allReferences).Except(roslynAnalyzerDllPaths);
       foreach (string reference in islandRefs)
       {
         var match = k_ScriptReferenceExpression.Match(reference);
@@ -739,8 +739,8 @@ namespace Packages.Rider.Editor
         GenerateAnalyserItemGroup(
           otherResponseFilesData["analyzer"].Concat(otherResponseFilesData["a"])
                                                   .SelectMany(x=>x.Split(';'))
-                                                  .Distinct()
                                                   .Concat(roslynAnalyzerDllPaths)
+                                                  .Distinct()
                                                   .ToArray()),
         GenerateAnalyserAdditionalFiles(otherResponseFilesData["additionalfile"].SelectMany(x=>x.Split(';')).Distinct().ToArray()),
         GenerateAnalyserRuleSet(otherResponseFilesData["ruleset"].Distinct().ToArray()),
