@@ -255,7 +255,7 @@ namespace Packages.Rider.Editor
 
     public void SyncAll()
     {
-      AssetDatabase.Refresh();
+      AssetDatabase.Refresh(); // refresh would automatically call sync if needed
       if (RiderScriptEditorData.instance.hasChanges)
       {
         m_ProjectGeneration.Sync();
