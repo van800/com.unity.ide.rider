@@ -113,7 +113,7 @@ namespace Packages.Rider.Editor.Tests
 
         public SynchronizerBuilder WithRoslynAnalyzers(string[] roslynAnalyzerDllPaths)
         {
-            m_AssemblyProvider.Setup(p => p.GetRoslynAnalyzers()).Returns(roslynAnalyzerDllPaths);
+            m_AssemblyProvider.Setup(p => p.GetRoslynAnalyzerPaths()).Returns(roslynAnalyzerDllPaths);
             return this;
         }
         

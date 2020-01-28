@@ -52,7 +52,7 @@ namespace Packages.Rider.Editor
     UnityEditor.PackageManager.PackageInfo FindForAssetPath(string assetPath);
     ResponseFileData ParseResponseFile(string responseFilePath, string projectDirectory, string[] systemReferenceDirectories);
     void GeneratePlayerProjects(bool generatePlayerProjects);
-    IEnumerable<string> GetRoslynAnalyzers();
+    IEnumerable<string> GetRoslynAnalyzerPaths();
   }
 
   public class AssemblyNameProvider : IAssemblyNameProvider
@@ -136,7 +136,7 @@ namespace Packages.Rider.Editor
       m_generatePlayerProjects = generatePlayerProjects;
     }
 
-    public IEnumerable<string> GetRoslynAnalyzers()
+    public IEnumerable<string> GetRoslynAnalyzerPaths()
     {
       return PluginImporter.GetAllImporters()
                            .Where(i => !i.isNativePlugin && AssetDatabase.GetLabels(i).SingleOrDefault(l => l == "RoslynAnalyzer") != null)
@@ -361,7 +361,7 @@ namespace Packages.Rider.Editor
 
       var monoIslands = assemblies.ToList();
 
-      IEnumerable<string> roslynAnalyzerDllPaths = GetAllRoslynAnalyzers();
+      IEnumerable<string> roslynAnalyzerDllPaths = GetAllRoslynAnalyzerPaths();
 
       SyncSolution(monoIslands, types);
       var allProjectIslands = RelevantIslandsForMode(monoIslands).ToList();
@@ -399,9 +399,9 @@ namespace Packages.Rider.Editor
       return responseFilesData.Select(x => x.Value);
     }
     
-    private IEnumerable<string> GetAllRoslynAnalyzers()
+    private IEnumerable<string> GetAllRoslynAnalyzerPaths()
     {
-      return m_AssemblyNameProvider.GetRoslynAnalyzers();
+      return m_AssemblyNameProvider.GetRoslynAnalyzerPaths();
     }
 
     Dictionary<string, string> GenerateAllAssetProjectParts()
