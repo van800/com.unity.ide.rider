@@ -67,7 +67,11 @@ run_test_project_{{ platform.name }}_{{ editor.version }}:
     DISPLAY: ":0"
   {% endif %}
   commands:
+{% if platform.os == "linux" -%}
+    - pip install unity-downloader-cli --user --upgrade --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple
+{% else -%}
     - pip install unity-downloader-cli --upgrade --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple
+{% endif -%}    
     - {{ platform.envsetup }}
     - unity-downloader-cli -u {{editor.version}} -c editor -c linux -c macos -c windows --wait --published-only
     - npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
