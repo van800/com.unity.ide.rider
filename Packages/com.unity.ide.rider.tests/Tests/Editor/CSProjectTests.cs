@@ -6,8 +6,6 @@ using System.Xml;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.Compilation;
-using UnityEditorInternal;
-using UnityEngine;
 
 namespace Packages.Rider.Editor.Tests
 {
@@ -711,6 +709,19 @@ namespace Packages.Rider.Editor.Tests
 
         class References : ProjectGenerationTestBase
         {
+            [Test]
+            public void RoslynAnalyzerDlls_WillBeIncluded()
+            {
+                var roslynAnalyzerDllPath = "Assets\\RoslynAnalyzer.dll";
+                var synchronizer = m_Builder.WithRoslynAnalyzers(new[] {roslynAnalyzerDllPath}).Build();
+                
+                synchronizer.Sync();
+
+                string projectFile = m_Builder.ReadProjectFile(m_Builder.Assembly);
+                XmlDocument projectFileXml = XMLUtilities.FromText(projectFile);
+                XMLUtilities.AssertAnalyzerItemsMatchExactly(projectFileXml, new []{roslynAnalyzerDllPath});
+            }
+            
             [Test]
             public void DllInSourceFiles_WillBeAddedAsReference()
             {
