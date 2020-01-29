@@ -67,7 +67,7 @@ run_test_project_{{ platform.name }}_{{ editor.version }}:
     DISPLAY: ":0"
   {% endif %}
   commands:
-{% if platform.os == "linux" -%}
+{% if platform.name == "linux" -%}
     - pip install unity-downloader-cli --user --upgrade --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple
 {% else -%}
     - pip install unity-downloader-cli --upgrade --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple
