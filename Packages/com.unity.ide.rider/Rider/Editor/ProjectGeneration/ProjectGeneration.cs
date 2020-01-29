@@ -52,6 +52,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
     UnityEditor.PackageManager.PackageInfo FindForAssetPath(string assetPath);
     ResponseFileData ParseResponseFile(string responseFilePath, string projectDirectory, string[] systemReferenceDirectories);
     void GeneratePlayerProjects(bool generatePlayerProjects);
+    IEnumerable<string> GetRoslynAnalyzerPaths();
   }
 
   public class AssemblyNameProvider : IAssemblyNameProvider
@@ -134,6 +135,13 @@ namespace Packages.Rider.Editor.ProjectGeneration
     {
       m_generatePlayerProjects = generatePlayerProjects;
     }
+
+    public IEnumerable<string> GetRoslynAnalyzerPaths()
+    {
+      return PluginImporter.GetAllImporters()
+                           .Where(i => !i.isNativePlugin && AssetDatabase.GetLabels(i).SingleOrDefault(l => l == "RoslynAnalyzer") != null)
+                           .Select(i => i.assetPath);
+    }
   }
 
   public class ProjectGeneration : IGenerator
@@ -202,8 +210,9 @@ namespace Packages.Rider.Editor.ProjectGeneration
     readonly IAssemblyNameProvider m_AssemblyNameProvider;
     readonly IFileIO m_FileIOProvider;
     readonly IGUIDGenerator m_GUIDGenerator;
+    
     internal static bool isRiderProjectGeneration; // workaround to https://github.cds.internal.unity3d.com/unity/com.unity.ide.rider/issues/28
-
+    
     const string k_ToolsVersion = "4.0";
     const string k_ProductVersion = "10.0.20506";
     const string k_BaseDirectory = ".";
@@ -359,7 +368,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
       foreach (Assembly assembly in allProjectIslands)
       {
         var responseFileData = ParseResponseFileData(assembly);
-        SyncProject(assembly, allAssetProjectParts, responseFileData, allProjectIslands, types);
+        SyncProject(assembly, allAssetProjectParts, responseFileData, allProjectIslands, types, GetAllRoslynAnalyzerPaths().ToArray());
       }
     }
 
@@ -388,6 +397,11 @@ namespace Packages.Rider.Editor.ProjectGeneration
       }
 
       return responseFilesData.Select(x => x.Value);
+    }
+    
+    private IEnumerable<string> GetAllRoslynAnalyzerPaths()
+    {
+      return m_AssemblyNameProvider.GetRoslynAnalyzerPaths();
     }
 
     Dictionary<string, string> GenerateAllAssetProjectParts()
@@ -439,10 +453,13 @@ namespace Packages.Rider.Editor.ProjectGeneration
       Dictionary<string, string> allAssetsProjectParts,
       IEnumerable<ResponseFileData> responseFilesData,
       List<Assembly> allProjectIslands,
-      Type[] types)
+      Type[] types,
+      string[] roslynAnalyzerDllPaths)
     {
-      SyncProjectFileIfNotChanged(ProjectFile(island),
-        ProjectText(island, allAssetsProjectParts, responseFilesData.ToList(), allProjectIslands), types);
+      SyncProjectFileIfNotChanged(
+        ProjectFile(island),
+        ProjectText(island, allAssetsProjectParts, responseFilesData.ToList(), allProjectIslands, roslynAnalyzerDllPaths), 
+        types);
     }
 
     void SyncProjectFileIfNotChanged(string path, string newContents, Type[] types)
@@ -594,9 +611,10 @@ namespace Packages.Rider.Editor.ProjectGeneration
     string ProjectText(Assembly assembly,
       Dictionary<string, string> allAssetsProjectParts,
       List<ResponseFileData> responseFilesData,
-      List<Assembly> allProjectIslands)
+      List<Assembly> allProjectIslands,
+      string[] roslynAnalyzerDllPaths)
     {
-      var projectBuilder = new StringBuilder(ProjectHeader(assembly, responseFilesData));
+      var projectBuilder = new StringBuilder(ProjectHeader(assembly, responseFilesData, roslynAnalyzerDllPaths));
       var references = new List<string>();
       var projectReferences = new List<Match>();
 
@@ -616,12 +634,11 @@ namespace Packages.Rider.Editor.ProjectGeneration
           references.Add(fullFile);
         }
       }
-
       // Append additional non-script files that should be included in project generation.
       if (allAssetsProjectParts.TryGetValue(assembly.name, out var additionalAssetsForProject))
         projectBuilder.Append(additionalAssetsForProject);
 
-      var islandRefs = references.Union(assembly.allReferences);
+      var islandRefs = references.Union(assembly.allReferences).Except(roslynAnalyzerDllPaths);
       foreach (string reference in islandRefs)
       {
         var match = k_ScriptReferenceExpression.Match(reference);
@@ -697,7 +714,8 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
     string ProjectHeader(
       Assembly assembly,
-      List<ResponseFileData> responseFilesData
+      List<ResponseFileData> responseFilesData,
+      string[] roslynAnalyzerDllPaths
     )
     {
       var otherResponseFilesData = GetOtherArgumentsFromResponseFilesData(responseFilesData);
@@ -719,7 +737,12 @@ namespace Packages.Rider.Editor.ProjectGeneration
         k_BaseDirectory,
         assembly.compilerOptions.AllowUnsafeCode | responseFilesData.Any(x => x.Unsafe),
         GenerateNoWarn(otherResponseFilesData["nowarn"].Distinct().ToArray()),
-        GenerateAnalyserItemGroup(otherResponseFilesData["analyzer"].Concat(otherResponseFilesData["a"]).SelectMany(x=>x.Split(';')).Distinct().ToArray()),
+        GenerateAnalyserItemGroup(
+          otherResponseFilesData["analyzer"].Concat(otherResponseFilesData["a"])
+                                                  .SelectMany(x=>x.Split(';'))
+                                                  .Concat(roslynAnalyzerDllPaths)
+                                                  .Distinct()
+                                                  .ToArray()),
         GenerateAnalyserAdditionalFiles(otherResponseFilesData["additionalfile"].SelectMany(x=>x.Split(';')).Distinct().ToArray()),
         GenerateAnalyserRuleSet(otherResponseFilesData["ruleset"].Distinct().ToArray()),
         GenerateWarningLevel(otherResponseFilesData["warn"].Concat(otherResponseFilesData["w"]).Distinct()),
