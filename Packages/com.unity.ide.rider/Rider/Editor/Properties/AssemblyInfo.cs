@@ -5,5 +5,6 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Unity.Rider.EditorTests")]
 [assembly: InternalsVisibleTo("Unity.PackageValidationSuite.Editor")]
 [assembly: InternalsVisibleTo("Assembly-CSharp-Editor")]
+[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
 
 [assembly: AssemblyVersion("1.0.0")]
