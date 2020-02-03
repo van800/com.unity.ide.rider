@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace Packages.Rider.Editor
 {
-  public interface IDiscovery
+  internal interface IDiscovery
   {
     CodeEditor.Installation[] PathCallback();
   }

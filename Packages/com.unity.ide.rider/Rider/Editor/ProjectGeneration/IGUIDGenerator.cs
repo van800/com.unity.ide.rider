@@ -1,6 +1,6 @@
 namespace Packages.Rider.Editor.ProjectGeneration
 {
-  public interface IGUIDGenerator
+  internal interface IGUIDGenerator
   {
     string ProjectGuid(string projectName, string assemblyName);
     string SolutionGuid(string projectName, string extension);

@@ -1,6 +1,6 @@
 namespace Packages.Rider.Editor.ProjectGeneration
 {
-  public interface IFileIO
+  internal interface IFileIO
   {
     bool Exists(string fileName);
 

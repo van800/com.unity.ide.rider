@@ -4,7 +4,7 @@ using UnityEditor.Compilation;
 
 namespace Packages.Rider.Editor.ProjectGeneration
 {
-  public interface IAssemblyNameProvider
+  internal interface IAssemblyNameProvider
   {
     string[] ProjectSupportedExtensions { get; }
     string ProjectGenerationRootNamespace { get; }

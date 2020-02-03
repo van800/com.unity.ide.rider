@@ -50,7 +50,7 @@ namespace Packages.Rider.Editor.Tests
             WithAssemblyData();
         }
 
-        public IGenerator Build()
+        internal IGenerator Build()
         {
             return m_Synchronizer = new ProjectGeneration.ProjectGeneration(projectDirectory, m_AssemblyProvider.Object, m_FileIoMock, m_GUIDGenerator.Object);
         }

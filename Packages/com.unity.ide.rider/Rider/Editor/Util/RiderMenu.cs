@@ -7,9 +7,15 @@ using UnityEditor;
 // ReSharper disable once CheckNamespace 
 namespace JetBrains.Rider.Unity.Editor
 {
-  [UsedImplicitly] // Is called via commandline from Rider Notification after checking out from source control.
+  /// <summary>
+  /// Is called via commandline from Rider Notification after checking out from source control.
+  /// </summary>
+  [UsedImplicitly]
   public static class RiderMenu
   {
+    /// <summary>
+    /// Is called via commandline from Rider Notification after checking out from source control.
+    /// </summary>
     [UsedImplicitly]
     public static void MenuOpenProject()
     {

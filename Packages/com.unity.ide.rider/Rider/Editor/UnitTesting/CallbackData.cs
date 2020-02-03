@@ -5,6 +5,9 @@ using UnityEditor;
 
 namespace Packages.Rider.Editor.UnitTesting
 {
+  /// <summary>
+  /// Is used by Rider Unity plugin by reflection
+  /// </summary>
   [UsedImplicitly] // from Rider Unity plugin
   public class CallbackData : ScriptableSingleton<CallbackData>
   {
@@ -19,6 +22,9 @@ namespace Packages.Rider.Editor.UnitTesting
 
     public List<TestEvent> events = new List<TestEvent>();
 
+    /// <summary>
+    /// Is used by Rider Unity plugin by reflection
+    /// </summary>
     [UsedImplicitly]
     public void Clear()
     {
