@@ -3,147 +3,17 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security;
-using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using Packages.Rider.Editor.Util;
 using UnityEditor;
 using UnityEditor.Compilation;
-using UnityEditor.PackageManager;
 using UnityEditorInternal;
 using UnityEngine;
 using Assembly = UnityEditor.Compilation.Assembly;
 
 namespace Packages.Rider.Editor.ProjectGeneration
 {
-  public interface IGenerator
-  {
-    bool SyncIfNeeded(IEnumerable<string> affectedFiles, IEnumerable<string> reimportedFiles);
-    void Sync();
-    bool HasSolutionBeenGenerated();
-    string SolutionFile();
-    string ProjectDirectory { get; }
-    IAssemblyNameProvider AssemblyNameProvider { get; }
-    void GenerateAll(bool generateAll);
-  }
-
-  public interface IFileIO
-  {
-    bool Exists(string fileName);
-
-    string ReadAllText(string fileName);
-    void WriteAllText(string fileName, string content);
-  }
-
-  public interface IGUIDGenerator
-  {
-    string ProjectGuid(string projectName, string assemblyName);
-    string SolutionGuid(string projectName, string extension);
-  }
-
-  public interface IAssemblyNameProvider
-  {
-    string[] ProjectSupportedExtensions { get; }
-    string ProjectGenerationRootNamespace { get; }
-    string GetAssemblyNameFromScriptPath(string path);
-    bool IsInternalizedPackagePath(string path);
-    IEnumerable<Assembly> GetAssemblies(Func<string, bool> shouldFileBePartOfSolution);
-    IEnumerable<string> GetAllAssetPaths();
-    UnityEditor.PackageManager.PackageInfo FindForAssetPath(string assetPath);
-    ResponseFileData ParseResponseFile(string responseFilePath, string projectDirectory, string[] systemReferenceDirectories);
-    void GeneratePlayerProjects(bool generatePlayerProjects);
-    IEnumerable<string> GetRoslynAnalyzerPaths();
-  }
-
-  public class AssemblyNameProvider : IAssemblyNameProvider
-  {
-    bool m_generatePlayerProjects;
-
-    public string[] ProjectSupportedExtensions => EditorSettings.projectGenerationUserExtensions;
-
-    public string ProjectGenerationRootNamespace => EditorSettings.projectGenerationRootNamespace;
-
-    public string GetAssemblyNameFromScriptPath(string path)
-    {
-      return CompilationPipeline.GetAssemblyNameFromScriptPath(path);
-    }
-
-    public IEnumerable<Assembly> GetAssemblies(Func<string, bool> shouldFileBePartOfSolution)
-    {
-      foreach (var assembly in CompilationPipeline.GetAssemblies())
-      {
-        if (0 < assembly.sourceFiles.Length && assembly.sourceFiles.Any(shouldFileBePartOfSolution))
-        {
-          yield return assembly;
-        }
-      }
-      if (m_generatePlayerProjects)
-      {
-        foreach (var assembly in CompilationPipeline.GetAssemblies(AssembliesType.Player))
-        {
-          if (0 < assembly.sourceFiles.Length && assembly.sourceFiles.Any(shouldFileBePartOfSolution))
-          {
-            yield return new Assembly(assembly.name + "-player", assembly.outputPath, assembly.sourceFiles, assembly.defines, assembly.assemblyReferences, assembly.compiledAssemblyReferences, assembly.flags)
-            {
-              compilerOptions =
-              {
-                ResponseFiles = assembly.compilerOptions.ResponseFiles,
-                AllowUnsafeCode = assembly.compilerOptions.AllowUnsafeCode,
-                ApiCompatibilityLevel = assembly.compilerOptions.ApiCompatibilityLevel
-              }
-            };
-          }
-        }
-      }
-    }
-
-    public IEnumerable<string> GetAllAssetPaths()
-    {
-      return AssetDatabase.GetAllAssetPaths();
-    }
-
-    public UnityEditor.PackageManager.PackageInfo FindForAssetPath(string assetPath)
-    {
-      return UnityEditor.PackageManager.PackageInfo.FindForAssetPath(assetPath);
-    }
-
-    public bool IsInternalizedPackagePath(string path)
-    {
-      if (string.IsNullOrEmpty(path.Trim()))
-      {
-        return false;
-      }
-      var packageInfo = FindForAssetPath(path);
-      if (packageInfo == null)
-      {
-        return false;
-      }
-      var packageSource = packageInfo.source;
-      return packageSource != PackageSource.Embedded && packageSource != PackageSource.Local;
-    }
-
-    public ResponseFileData ParseResponseFile(string responseFilePath, string projectDirectory, string[] systemReferenceDirectories)
-    {
-      return CompilationPipeline.ParseResponseFile(
-        responseFilePath,
-        projectDirectory,
-        systemReferenceDirectories
-      );
-    }
-
-    public void GeneratePlayerProjects(bool generatePlayerProjects)
-    {
-      m_generatePlayerProjects = generatePlayerProjects;
-    }
-
-    public IEnumerable<string> GetRoslynAnalyzerPaths()
-    {
-      return PluginImporter.GetAllImporters()
-                           .Where(i => !i.isNativePlugin && AssetDatabase.GetLabels(i).SingleOrDefault(l => l == "RoslynAnalyzer") != null)
-                           .Select(i => i.assetPath);
-    }
-  }
-
   public class ProjectGeneration : IGenerator
   {
     enum ScriptingLanguage
@@ -1091,32 +961,6 @@ namespace Packages.Rider.Editor.ProjectGeneration
     static string GetProjectExtension()
     {
       return ".csproj";
-    }
-  }
-
-  public static class SolutionGuidGenerator
-  {
-    public static string GuidForProject(string projectName)
-    {
-      return ComputeGuidHashFor(projectName + "salt");
-    }
-
-    public static string GuidForSolution(string projectName, string sourceFileExtension)
-    {
-      if (sourceFileExtension.ToLower() == "cs")
-        // GUID for a C# class library: http://www.codeproject.com/Reference/720512/List-of-Visual-Studio-Project-Type-GUIDs
-        return "FAE04EC0-301F-11D3-BF4B-00C04F79EFBC";
-
-      return ComputeGuidHashFor(projectName);
-    }
-
-    static string ComputeGuidHashFor(string input)
-    {
-      using (var md5 = MD5.Create())
-      {
-        var hash = md5.ComputeHash(Encoding.Default.GetBytes(input));
-        return new Guid(hash).ToString();
-      }
     }
   }
 }
