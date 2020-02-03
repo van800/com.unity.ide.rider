@@ -5,6 +5,7 @@ using UnityEditor;
 
 namespace Packages.Rider.Editor.UnitTesting
 {
+  [UsedImplicitly] // from Rider Unity plugin
   public class CallbackData : ScriptableSingleton<CallbackData>
   {
     public bool isRider;

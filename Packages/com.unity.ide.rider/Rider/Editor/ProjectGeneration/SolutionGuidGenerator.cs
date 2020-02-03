@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Packages.Rider.Editor.ProjectGeneration
 {
-  public static class SolutionGuidGenerator
+  internal static class SolutionGuidGenerator
   {
     public static string GuidForProject(string projectName)
     {

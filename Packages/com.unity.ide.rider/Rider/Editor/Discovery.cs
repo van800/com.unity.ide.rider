@@ -14,7 +14,7 @@ namespace Packages.Rider.Editor
     CodeEditor.Installation[] PathCallback();
   }
 
-  public class Discovery : IDiscovery
+  internal class Discovery : IDiscovery
   {
     public CodeEditor.Installation[] PathCallback()
     {
@@ -33,10 +33,9 @@ namespace Packages.Rider.Editor
   /// This code is a modified version of the JetBrains resharper-unity plugin listed here:
   /// https://github.com/JetBrains/resharper-unity/blob/master/unity/JetBrains.Rider.Unity.Editor/EditorPlugin/RiderPathLocator.cs
   /// </summary>
-  public static class RiderPathLocator
+  internal static class RiderPathLocator
   {
 #if !(UNITY_4_7 || UNITY_5_5)
-    [UsedImplicitly] // Used in com.unity.ide.rider
     public static RiderInfo[] GetAllRiderPaths()
     {
       try
@@ -240,7 +239,7 @@ namespace Packages.Rider.Editor
       return Version.TryParse(versionText, out var v) ? v : null;
     }
 
-    internal static bool IsToolbox(string path)
+    internal static bool GetIsToolbox(string path)
     {
       return path.StartsWith(GetToolboxBaseDir());
     }
@@ -389,7 +388,7 @@ namespace Packages.Rider.Editor
     }
 
     [Serializable]
-    public class ProductInfo
+    internal class ProductInfo
     {
       public string version;
       public string versionSuffix;
@@ -450,7 +449,7 @@ namespace Packages.Rider.Editor
 
 #pragma warning restore 0649
 
-    public struct RiderInfo
+    internal struct RiderInfo
     {
       public bool IsToolbox;
       public string Presentation;

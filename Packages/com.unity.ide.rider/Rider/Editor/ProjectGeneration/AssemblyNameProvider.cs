@@ -7,7 +7,7 @@ using UnityEditor.PackageManager;
 
 namespace Packages.Rider.Editor.ProjectGeneration
 {
-  public class AssemblyNameProvider : IAssemblyNameProvider
+  internal class AssemblyNameProvider : IAssemblyNameProvider
   {
     bool m_generatePlayerProjects;
 

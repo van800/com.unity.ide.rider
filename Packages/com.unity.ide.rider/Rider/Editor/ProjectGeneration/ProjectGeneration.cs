@@ -14,7 +14,7 @@ using Assembly = UnityEditor.Compilation.Assembly;
 
 namespace Packages.Rider.Editor.ProjectGeneration
 {
-  public class ProjectGeneration : IGenerator
+  internal class ProjectGeneration : IGenerator
   {
     enum ScriptingLanguage
     {

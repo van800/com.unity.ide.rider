@@ -9,6 +9,7 @@ using System;
 
 namespace Packages.Rider.Editor.UnitTesting
 {
+  [UsedImplicitly] // from Rider Unity plugin
   public static class RiderTestRunner
   {
 #if TEST_FRAMEWORK

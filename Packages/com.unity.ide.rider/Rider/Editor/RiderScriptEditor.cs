@@ -12,7 +12,7 @@ using Debug = UnityEngine.Debug;
 namespace Packages.Rider.Editor
 {
   [InitializeOnLoad]
-  public class RiderScriptEditor : IExternalCodeEditor
+  internal class RiderScriptEditor : IExternalCodeEditor
   {
     IDiscovery m_Discoverability;
     IGenerator m_ProjectGeneration;
@@ -37,7 +37,7 @@ namespace Packages.Rider.Editor
             // is likely outdated
             if (installations.Any() && installations.All(a => GetEditorRealPath(a.Path) != path))
             {
-              if (RiderPathLocator.IsToolbox(path)) // is toolbox - update
+              if (RiderPathLocator.GetIsToolbox(path)) // is toolbox - update
               {
                 var toolboxInstallations = installations.Where(a => a.IsToolbox).ToArray();
                 if (toolboxInstallations.Any())

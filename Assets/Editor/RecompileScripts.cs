@@ -3,7 +3,7 @@ using System.Collections;
 using UnityEditor;
 using UnityEngine.TestTools;
 
-public class RecompileScripts : IEditModeTestYieldInstruction
+internal class RecompileScripts : IEditModeTestYieldInstruction
 {
     public RecompileScripts() : this(true)
     {
