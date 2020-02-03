@@ -877,7 +877,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
         @"    <DefineConstants>{5}</DefineConstants>",
         @"    <ErrorReport>prompt</ErrorReport>",
         @"    <WarningLevel>{17}</WarningLevel>",
-        @"    <NoWarn>0169{13}</NoWarn>",
+        @"    <NoWarn>{13}</NoWarn>",
         @"    <AllowUnsafeBlocks>{12}</AllowUnsafeBlocks>{18}{19}",
         @"  </PropertyGroup>",
         @"  <PropertyGroup Condition="" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' "">",
@@ -886,7 +886,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
         @"    <OutputPath>Temp\bin\Release\</OutputPath>",
         @"    <ErrorReport>prompt</ErrorReport>",
         @"    <WarningLevel>{17}</WarningLevel>",
-        @"    <NoWarn>0169{13}</NoWarn>",
+        @"    <NoWarn>{13}</NoWarn>",
         @"    <AllowUnsafeBlocks>{12}</AllowUnsafeBlocks>{18}{19}",
         @"  </PropertyGroup>"
       };

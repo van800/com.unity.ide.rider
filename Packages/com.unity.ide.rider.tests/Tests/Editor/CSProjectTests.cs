@@ -91,6 +91,7 @@ namespace Packages.Rider.Editor.Tests
                     "    <SchemaVersion>2.0</SchemaVersion>",
                     "    <RootNamespace></RootNamespace>",
                     $"    <ProjectGuid>{{{projectGuid}}}</ProjectGuid>",
+                    "    <ProjectTypeGuids>{E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>",
                     "    <OutputType>Library</OutputType>",
                     "    <AppDesignerFolder>Properties</AppDesignerFolder>",
                     $"    <AssemblyName>{m_Builder.Assembly.name}</AssemblyName>",
@@ -106,7 +107,7 @@ namespace Packages.Rider.Editor.Tests
                     $"    <DefineConstants>{defines}</DefineConstants>",
                     "    <ErrorReport>prompt</ErrorReport>",
                     "    <WarningLevel>4</WarningLevel>",
-                    "    <NoWarn>0169</NoWarn>",
+                    "    <NoWarn></NoWarn>",
                     "    <AllowUnsafeBlocks>False</AllowUnsafeBlocks>",
                     "    <TreatWarningsAsErrors>False</TreatWarningsAsErrors>",
                     "  </PropertyGroup>",
@@ -116,7 +117,7 @@ namespace Packages.Rider.Editor.Tests
                     "    <OutputPath>Temp\\bin\\Release\\</OutputPath>",
                     "    <ErrorReport>prompt</ErrorReport>",
                     "    <WarningLevel>4</WarningLevel>",
-                    "    <NoWarn>0169</NoWarn>",
+                    "    <NoWarn></NoWarn>",
                     "    <AllowUnsafeBlocks>False</AllowUnsafeBlocks>",
                     "    <TreatWarningsAsErrors>False</TreatWarningsAsErrors>",
                     "  </PropertyGroup>",
@@ -655,7 +656,7 @@ namespace Packages.Rider.Editor.Tests
             [TestCase(new []{"-nowarn:10,11", "-nowarn:12"}, ",10,11,12")]
             public void CheckNoWarn(string[] args, string expected)
             {
-                CheckOtherArgument(args, $"<NoWarn>0169{expected}</NoWarn>");
+                CheckOtherArgument(args, $"<NoWarn>{expected}</NoWarn>");
             }
 
             [Test]
