@@ -4,7 +4,7 @@ using UnityEditor;
 
 namespace Editor
 {
-    internal static class TestProjectGenerator
+    public static class TestProjectGenerator
     {
         static readonly string k_TestFolderPath = "Assets/TestFolder";
         
