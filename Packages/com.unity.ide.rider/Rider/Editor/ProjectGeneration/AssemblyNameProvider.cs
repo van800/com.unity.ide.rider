@@ -24,7 +24,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
     {
       foreach (var assembly in CompilationPipeline.GetAssemblies())
       {
-        if (0 < assembly.sourceFiles.Length && assembly.sourceFiles.Any(shouldFileBePartOfSolution))
+        if (assembly.sourceFiles.Any(shouldFileBePartOfSolution))
         {
           yield return assembly;
         }
@@ -33,7 +33,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
       {
         foreach (var assembly in CompilationPipeline.GetAssemblies(AssembliesType.Player))
         {
-          if (0 < assembly.sourceFiles.Length && assembly.sourceFiles.Any(shouldFileBePartOfSolution))
+          if (assembly.sourceFiles.Any(shouldFileBePartOfSolution))
           {
             yield return new Assembly(assembly.name + "-player", assembly.outputPath, assembly.sourceFiles, assembly.defines, assembly.assemblyReferences, assembly.compiledAssemblyReferences, assembly.flags)
             {
