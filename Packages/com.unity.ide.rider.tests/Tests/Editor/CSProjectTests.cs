@@ -214,22 +214,12 @@ namespace Packages.Rider.Editor.Tests
             }
 
             [Test]
-            public void InInternalizedPackage_WithoutGenerateAll_WillNotResync()
+            public void NotInInternalizedPackage_WillResync()
             {
                 var synchronizer = m_Builder.Build();
                 synchronizer.Sync();
                 var packageAsset = "packageAsset.cs";
-                m_Builder.WithPackageAsset(packageAsset, true);
-                Assert.IsFalse(synchronizer.SyncIfNeeded(new[] { packageAsset }, new string[0]));
-            }
-            [Test]
-            public void InInternalizedPackage_WithGenerateAll_WillResync()
-            {
-                var synchronizer = m_Builder.Build();
-                synchronizer.Sync();
-                synchronizer.GenerateAll(true);
-                var packageAsset = "packageAsset.cs";
-                m_Builder.WithPackageAsset(packageAsset, true);
+                m_Builder.WithPackageAsset(packageAsset, false);
                 Assert.IsTrue(synchronizer.SyncIfNeeded(new[] { packageAsset }, new string[0]));
             }
         }
@@ -305,49 +295,19 @@ namespace Packages.Rider.Editor.Tests
             }
 
             [Test]
-            public void InInternalizedPackage_WithoutGenerateAll_WillNotBeAddedToCompileInclude()
+            public void InInternalizedPackage_WillBeAddedToCompileInclude()
             {
                 var synchronizer = m_Builder.WithPackageAsset(m_Builder.Assembly.sourceFiles[0], true).Build();
                 synchronizer.Sync();
                 StringAssert.DoesNotContain(m_Builder.Assembly.sourceFiles[0], m_Builder.ReadProjectFile(m_Builder.Assembly));
             }
+            
             [Test]
-            public void InInternalizedPackage_WithGenerateAll_WillBeAddedToCompileInclude()
+            public void NotInInternalizedPackage_WillBeAddedToCompileInclude()
             {
-                var synchronizer = m_Builder.WithPackageAsset(m_Builder.Assembly.sourceFiles[0], true).Build();
-                synchronizer.GenerateAll(true);
+                var synchronizer = m_Builder.WithPackageAsset(m_Builder.Assembly.sourceFiles[0], false).Build();
                 synchronizer.Sync();
                 StringAssert.Contains(m_Builder.Assembly.sourceFiles[0], m_Builder.ReadProjectFile(m_Builder.Assembly));
-            }
-            [Test]
-            public void InInternalizedPackage_WithoutGenerateAll_WillNotBeAddedToNonInclude()
-            {
-                var nonCompileItem = "packageAsset.shader";
-                var nonCompileItems = new[] { nonCompileItem };
-                var synchronizer = m_Builder
-                    .WithAssetFiles(nonCompileItems)
-                    .AssignFilesToAssembly(nonCompileItems, m_Builder.Assembly)
-                    .WithPackageAsset(nonCompileItem, true)
-                    .Build();
-                synchronizer.Sync();
-                var xmlDocument = XMLUtilities.FromText(m_Builder.ReadProjectFile(m_Builder.Assembly));
-                XMLUtilities.AssertNonCompileItemsMatchExactly(xmlDocument, new string[0]);
-            }
-
-            [Test]
-            public void InInternalizedPackage_WithGenerateAll_WillBeAddedToNonInclude()
-            {
-                var nonCompileItem = "packageAsset.shader";
-                var nonCompileItems = new[] { nonCompileItem };
-                var synchronizer = m_Builder
-                    .WithAssetFiles(nonCompileItems)
-                    .AssignFilesToAssembly(nonCompileItems, m_Builder.Assembly)
-                    .WithPackageAsset(nonCompileItem, true)
-                    .Build();
-                synchronizer.GenerateAll(true);
-                synchronizer.Sync();
-                var xmlDocument = XMLUtilities.FromText(m_Builder.ReadProjectFile(m_Builder.Assembly));
-                XMLUtilities.AssertNonCompileItemsMatchExactly(xmlDocument, nonCompileItems);
             }
 
             [Test]
