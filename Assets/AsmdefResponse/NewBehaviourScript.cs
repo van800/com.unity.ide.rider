@@ -6,8 +6,6 @@ public class NewBehaviourScript : MonoBehaviour
     void Start()
     {
     }
-    
-    private int iii;
 
     // Update is called once per frame
     void Update()
