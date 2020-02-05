@@ -95,8 +95,10 @@ namespace Packages.Rider.Editor.ProjectGeneration
           return !ProjectGenerationFlag.HasFlag(ProjectGenerationFlag.Local);
         case PackageSource.Git:
           return !ProjectGenerationFlag.HasFlag(ProjectGenerationFlag.Git);
+#if UNITY_2019_3_OR_NEWER
         case PackageSource.LocalTarball:
           return !ProjectGenerationFlag.HasFlag(ProjectGenerationFlag.LocalTarBall);
+#endif
       }
 
       return false;
