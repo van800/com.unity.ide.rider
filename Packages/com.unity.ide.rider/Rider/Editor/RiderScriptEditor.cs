@@ -128,6 +128,7 @@ namespace Packages.Rider.Editor
       // Add event handlers.
       watcher.Changed += OnChanged;
       watcher.Created += OnChanged;
+      watcher.Deleted += OnChanged;
 
       watcher.EnableRaisingEvents = true; // Begin watching.
       
