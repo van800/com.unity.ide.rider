@@ -45,11 +45,14 @@ namespace Packages.Rider.Editor.Tests
         {
             var playerAssemblies = CompilationPipeline.GetAssemblies(AssembliesType.Player);
 
+            if (m_AssemblyNameProvider.ProjectGenerationFlag.HasFlag(ProjectGenerationFlag.PlayerAssemblies))
+                m_AssemblyNameProvider.ToggleProjectGeneration(ProjectGenerationFlag.PlayerAssemblies);
+
             var collectedAssemblies = m_AssemblyNameProvider.GetAssemblies(s => true).ToList();
 
             foreach (Assembly playerAssembly in playerAssemblies)
             {
-                Assert.IsFalse(collectedAssemblies.Any(assembly => assembly.name == playerAssembly.name + "-player" && assembly.outputPath == playerAssembly.outputPath), $"{playerAssembly.name}: was found in collection.");
+                Assert.IsFalse(collectedAssemblies.Any(assembly => assembly.name == playerAssembly.name + ".Player" && assembly.outputPath == playerAssembly.outputPath), $"{playerAssembly.name}: was found in collection.");
             }
         }
 
@@ -58,12 +61,13 @@ namespace Packages.Rider.Editor.Tests
         {
             var playerAssemblies = CompilationPipeline.GetAssemblies(AssembliesType.Player);
 
-            m_AssemblyNameProvider.GeneratePlayerProjects(true);
+            if (!m_AssemblyNameProvider.ProjectGenerationFlag.HasFlag(ProjectGenerationFlag.PlayerAssemblies))
+                m_AssemblyNameProvider.ToggleProjectGeneration(ProjectGenerationFlag.PlayerAssemblies);
             var collectedAssemblies = m_AssemblyNameProvider.GetAssemblies(s => true).ToList();
 
             foreach (Assembly playerAssembly in playerAssemblies)
             {
-                Assert.IsTrue(collectedAssemblies.Any(assembly => assembly.name == playerAssembly.name + "-player" && assembly.outputPath == playerAssembly.outputPath), $"{playerAssembly.name}: was not found in collection.");
+                Assert.IsTrue(collectedAssemblies.Any(assembly => assembly.name == playerAssembly.name + ".Player" && assembly.outputPath == playerAssembly.outputPath), $"{playerAssembly.name}: was not found in collection.");
             }
         }
 

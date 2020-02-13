@@ -9,11 +9,21 @@ namespace Packages.Rider.Editor.ProjectGeneration
 {
   internal class AssemblyNameProvider : IAssemblyNameProvider
   {
-    bool m_generatePlayerProjects;
+    ProjectGenerationFlag m_ProjectGenerationFlag = (ProjectGenerationFlag)EditorPrefs.GetInt("unity_project_generation_flag", 0);
 
     public string[] ProjectSupportedExtensions => EditorSettings.projectGenerationUserExtensions;
 
     public string ProjectGenerationRootNamespace => EditorSettings.projectGenerationRootNamespace;
+
+    public ProjectGenerationFlag ProjectGenerationFlag
+    {
+      get => m_ProjectGenerationFlag;
+      private set
+      {
+        EditorPrefs.SetInt("unity_project_generation_flag", (int)value);
+        m_ProjectGenerationFlag = value;
+      }
+    }
 
     public string GetAssemblyNameFromScriptPath(string path)
     {
@@ -24,18 +34,18 @@ namespace Packages.Rider.Editor.ProjectGeneration
     {
       foreach (var assembly in CompilationPipeline.GetAssemblies())
       {
-        if (0 < assembly.sourceFiles.Length && assembly.sourceFiles.Any(shouldFileBePartOfSolution))
+        if (assembly.sourceFiles.Any(shouldFileBePartOfSolution))
         {
           yield return assembly;
         }
       }
-      if (m_generatePlayerProjects)
+      if (ProjectGenerationFlag.HasFlag(ProjectGenerationFlag.PlayerAssemblies))
       {
         foreach (var assembly in CompilationPipeline.GetAssemblies(AssembliesType.Player))
         {
-          if (0 < assembly.sourceFiles.Length && assembly.sourceFiles.Any(shouldFileBePartOfSolution))
+          if (assembly.sourceFiles.Any(shouldFileBePartOfSolution))
           {
-            yield return new Assembly(assembly.name + "-player", assembly.outputPath, assembly.sourceFiles, assembly.defines, assembly.assemblyReferences, assembly.compiledAssemblyReferences, assembly.flags)
+            yield return new Assembly(assembly.name + ".Player", assembly.outputPath, assembly.sourceFiles, assembly.defines, assembly.assemblyReferences, assembly.compiledAssemblyReferences, assembly.flags)
             {
               compilerOptions =
               {
@@ -71,7 +81,27 @@ namespace Packages.Rider.Editor.ProjectGeneration
         return false;
       }
       var packageSource = packageInfo.source;
-      return packageSource != PackageSource.Embedded && packageSource != PackageSource.Local;
+      switch (packageSource)
+      {
+        case PackageSource.Embedded:
+          return !ProjectGenerationFlag.HasFlag(ProjectGenerationFlag.Embedded);
+        case PackageSource.Registry:
+          return !ProjectGenerationFlag.HasFlag(ProjectGenerationFlag.Registry);
+        case PackageSource.BuiltIn:
+          return !ProjectGenerationFlag.HasFlag(ProjectGenerationFlag.BuiltIn);
+        case PackageSource.Unknown:
+          return !ProjectGenerationFlag.HasFlag(ProjectGenerationFlag.Unknown);
+        case PackageSource.Local:
+          return !ProjectGenerationFlag.HasFlag(ProjectGenerationFlag.Local);
+        case PackageSource.Git:
+          return !ProjectGenerationFlag.HasFlag(ProjectGenerationFlag.Git);
+#if UNITY_2019_3_OR_NEWER
+        case PackageSource.LocalTarball:
+          return !ProjectGenerationFlag.HasFlag(ProjectGenerationFlag.LocalTarBall);
+#endif
+      }
+
+      return false;
     }
 
     public ResponseFileData ParseResponseFile(string responseFilePath, string projectDirectory, string[] systemReferenceDirectories)
@@ -83,16 +113,23 @@ namespace Packages.Rider.Editor.ProjectGeneration
       );
     }
 
-    public void GeneratePlayerProjects(bool generatePlayerProjects)
-    {
-      m_generatePlayerProjects = generatePlayerProjects;
-    }
-
     public IEnumerable<string> GetRoslynAnalyzerPaths()
     {
       return PluginImporter.GetAllImporters()
         .Where(i => !i.isNativePlugin && AssetDatabase.GetLabels(i).SingleOrDefault(l => l == "RoslynAnalyzer") != null)
         .Select(i => i.assetPath);
+    }
+
+    public void ToggleProjectGeneration(ProjectGenerationFlag preference)
+    {
+      if (ProjectGenerationFlag.HasFlag(preference))
+      {
+        ProjectGenerationFlag ^= preference;
+      }
+      else
+      {
+        ProjectGenerationFlag |= preference;
+      }
     }
   }
 }

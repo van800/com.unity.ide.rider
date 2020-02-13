@@ -9,6 +9,5 @@ namespace Packages.Rider.Editor.ProjectGeneration
     bool HasSolutionBeenGenerated();
     string SolutionFile();
     IAssemblyNameProvider AssemblyNameProvider { get; }
-    void GenerateAll(bool generateAll);
   }
 }

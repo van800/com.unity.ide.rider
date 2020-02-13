@@ -67,22 +67,16 @@ namespace Packages.Rider.Editor.ProjectGeneration
       RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
     string[] m_ProjectSupportedExtensions = new string[0];
-    bool m_ShouldGenerateAll;
 
     public string ProjectDirectory { get; }
-
-    public void GenerateAll(bool generateAll)
-    {
-      m_ShouldGenerateAll = generateAll;
-    }
 
     readonly string m_ProjectName;
     readonly IAssemblyNameProvider m_AssemblyNameProvider;
     readonly IFileIO m_FileIOProvider;
     readonly IGUIDGenerator m_GUIDGenerator;
-    
+
     internal static bool isRiderProjectGeneration; // workaround to https://github.cds.internal.unity3d.com/unity/com.unity.ide.rider/issues/28
-    
+
     const string k_ToolsVersion = "4.0";
     const string k_ProductVersion = "10.0.20506";
     const string k_BaseDirectory = ".";
@@ -172,11 +166,11 @@ namespace Packages.Rider.Editor.ProjectGeneration
     bool ShouldFileBePartOfSolution(string file)
     {
       // Exclude files coming from packages except if they are internalized.
-      if (!m_ShouldGenerateAll && m_AssemblyNameProvider.IsInternalizedPackagePath(file))
+      if (m_AssemblyNameProvider.IsInternalizedPackagePath(file))
       {
         return false;
       }
-      
+
       string extension = Path.GetExtension(file);
 
       // Dll's are not scripts but still need to be included..
@@ -281,7 +275,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
       foreach (string asset in m_AssemblyNameProvider.GetAllAssetPaths())
       {
         // Exclude files coming from packages except if they are internalized.
-        if (!m_ShouldGenerateAll && m_AssemblyNameProvider.IsInternalizedPackagePath(asset))
+        if (m_AssemblyNameProvider.IsInternalizedPackagePath(asset))
         {
           continue;
         }
