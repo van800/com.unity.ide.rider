@@ -30,16 +30,16 @@ namespace Packages.Rider.Editor.ProjectGeneration
     static readonly Dictionary<string, ScriptingLanguage> k_BuiltinSupportedExtensions =
       new Dictionary<string, ScriptingLanguage>
       {
-        {"cs", ScriptingLanguage.CSharp},
-        {"uxml", ScriptingLanguage.None},
-        {"uss", ScriptingLanguage.None},
-        {"shader", ScriptingLanguage.None},
-        {"compute", ScriptingLanguage.None},
-        {"cginc", ScriptingLanguage.None},
-        {"hlsl", ScriptingLanguage.None},
-        {"glslinc", ScriptingLanguage.None},
-        {"template", ScriptingLanguage.None},
-        {"raytrace", ScriptingLanguage.None}
+        { "cs", ScriptingLanguage.CSharp },
+        { "uxml", ScriptingLanguage.None },
+        { "uss", ScriptingLanguage.None },
+        { "shader", ScriptingLanguage.None },
+        { "compute", ScriptingLanguage.None },
+        { "cginc", ScriptingLanguage.None },
+        { "hlsl", ScriptingLanguage.None },
+        { "glslinc", ScriptingLanguage.None },
+        { "template", ScriptingLanguage.None },
+        { "raytrace", ScriptingLanguage.None }
       };
 
     string m_SolutionProjectEntryTemplate = string.Join(Environment.NewLine,
@@ -52,7 +52,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
       @"        {{{0}}}.Release|Any CPU.ActiveCfg = Release|Any CPU",
       @"        {{{0}}}.Release|Any CPU.Build.0 = Release|Any CPU").Replace("    ", "\t");
 
-    static readonly string[] k_ReimportSyncExtensions = {".dll", ".asmdef"};
+    static readonly string[] k_ReimportSyncExtensions = { ".dll", ".asmdef" };
 
     /// <summary>
     /// Map ScriptingLanguages to project extensions
@@ -85,13 +85,11 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
     IAssemblyNameProvider IGenerator.AssemblyNameProvider => m_AssemblyNameProvider;
 
-    public ProjectGeneration() : this(Directory.GetParent(Application.dataPath).FullName)
-    {
-    }
+    public ProjectGeneration()
+      : this(Directory.GetParent(Application.dataPath).FullName) { }
 
-    public ProjectGeneration(string tempDirectory) : this(tempDirectory, new AssemblyNameProvider(), new FileIOProvider(), new GUIDProvider())
-    {
-    }
+    public ProjectGeneration(string tempDirectory)
+      : this(tempDirectory, new AssemblyNameProvider(), new FileIOProvider(), new GUIDProvider()) { }
 
     public ProjectGeneration(string tempDirectory, IAssemblyNameProvider assemblyNameProvider, IFileIO fileIoProvider, IGUIDGenerator guidGenerator)
     {
@@ -117,7 +115,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
     public bool SyncIfNeeded(IEnumerable<string> affectedFiles, IEnumerable<string> reimportedFiles)
     {
       SetupProjectSupportedExtensions();
-      
+
       if (HasFilesBeenModified(affectedFiles, reimportedFiles))
       {
         Sync();
@@ -130,7 +128,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
     bool HasFilesBeenModified(IEnumerable<string> affectedFiles, IEnumerable<string> reimportedFiles)
     {
       var files = reimportedFiles as string[] ?? reimportedFiles.ToArray();
-      return affectedFiles.Any(ShouldFileBePartOfSolution) || files.Any(ShouldSyncOnReimportedAsset) || files.Any(a=>new FileInfo(a).Name == "csc.rsp");
+      return affectedFiles.Any(ShouldFileBePartOfSolution) || files.Any(ShouldSyncOnReimportedAsset) || files.Any(a => new FileInfo(a).Name == "csc.rsp");
     }
 
     static bool ShouldSyncOnReimportedAsset(string asset)
@@ -264,7 +262,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
       return responseFilesData.Select(x => x.Value);
     }
-    
+
     private IEnumerable<string> GetAllRoslynAnalyzerPaths()
     {
       return m_AssemblyNameProvider.GetRoslynAnalyzerPaths();
@@ -324,7 +322,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
     {
       SyncProjectFileIfNotChanged(
         ProjectFile(island),
-        ProjectText(island, allAssetsProjectParts, responseFilesData.ToList(), allProjectIslands, roslynAnalyzerDllPaths), 
+        ProjectText(island, allAssetsProjectParts, responseFilesData.ToList(), allProjectIslands, roslynAnalyzerDllPaths),
         types);
     }
 
@@ -404,7 +402,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
         var returnValue = method.Invoke(null, args);
         if (method.ReturnType == typeof(bool))
         {
-          result |= (bool) returnValue;
+          result |= (bool)returnValue;
         }
       }
 
@@ -415,7 +413,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
     {
       foreach (var type in types)
       {
-        var args = new[] {path, content};
+        var args = new[] { path, content };
         var method = type.GetMethod("OnGeneratedCSProject",
           System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic |
           System.Reflection.BindingFlags.Static);
@@ -427,7 +425,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
         var returnValue = method.Invoke(null, args);
         if (method.ReturnType == typeof(string))
         {
-          content = (string) returnValue;
+          content = (string)returnValue;
         }
       }
 
@@ -438,7 +436,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
     {
       foreach (var type in types)
       {
-        var args = new[] {path, content};
+        var args = new[] { path, content };
         var method = type.GetMethod("OnGeneratedSlnSolution",
           System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic |
           System.Reflection.BindingFlags.Static);
@@ -450,7 +448,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
         var returnValue = method.Invoke(null, args);
         if (method.ReturnType == typeof(string))
         {
-          content = (string) returnValue;
+          content = (string)returnValue;
         }
       }
 
@@ -500,6 +498,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
           references.Add(fullFile);
         }
       }
+
       // Append additional non-script files that should be included in project generation.
       if (allAssetsProjectParts.TryGetValue(assembly.name, out var additionalAssetsForProject))
         projectBuilder.Append(additionalAssetsForProject);
@@ -593,7 +592,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
         InternalEditorUtility.GetEngineAssemblyPath(),
         InternalEditorUtility.GetEditorAssemblyPath(),
         string.Join(";",
-          new[] {"DEBUG", "TRACE"}.Concat(EditorUserBuildSettings.activeScriptCompilationDefines).Concat(assembly.defines)
+          new[] { "DEBUG", "TRACE" }.Concat(EditorUserBuildSettings.activeScriptCompilationDefines).Concat(assembly.defines)
             .Concat(responseFilesData.SelectMany(x => x.Defines)).Distinct().ToArray()),
         MSBuildNamespaceUri,
         assembly.name,
@@ -605,12 +604,16 @@ namespace Packages.Rider.Editor.ProjectGeneration
         GenerateNoWarn(otherResponseFilesData["nowarn"].Distinct().ToArray()),
         GenerateAnalyserItemGroup(
           otherResponseFilesData["analyzer"].Concat(otherResponseFilesData["a"])
-                                                  .SelectMany(x=>x.Split(';'))
-                                                  .Concat(roslynAnalyzerDllPaths)
-                                                  .Distinct()
-                                                  .ToArray()),
-        GenerateAnalyserAdditionalFiles(otherResponseFilesData["additionalfile"].SelectMany(x=>x.Split(';')).Distinct().ToArray()),
+            .SelectMany(x => x.Split(';'))
+            .Concat(roslynAnalyzerDllPaths)
+            .Distinct()
+            .ToArray()),
+        GenerateAnalyserAdditionalFiles(otherResponseFilesData["additionalfile"].SelectMany(x => x.Split(';')).Distinct().ToArray()),
+#if UNITY_2020_2_OR_NEWER
         GenerateAnalyserRuleSet(otherResponseFilesData["ruleset"].Concat(assembly.compilerOptions.RoslynAnalyzerRulesetPaths).Distinct().ToArray()),
+#else
+        GenerateAnalyserRuleSet(otherResponseFilesData["ruleset"].Distinct().ToArray()),
+#endif
         GenerateWarningLevel(otherResponseFilesData["warn"].Concat(otherResponseFilesData["w"]).Distinct()),
         GenerateWarningAsError(otherResponseFilesData["warnaserror"]),
         GenerateDocumentationFile(otherResponseFilesData["doc"])
@@ -717,7 +720,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
         @"  <PropertyGroup>",
         @"    <LangVersion>{10}</LangVersion>",
         @"    <_TargetFrameworkDirectories>non_empty_path_generated_by_unity.rider.package</_TargetFrameworkDirectories>",
-        @"    <_FullFrameworkReferenceAssemblyPaths>non_empty_path_generated_by_unity.rider.package</_FullFrameworkReferenceAssemblyPaths>", 
+        @"    <_FullFrameworkReferenceAssemblyPaths>non_empty_path_generated_by_unity.rider.package</_FullFrameworkReferenceAssemblyPaths>",
         @"    <DisableHandlePackageFileConflicts>true</DisableHandlePackageFileConflicts>{16}",
         @"  </PropertyGroup>",
         @"  <PropertyGroup>",
@@ -794,24 +797,25 @@ namespace Packages.Rider.Editor.ProjectGeneration
         relevantIslands.Select(i => GetProjectActiveConfigurations(m_GUIDGenerator.ProjectGuid(m_ProjectName, i.name))).ToArray());
       return string.Format(GetSolutionText(), fileversion, vsversion, projectEntries, projectConfigurations);
     }
-    
+
     private static string GenerateAnalyserItemGroup(string[] paths)
     {
       //   <ItemGroup>
-        //      <Analyzer Include="..\packages\Comments_analyser.1.0.6626.21356\analyzers\dotnet\cs\Comments_analyser.dll" />
-        //      <Analyzer Include="..\packages\UnityEngineAnalyzer.1.0.0.0\analyzers\dotnet\cs\UnityEngineAnalyzer.dll" />
-        //  </ItemGroup>
-        if (!paths.Any())
-            return string.Empty;
+      //      <Analyzer Include="..\packages\Comments_analyser.1.0.6626.21356\analyzers\dotnet\cs\Comments_analyser.dll" />
+      //      <Analyzer Include="..\packages\UnityEngineAnalyzer.1.0.0.0\analyzers\dotnet\cs\UnityEngineAnalyzer.dll" />
+      //  </ItemGroup>
+      if (!paths.Any())
+        return string.Empty;
 
-        var analyserBuilder = new StringBuilder();
-        analyserBuilder.AppendLine("  <ItemGroup>");
-        foreach (var path in paths)
-        {
-          analyserBuilder.AppendLine($"    <Analyzer Include=\"{path}\" />");
-        }
-        analyserBuilder.AppendLine("  </ItemGroup>");
-        return analyserBuilder.ToString();
+      var analyserBuilder = new StringBuilder();
+      analyserBuilder.AppendLine("  <ItemGroup>");
+      foreach (var path in paths)
+      {
+        analyserBuilder.AppendLine($"    <Analyzer Include=\"{path}\" />");
+      }
+
+      analyserBuilder.AppendLine("  </ItemGroup>");
+      return analyserBuilder.ToString();
     }
 
     private static ILookup<string, string> GetOtherArgumentsFromResponseFilesData(List<ResponseFileData> responseFilesData)
@@ -832,7 +836,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
               const string warnaserror = "warnaserror";
               if (b.Substring(1).StartsWith(warnaserror))
               {
-                return new KeyValuePair<string,string>(warnaserror, b.Substring(warnaserror.Length+ 1) );
+                return new KeyValuePair<string, string>(warnaserror, b.Substring(warnaserror.Length + 1));
               }
 
               return default;
@@ -854,33 +858,33 @@ namespace Packages.Rider.Editor.ProjectGeneration
     private static string GenerateAnalyserRuleSet(string[] paths)
     {
       //<CodeAnalysisRuleSet>..\path\to\myrules.ruleset</CodeAnalysisRuleSet>
-        if (!paths.Any())
-            return string.Empty;
-      
-        return $"{Environment.NewLine}{string.Join(Environment.NewLine, paths.Select(a => $"  <CodeAnalysisRuleSet>{a}</CodeAnalysisRuleSet>"))}";
+      if (!paths.Any())
+        return string.Empty;
+
+      return $"{Environment.NewLine}{string.Join(Environment.NewLine, paths.Select(a => $"  <CodeAnalysisRuleSet>{a}</CodeAnalysisRuleSet>"))}";
     }
-    
+
     private static string GenerateAnalyserAdditionalFiles(string[] paths)
     {
       if (!paths.Any())
         return string.Empty;
-      
-      
+
       var analyserBuilder = new StringBuilder();
       analyserBuilder.AppendLine("  <ItemGroup>");
       foreach (var path in paths)
       {
         analyserBuilder.AppendLine($"    <AdditionalFiles Include=\"{path}\" />");
       }
+
       analyserBuilder.AppendLine("  </ItemGroup>");
       return analyserBuilder.ToString();
     }
-    
+
     private static string GenerateNoWarn(string[] codes)
     {
       if (!codes.Any())
         return string.Empty;
-      
+
       return $",{string.Join(",", codes)}";
     }
 

@@ -100,11 +100,14 @@ namespace Packages.Rider.Editor.Tests
                 defines ?? new string[0],
                 assemblyReferences ?? new Assembly[0],
                 compiledAssemblyReferences ?? new string[0],
-                AssemblyFlags.None) {compilerOptions =
+                AssemblyFlags.None)
             {
-                AllowUnsafeCode = unsafeSettings,
-                RoslynAnalyzerRulesetPaths = roslynAnalyzerRulesetPaths
-            }};
+                compilerOptions =
+                {
+                    AllowUnsafeCode = unsafeSettings,
+                    RoslynAnalyzerRulesetPaths = roslynAnalyzerRulesetPaths
+                }
+            };
 
             return WithAssembly(assembly);
         }
