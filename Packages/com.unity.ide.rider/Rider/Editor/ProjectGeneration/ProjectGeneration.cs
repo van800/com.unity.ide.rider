@@ -745,6 +745,8 @@ namespace Packages.Rider.Editor
         GenerateAnalyserAdditionalFiles(otherResponseFilesData["additionalfile"].SelectMany(x=>x.Split(';')).Distinct().ToArray()),
         #if UNITY_2020_2_OR_NEWER
         GenerateAnalyserRuleSet(otherResponseFilesData["ruleset"].Concat(assembly.compilerOptions.RoslynAnalyzerRulesetPaths).Distinct().ToArray()),
+        #else
+        GenerateAnalyserRuleSet(otherResponseFilesData["ruleset"].Distinct().ToArray()),
         #endif
         GenerateWarningLevel(otherResponseFilesData["warn"].Concat(otherResponseFilesData["w"]).Distinct()),
         GenerateWarningAsError(otherResponseFilesData["warnaserror"]),
