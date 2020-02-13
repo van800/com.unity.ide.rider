@@ -85,20 +85,28 @@ namespace Packages.Rider.Editor.Tests
             return this;
         }
 
-        public SynchronizerBuilder WithAssemblyData(string[] files = null, string[] defines = null, Assembly[] assemblyReferences = null, string[] compiledAssemblyReferences = null, bool unsafeSettings = false)
+        public SynchronizerBuilder WithAssemblyData
+            (string[] files = null, 
+            string[] defines = null,
+            Assembly[] assemblyReferences = null, 
+            string[] compiledAssemblyReferences = null, 
+            bool unsafeSettings = false,
+            params string[] roslynAnalyzerRulesetPaths)
         {
             var assembly = new Assembly(
                 "Test",
                 "some/path/file.dll",
-                files ?? new[] { "test.cs" },
+                files ?? new[] {"test.cs"},
                 defines ?? new string[0],
                 assemblyReferences ?? new Assembly[0],
                 compiledAssemblyReferences ?? new string[0],
-                AssemblyFlags.None);
-            assembly.compilerOptions.AllowUnsafeCode = unsafeSettings;
-            return WithAssembly(
-                assembly
-            );
+                AssemblyFlags.None) {compilerOptions =
+            {
+                AllowUnsafeCode = unsafeSettings,
+                RoslynAnalyzerRulesetPaths = roslynAnalyzerRulesetPaths
+            }};
+
+            return WithAssembly(assembly);
         }
 
         public SynchronizerBuilder WithAssembly(Assembly assembly)
