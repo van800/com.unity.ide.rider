@@ -91,7 +91,7 @@ namespace Packages.Rider.Editor.Tests
             Assembly[] assemblyReferences = null, 
             string[] compiledAssemblyReferences = null, 
             bool unsafeSettings = false,
-            params string[] roslynAnalyzerRulesetPaths)
+            string roslynAnalyzerRulesetPath = null)
         {
             var assembly = new Assembly(
                 "Test",
@@ -105,7 +105,7 @@ namespace Packages.Rider.Editor.Tests
                 compilerOptions =
                 {
                     AllowUnsafeCode = unsafeSettings,
-                    RoslynAnalyzerRulesetPaths = roslynAnalyzerRulesetPaths
+                    RoslynAnalyzerRulesetPath = roslynAnalyzerRulesetPath
                 }
             };
 
