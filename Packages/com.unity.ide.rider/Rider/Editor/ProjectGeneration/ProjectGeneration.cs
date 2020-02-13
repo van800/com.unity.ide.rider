@@ -134,7 +134,11 @@ namespace Packages.Rider.Editor.ProjectGeneration
     }
 
     static bool ShouldSyncOnReimportedAsset(string asset)
-    {
+    {        
+      if (asset == null || asset.Length == 0)
+      {
+        return false;
+      }
       return k_ReimportSyncExtensions.Contains(new FileInfo(asset).Extension);
     }
 
