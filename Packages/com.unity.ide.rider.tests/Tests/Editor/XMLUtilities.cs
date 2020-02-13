@@ -20,11 +20,11 @@ namespace Packages.Rider.Editor.Tests
                 actual:projectXml.SelectAttributeValues("/msb:Project/msb:ItemGroup/msb:Analyzer/@Include", GetModifiedXmlNamespaceManager(projectXml)).ToArray());
         }
 
-        public static void AssertAnalyzerRuleSetsMatchExactly(XmlDocument projectXml, IEnumerable<string> expectedRuleSetFiles)
+        public static void AssertAnalyzerRuleSetsMatchExactly(XmlDocument projectXml, string expectedRuleSetFile)
         {
-            CollectionAssert.AreEquivalent(
-                expectedRuleSetFiles, 
-                actual:projectXml.SelectElementValues("/msb:Project/msb:PropertyGroup/msb:CodeAnalysisRuleSet", GetModifiedXmlNamespaceManager(projectXml)).ToArray());
+            CollectionAssert.Contains(
+                projectXml.SelectElementValues("/msb:Project/msb:PropertyGroup/msb:CodeAnalysisRuleSet",
+                    GetModifiedXmlNamespaceManager(projectXml)).ToArray(), expectedRuleSetFile);
         }
         public static void AssertNonCompileItemsMatchExactly(XmlDocument projectXml, IEnumerable<string> expectedNoncompileItems)
         {
