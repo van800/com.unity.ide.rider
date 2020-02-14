@@ -86,10 +86,10 @@ namespace Packages.Rider.Editor.Tests
         }
 
         public SynchronizerBuilder WithAssemblyData
-            (string[] files = null, 
+        (string[] files = null,
             string[] defines = null,
-            Assembly[] assemblyReferences = null, 
-            string[] compiledAssemblyReferences = null, 
+            Assembly[] assemblyReferences = null,
+            string[] compiledAssemblyReferences = null,
             bool unsafeSettings = false,
             string roslynAnalyzerRulesetPath = null)
         {
@@ -100,14 +100,14 @@ namespace Packages.Rider.Editor.Tests
                 defines ?? new string[0],
                 assemblyReferences ?? new Assembly[0],
                 compiledAssemblyReferences ?? new string[0],
-                AssemblyFlags.None)
-            {
-                compilerOptions =
+                AssemblyFlags.None,
+                new ScriptCompilerOptions
                 {
                     AllowUnsafeCode = unsafeSettings,
+#if UNITY_EDITOR_2020_2_OR_NEWER
                     RoslynAnalyzerRulesetPath = roslynAnalyzerRulesetPath
-                }
-            };
+#endif
+                });
 
             return WithAssembly(assembly);
         }
@@ -128,7 +128,7 @@ namespace Packages.Rider.Editor.Tests
             m_AssemblyProvider.Setup(p => p.GetRoslynAnalyzerPaths()).Returns(roslynAnalyzerDllPaths);
             return this;
         }
-        
+
         public SynchronizerBuilder AssignFilesToAssembly(string[] files, Assembly assembly)
         {
             m_AssemblyProvider.Setup(x => x.GetAssemblyNameFromScriptPath(It.Is<string>(file => files.Contains(file.Substring(0, file.Length - ".cs".Length))))).Returns(assembly.name);
