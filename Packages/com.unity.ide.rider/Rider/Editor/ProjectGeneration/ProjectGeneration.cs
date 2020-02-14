@@ -321,11 +321,7 @@ namespace Packages.Rider.Editor
     bool IsSupportedExtension(string extension)
     {
       extension = extension.TrimStart('.');
-      if (k_BuiltinSupportedExtensions.ContainsKey(extension))
-        return true;
-      if (m_ProjectSupportedExtensions.Contains(extension))
-        return true;
-      return false;
+      return k_BuiltinSupportedExtensions.ContainsKey(extension) || m_ProjectSupportedExtensions.Contains(extension);
     }
 
     static ScriptingLanguage ScriptingLanguageFor(Assembly island)
