@@ -28,20 +28,5 @@ namespace JetBrains.Rider.Unity.Editor
         CodeEditor.CurrentEditor.OpenProject();
       }
     }
-    
-    /// <summary>
-    /// Forces regeneration of .csproj / .sln files.
-    /// </summary>
-    [MenuItem("Assets/Sync C# Project", false, 1001)]
-    private static void MenuSyncProject()
-    {
-      CodeEditor.CurrentEditor.SyncAll();
-    }
-    
-    [MenuItem("Assets/Sync C# Project", true, 1001)]
-    private static bool ValidateMenuSyncProject()
-    {
-      return true;
-    }
   }
 }
