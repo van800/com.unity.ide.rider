@@ -321,11 +321,7 @@ namespace Packages.Rider.Editor
     bool IsSupportedExtension(string extension)
     {
       extension = extension.TrimStart('.');
-      if (k_BuiltinSupportedExtensions.ContainsKey(extension))
-        return true;
-      if (m_ProjectSupportedExtensions.Contains(extension))
-        return true;
-      return false;
+      return k_BuiltinSupportedExtensions.ContainsKey(extension) || m_ProjectSupportedExtensions.Contains(extension);
     }
 
     static ScriptingLanguage ScriptingLanguageFor(Assembly island)
@@ -743,7 +739,11 @@ namespace Packages.Rider.Editor
                                                   .Distinct()
                                                   .ToArray()),
         GenerateAnalyserAdditionalFiles(otherResponseFilesData["additionalfile"].SelectMany(x=>x.Split(';')).Distinct().ToArray()),
+        #if UNITY_2020_2_OR_NEWER
+        GenerateAnalyserRuleSet(otherResponseFilesData["ruleset"].Append(assembly.compilerOptions.RoslynAnalyzerRulesetPath).Distinct().ToArray()),
+        #else
         GenerateAnalyserRuleSet(otherResponseFilesData["ruleset"].Distinct().ToArray()),
+        #endif
         GenerateWarningLevel(otherResponseFilesData["warn"].Concat(otherResponseFilesData["w"]).Distinct()),
         GenerateWarningAsError(otherResponseFilesData["warnaserror"]),
         GenerateDocumentationFile(otherResponseFilesData["doc"])
