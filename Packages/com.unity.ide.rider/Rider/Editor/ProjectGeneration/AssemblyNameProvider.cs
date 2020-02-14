@@ -9,7 +9,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
 {
   internal class AssemblyNameProvider : IAssemblyNameProvider
   {
-    ProjectGenerationFlag m_ProjectGenerationFlag = (ProjectGenerationFlag)EditorPrefs.GetInt("unity_project_generation_flag", 0);
+    ProjectGenerationFlag m_ProjectGenerationFlag = (ProjectGenerationFlag)EditorPrefs.GetInt("unity_project_generation_flag", 3);
 
     public string[] ProjectSupportedExtensions => EditorSettings.projectGenerationUserExtensions;
 
