@@ -187,7 +187,7 @@ namespace Packages.Rider.Editor
         case OperatingSystemFamily.Windows:
         {
           var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-          return Path.Combine(localAppData, @"JetBrains\Toolbox\apps\Rider");
+          return GetToolboxRiderRootPath(localAppData);
         }
 
         case OperatingSystemFamily.MacOSX:
@@ -195,7 +195,8 @@ namespace Packages.Rider.Editor
           var home = Environment.GetEnvironmentVariable("HOME");
           if (!string.IsNullOrEmpty(home))
           {
-            return Path.Combine(home, @"Library/Application Support/JetBrains/Toolbox/apps/Rider");
+            var localAppData = Path.Combine(home, @"Library/Application Support");
+            return  GetToolboxRiderRootPath(localAppData);
           }
           break;
         }
@@ -205,12 +206,30 @@ namespace Packages.Rider.Editor
           var home = Environment.GetEnvironmentVariable("HOME");
           if (!string.IsNullOrEmpty(home))
           {
-            return Path.Combine(home, @".local/share/JetBrains/Toolbox/apps/Rider");
+            var localAppData = Path.Combine(home, @".local/share");
+            return GetToolboxRiderRootPath(localAppData);
           }
           break;
         }
       }
       return string.Empty;
+    }
+    
+    
+    private static string GetToolboxRiderRootPath(string localAppData)
+    {
+      var toolboxPath = Path.Combine(localAppData, @"JetBrains\Toolbox");
+      var settingsJson = Path.Combine(toolboxPath, ".settings.json");
+
+      if (File.Exists(settingsJson))
+      {
+        var path = SettingsJson.GetInstallLocationFromJson(File.ReadAllText(settingsJson));
+        if (!string.IsNullOrEmpty(path))
+          toolboxPath = path;
+      }
+
+      var toolboxRiderRootPath = Path.Combine(toolboxPath, @"apps\Rider");
+      return toolboxRiderRootPath;
     }
     
     internal static ProductInfo GetBuildVersion(string path)
@@ -349,6 +368,32 @@ namespace Packages.Rider.Editor
     // Disable the "field is never assigned" compiler warning. We never assign it, but Unity does.
     // Note that Unity disable this warning in the generated C# projects
 #pragma warning disable 0649
+    
+    [Serializable]
+    class SettingsJson
+    {
+      // ReSharper disable once InconsistentNaming
+      public string install_location;
+      
+      [CanBeNull]
+      public static string GetInstallLocationFromJson(string json)
+      {
+        try
+        {
+#if UNITY_4_7 || UNITY_5_5
+          return JsonConvert.DeserializeObject<SettingsJson>(json).install_location;
+#else
+          return JsonUtility.FromJson<SettingsJson>(json).install_location;
+#endif
+        }
+        catch (Exception)
+        {
+          Logger.Warn($"Failed to get install_location from json {json}");
+        }
+
+        return null;
+      }
+    }
 
     [Serializable]
     class ToolboxHistory
