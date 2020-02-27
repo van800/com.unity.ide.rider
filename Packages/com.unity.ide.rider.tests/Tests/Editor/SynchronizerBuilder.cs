@@ -117,7 +117,7 @@ namespace Packages.Rider.Editor.Tests
             m_AssemblyProvider.Setup(p => p.GetRoslynAnalyzerPaths()).Returns(roslynAnalyzerDllPaths);
             return this;
         }
-        
+
         public SynchronizerBuilder AssignFilesToAssembly(string[] files, Assembly assembly)
         {
             m_AssemblyProvider.Setup(x => x.GetAssemblyNameFromScriptPath(It.Is<string>(file => files.Contains(file.Substring(0, file.Length - ".cs".Length))))).Returns(assembly.name);
@@ -153,6 +153,12 @@ namespace Packages.Rider.Editor.Tests
         public SynchronizerBuilder WithUserSupportedExtensions(string[] extensions)
         {
             m_AssemblyProvider.Setup(x => x.ProjectSupportedExtensions).Returns(extensions);
+            return this;
+        }
+
+        public SynchronizerBuilder WithOutputPathForAssemblyPath(string assemblyPath, string outputPath)
+        {
+            m_AssemblyProvider.Setup(x => x.GetCompileOutputPath(assemblyPath)).Returns(outputPath);
             return this;
         }
     }
