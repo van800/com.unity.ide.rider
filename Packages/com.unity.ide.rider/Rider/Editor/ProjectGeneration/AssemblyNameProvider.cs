@@ -36,27 +36,38 @@ namespace Packages.Rider.Editor.ProjectGeneration
       {
         if (assembly.sourceFiles.Any(shouldFileBePartOfSolution))
         {
-          yield return assembly;
+          yield return new Assembly(assembly.name, assembly.outputPath, assembly.sourceFiles, new[] { "DEBUG", "TRACE" }.Concat(assembly.defines).Concat(EditorUserBuildSettings.activeScriptCompilationDefines).ToArray(), assembly.assemblyReferences, assembly.compiledAssemblyReferences, assembly.flags)
+          {
+            compilerOptions =
+            {
+              ResponseFiles = assembly.compilerOptions.ResponseFiles,
+              AllowUnsafeCode = assembly.compilerOptions.AllowUnsafeCode,
+              ApiCompatibilityLevel = assembly.compilerOptions.ApiCompatibilityLevel
+            }
+          };
         }
       }
+
       if (ProjectGenerationFlag.HasFlag(ProjectGenerationFlag.PlayerAssemblies))
       {
-        foreach (var assembly in CompilationPipeline.GetAssemblies(AssembliesType.Player))
+        foreach (var assembly in CompilationPipeline.GetAssemblies(AssembliesType.Player).Where(assembly => assembly.sourceFiles.Any(shouldFileBePartOfSolution)))
         {
-          if (assembly.sourceFiles.Any(shouldFileBePartOfSolution))
+          yield return new Assembly(assembly.name + ".Player", assembly.outputPath, assembly.sourceFiles, new[] { "DEBUG", "TRACE" }.Concat(assembly.defines).ToArray(), assembly.assemblyReferences, assembly.compiledAssemblyReferences, assembly.flags)
           {
-            yield return new Assembly(assembly.name + ".Player", assembly.outputPath, assembly.sourceFiles, assembly.defines, assembly.assemblyReferences, assembly.compiledAssemblyReferences, assembly.flags)
+            compilerOptions =
             {
-              compilerOptions =
-              {
-                ResponseFiles = assembly.compilerOptions.ResponseFiles,
-                AllowUnsafeCode = assembly.compilerOptions.AllowUnsafeCode,
-                ApiCompatibilityLevel = assembly.compilerOptions.ApiCompatibilityLevel
-              }
-            };
-          }
+              ResponseFiles = assembly.compilerOptions.ResponseFiles,
+              AllowUnsafeCode = assembly.compilerOptions.AllowUnsafeCode,
+              ApiCompatibilityLevel = assembly.compilerOptions.ApiCompatibilityLevel
+            }
+          };
         }
       }
+    }
+
+    public string GetCompileOutputPath(string assemblyName)
+    {
+      return assemblyName.EndsWith(".Player", StringComparison.Ordinal) ? @"Temp\Bin\Debug\Player\" : @"Temp\Bin\Debug\";
     }
 
     public IEnumerable<string> GetAllAssetPaths()
@@ -75,11 +86,13 @@ namespace Packages.Rider.Editor.ProjectGeneration
       {
         return false;
       }
+
       var packageInfo = FindForAssetPath(path);
       if (packageInfo == null)
       {
         return false;
       }
+
       var packageSource = packageInfo.source;
       switch (packageSource)
       {
@@ -130,6 +143,11 @@ namespace Packages.Rider.Editor.ProjectGeneration
       {
         ProjectGenerationFlag |= preference;
       }
+    }
+
+    public void ResetProjectGenerationFlag()
+    {
+      ProjectGenerationFlag = ProjectGenerationFlag.None;
     }
   }
 }

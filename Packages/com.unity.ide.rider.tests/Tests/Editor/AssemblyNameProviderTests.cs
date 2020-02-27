@@ -1,6 +1,7 @@
 using System.Linq;
 using NUnit.Framework;
 using Packages.Rider.Editor.ProjectGeneration;
+using UnityEditor;
 using UnityEditor.Compilation;
 
 namespace Packages.Rider.Editor.Tests
@@ -8,11 +9,35 @@ namespace Packages.Rider.Editor.Tests
     public class AssemblyNameProviderTests
     {
         AssemblyNameProvider m_AssemblyNameProvider;
+        ProjectGenerationFlag m_Flag;
+
+        [OneTimeSetUp]
+        public void OneTimeSetUp()
+        {
+            m_AssemblyNameProvider = new AssemblyNameProvider();
+            m_Flag = m_AssemblyNameProvider.ProjectGenerationFlag;
+        }
+
+        [OneTimeTearDown]
+        public void OneTimeTearDown()
+        {
+            m_AssemblyNameProvider.ToggleProjectGeneration(ProjectGenerationFlag.None);
+            m_AssemblyNameProvider.ToggleProjectGeneration(m_Flag);
+        }
 
         [SetUp]
         public void SetUp()
         {
-            m_AssemblyNameProvider = new AssemblyNameProvider();
+            m_AssemblyNameProvider.ResetProjectGenerationFlag();
+        }
+
+        [TestCase("AssemblyName", @"Temp\Bin\Debug\")]
+        [TestCase("My.Player.AssemblyName", @"Temp\Bin\Debug\")]
+        [TestCase("AssemblyName.Player", @"Temp\Bin\Debug\Player\")]
+        [TestCase(".Player", @"Temp\Bin\Debug\Player\")]
+        public void GetOutputPath_ReturnsPlayerAndeditorOutputPath(string assemblyName, string expectedOutputPath)
+        {
+            Assert.AreEqual(expectedOutputPath, m_AssemblyNameProvider.GetCompileOutputPath(assemblyName));
         }
 
         [Test]
@@ -25,6 +50,19 @@ namespace Packages.Rider.Editor.Tests
             foreach (Assembly editorAssembly in editorAssemblies)
             {
                 Assert.IsTrue(collectedAssemblies.Any(assembly => assembly.name == editorAssembly.name && assembly.outputPath == editorAssembly.outputPath), $"{editorAssembly.name}: was not found in collection.");
+            }
+        }
+
+        [Test]
+        public void EditorAssemblies_WillIncludeEditorSettingsDefines()
+        {
+            var defines = new[] { "DEBUG", "TRACE" }.Concat(EditorUserBuildSettings.activeScriptCompilationDefines);
+
+            var collectedAssemblies = m_AssemblyNameProvider.GetAssemblies(s => true).ToList();
+
+            foreach (Assembly editorAssembly in collectedAssemblies)
+            {
+                CollectionAssert.IsSubsetOf(defines, editorAssembly.defines);
             }
         }
 
@@ -45,9 +83,6 @@ namespace Packages.Rider.Editor.Tests
         {
             var playerAssemblies = CompilationPipeline.GetAssemblies(AssembliesType.Player);
 
-            if (m_AssemblyNameProvider.ProjectGenerationFlag.HasFlag(ProjectGenerationFlag.PlayerAssemblies))
-                m_AssemblyNameProvider.ToggleProjectGeneration(ProjectGenerationFlag.PlayerAssemblies);
-
             var collectedAssemblies = m_AssemblyNameProvider.GetAssemblies(s => true).ToList();
 
             foreach (Assembly playerAssembly in playerAssemblies)
@@ -61,8 +96,8 @@ namespace Packages.Rider.Editor.Tests
         {
             var playerAssemblies = CompilationPipeline.GetAssemblies(AssembliesType.Player);
 
-            if (!m_AssemblyNameProvider.ProjectGenerationFlag.HasFlag(ProjectGenerationFlag.PlayerAssemblies))
-                m_AssemblyNameProvider.ToggleProjectGeneration(ProjectGenerationFlag.PlayerAssemblies);
+            m_AssemblyNameProvider.ToggleProjectGeneration(ProjectGenerationFlag.PlayerAssemblies);
+
             var collectedAssemblies = m_AssemblyNameProvider.GetAssemblies(s => true).ToList();
 
             foreach (Assembly playerAssembly in playerAssemblies)
