@@ -65,7 +65,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
       }
     }
 
-    public string GetAssemblyName(string assemblyOutputPath, string assemblyName)
+    public string GetProjectName(string assemblyOutputPath, string assemblyName)
     {
       return assemblyOutputPath.EndsWith(@"\Player\", StringComparison.Ordinal) ? assemblyName + ".Player" : assemblyName;
     }

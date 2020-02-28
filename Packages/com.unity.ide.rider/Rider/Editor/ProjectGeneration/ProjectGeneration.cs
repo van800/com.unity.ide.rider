@@ -535,7 +535,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
     public string ProjectFile(Assembly assembly)
     {
-      return Path.Combine(ProjectDirectory, $"{m_AssemblyNameProvider.GetAssemblyName(assembly.outputPath, assembly.name)}.csproj");
+      return Path.Combine(ProjectDirectory, $"{m_AssemblyNameProvider.GetProjectName(assembly.outputPath, assembly.name)}.csproj");
     }
 
     public string SolutionFile()
@@ -928,7 +928,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
     {
       return m_GUIDGenerator.ProjectGuid(
         m_ProjectName,
-        m_AssemblyNameProvider.GetAssemblyName(assembly.outputPath, assembly.name));
+        m_AssemblyNameProvider.GetProjectName(assembly.outputPath, assembly.name));
     }
   }
 }

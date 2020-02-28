@@ -38,7 +38,7 @@ namespace Packages.Rider.Editor.Tests
         [TestCase(@"Temp\Bin\Debug\Player\", "AssemblyName.Player", "AssemblyName.Player.Player")]
         public void GetOutputPath_ReturnsPlayerAndeditorOutputPath(string assemblyOutputPath, string assemblyName, string expectedAssemblyName)
         {
-            Assert.AreEqual(expectedAssemblyName, m_AssemblyNameProvider.GetAssemblyName(assemblyOutputPath, assemblyName));
+            Assert.AreEqual(expectedAssemblyName, m_AssemblyNameProvider.GetProjectName(assemblyOutputPath, assemblyName));
         }
 
         [Test]
