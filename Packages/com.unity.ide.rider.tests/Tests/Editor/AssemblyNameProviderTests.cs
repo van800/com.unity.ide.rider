@@ -106,17 +106,5 @@ namespace Packages.Rider.Editor.Tests
                 Assert.IsTrue(collectedAssemblies.Any(assembly => assembly.name == playerAssembly.name && assembly.outputPath == @"Temp\Bin\Debug\Player\"), $"{playerAssembly.name}: was not found in collection.");
             }
         }
-
-        [Test]
-        public void AllPlayerAssemblies_HaveAReferenceToUnityEngine()
-        {
-            var playerAssemblies = CompilationPipeline.GetAssemblies(AssembliesType.Player);
-
-            foreach (Assembly playerAssembly in playerAssemblies)
-            {
-                Assert.IsTrue(playerAssembly.allReferences.Any(reference => reference.EndsWith("UnityEngine.dll")));
-                Assert.IsFalse(playerAssembly.allReferences.Any(reference => reference.EndsWith("UnityEditor.dll")));
-            }
-        }
     }
 }

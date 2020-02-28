@@ -36,7 +36,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
       {
         if (assembly.sourceFiles.Any(shouldFileBePartOfSolution))
         {
-          yield return new Assembly(assembly.name, @"Temp\Bin\Debug\", assembly.sourceFiles, new[] { "DEBUG", "TRACE" }.Concat(assembly.defines).Concat(EditorUserBuildSettings.activeScriptCompilationDefines).ToArray(), assembly.assemblyReferences, assembly.compiledAssemblyReferences, assembly.flags)
+          yield return new Assembly(assembly.name, "Temp\\Bin\\Debug\\", assembly.sourceFiles, new[] { "DEBUG", "TRACE" }.Concat(assembly.defines).Concat(EditorUserBuildSettings.activeScriptCompilationDefines).ToArray(), assembly.assemblyReferences, assembly.compiledAssemblyReferences, assembly.flags)
           {
             compilerOptions =
             {
@@ -52,7 +52,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
       {
         foreach (var assembly in CompilationPipeline.GetAssemblies(AssembliesType.Player).Where(assembly => assembly.sourceFiles.Any(shouldFileBePartOfSolution)))
         {
-          yield return new Assembly(assembly.name, @"Temp\Bin\Debug\Player\", assembly.sourceFiles, new[] { "DEBUG", "TRACE" }.Concat(assembly.defines).ToArray(), assembly.assemblyReferences, assembly.compiledAssemblyReferences, assembly.flags)
+          yield return new Assembly(assembly.name, "Temp\\Bin\\Debug\\Player\\", assembly.sourceFiles, new[] { "DEBUG", "TRACE" }.Concat(assembly.defines).ToArray(), assembly.assemblyReferences, assembly.compiledAssemblyReferences, assembly.flags)
           {
             compilerOptions =
             {
@@ -67,7 +67,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
     public string GetProjectName(string assemblyOutputPath, string assemblyName)
     {
-      return assemblyOutputPath.EndsWith(@"\Player\", StringComparison.Ordinal) ? assemblyName + ".Player" : assemblyName;
+      return assemblyOutputPath.EndsWith("\\Player\\", StringComparison.Ordinal) ? assemblyName + ".Player" : assemblyName;
     }
 
     public IEnumerable<string> GetAllAssetPaths()
