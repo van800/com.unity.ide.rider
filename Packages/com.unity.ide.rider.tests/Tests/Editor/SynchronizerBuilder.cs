@@ -82,6 +82,10 @@ namespace Packages.Rider.Editor.Tests
         {
             m_Assemblies = assemblies;
             m_AssemblyProvider.Setup(x => x.GetAssemblies(It.IsAny<Func<string, bool>>())).Returns(m_Assemblies);
+            foreach (var assembly in assemblies)
+            {
+                m_AssemblyProvider.Setup(x => x.GetAssemblyName(assembly.outputPath, assembly.name)).Returns(assembly.name);
+            }
             return this;
         }
 
@@ -156,9 +160,9 @@ namespace Packages.Rider.Editor.Tests
             return this;
         }
 
-        public SynchronizerBuilder WithOutputPathForAssemblyPath(string assemblyPath, string outputPath)
+        public SynchronizerBuilder WithOutputPathForAssemblyPath(string outputPath, string assemblyName, string resAssemblyName)
         {
-            m_AssemblyProvider.Setup(x => x.GetCompileOutputPath(assemblyPath)).Returns(outputPath);
+            m_AssemblyProvider.Setup(x => x.GetAssemblyName(outputPath, assemblyName)).Returns(resAssemblyName);
             return this;
         }
     }

@@ -57,14 +57,12 @@ namespace Packages.Rider.Editor.Tests
             [Test]
             public void ProjectGeneration_UseAssemblyNameProvider_ForOutputPath()
             {
-                var expectedOutputPath = "My/Output/Path";
-                var synchronizer = m_Builder.WithOutputPathForAssemblyPath(m_Builder.Assembly.name, expectedOutputPath).Build();
+                var expectedAssemblyName = "my.AssemblyName";
+                var synchronizer = m_Builder.WithOutputPathForAssemblyPath(m_Builder.Assembly.outputPath, m_Builder.Assembly.name, expectedAssemblyName).Build();
 
                 synchronizer.Sync();
 
-                var csprojContent = m_Builder.ReadProjectFile(m_Builder.Assembly);
-                XmlDocument scriptProject = XMLUtilities.FromText(csprojContent);
-                XMLUtilities.AssertOutputPath(scriptProject, expectedOutputPath);
+                Assert.That(m_Builder.FileExists(Path.Combine(SynchronizerBuilder.projectDirectory, $"{expectedAssemblyName}.csproj")));
             }
 
             [Test]
@@ -96,7 +94,7 @@ namespace Packages.Rider.Editor.Tests
                     "    <ProjectTypeGuids>{E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>",
                     "    <OutputType>Library</OutputType>",
                     "    <AppDesignerFolder>Properties</AppDesignerFolder>",
-                    $"    <AssemblyName>{Path.GetFileNameWithoutExtension(m_Builder.Assembly.outputPath)}</AssemblyName>",
+                    $"    <AssemblyName>{m_Builder.Assembly.name}</AssemblyName>",
                     "    <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>",
                     "    <FileAlignment>512</FileAlignment>",
                     "    <BaseDirectory>.</BaseDirectory>",
@@ -105,7 +103,7 @@ namespace Packages.Rider.Editor.Tests
                     "    <DebugSymbols>true</DebugSymbols>",
                     "    <DebugType>full</DebugType>",
                     "    <Optimize>false</Optimize>",
-                    "    <OutputPath></OutputPath>",
+                    $"    <OutputPath>{m_Builder.Assembly.outputPath}</OutputPath>",
                     $"    <DefineConstants></DefineConstants>",
                     "    <ErrorReport>prompt</ErrorReport>",
                     "    <WarningLevel>4</WarningLevel>",

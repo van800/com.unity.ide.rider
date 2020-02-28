@@ -535,7 +535,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
     public string ProjectFile(Assembly assembly)
     {
-      return Path.Combine(ProjectDirectory, $"{assembly.name}.csproj");
+      return Path.Combine(ProjectDirectory, $"{m_AssemblyNameProvider.GetAssemblyName(assembly.outputPath, assembly.name)}.csproj");
     }
 
     public string SolutionFile()
@@ -554,13 +554,13 @@ namespace Packages.Rider.Editor.ProjectGeneration
       {
         k_ToolsVersion,
         k_ProductVersion,
-        m_GUIDGenerator.ProjectGuid(m_ProjectName, assembly.name),
+        ProjectGuid(assembly),
         InternalEditorUtility.GetEngineAssemblyPath(),
         InternalEditorUtility.GetEditorAssemblyPath(),
         string.Join(";", assembly.defines.Concat(responseFilesData.SelectMany(x => x.Defines)).Distinct().ToArray()),
         MSBuildNamespaceUri,
-        Path.GetFileNameWithoutExtension(assembly.outputPath),
-        m_AssemblyNameProvider.GetCompileOutputPath(assembly.name),
+        assembly.name,
+        assembly.outputPath,
         m_AssemblyNameProvider.ProjectGenerationRootNamespace,
         k_TargetFrameworkVersion,
         GenerateLangVersion(otherResponseFilesData["langversion"]),
@@ -755,7 +755,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
       var relevantIslands = RelevantIslandsForMode(islands);
       string projectEntries = GetProjectEntries(relevantIslands);
       string projectConfigurations = string.Join(Environment.NewLine,
-        relevantIslands.Select(i => GetProjectActiveConfigurations(m_GUIDGenerator.ProjectGuid(m_ProjectName, i.name))).ToArray());
+        relevantIslands.Select(i => GetProjectActiveConfigurations(ProjectGuid(i))).ToArray());
       return string.Format(GetSolutionText(), fileversion, vsversion, projectEntries, projectConfigurations);
     }
 
@@ -866,7 +866,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
         m_GUIDGenerator.SolutionGuid(m_ProjectName, GetExtensionOfSourceFiles(i.sourceFiles)),
         i.name,
         Path.GetFileName(ProjectFile(i)),
-        m_GUIDGenerator.ProjectGuid(m_ProjectName, i.name)
+        ProjectGuid(i)
       ));
 
       return string.Join(Environment.NewLine, projectEntries.ToArray());
@@ -922,6 +922,13 @@ namespace Packages.Rider.Editor.ProjectGeneration
     static string GetProjectExtension()
     {
       return ".csproj";
+    }
+
+    string ProjectGuid(Assembly assembly)
+    {
+      return m_GUIDGenerator.ProjectGuid(
+        m_ProjectName,
+        m_AssemblyNameProvider.GetAssemblyName(assembly.outputPath, assembly.name));
     }
   }
 }
