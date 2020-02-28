@@ -230,7 +230,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
       foreach (Assembly assembly in allProjectIslands)
       {
         var responseFileData = ParseResponseFileData(assembly);
-        SyncProject(assembly, allAssetProjectParts, responseFileData, allProjectIslands, types, GetAllRoslynAnalyzerPaths().ToArray());
+        SyncProject(assembly, allAssetProjectParts, responseFileData, types, GetAllRoslynAnalyzerPaths().ToArray());
       }
     }
 
@@ -314,13 +314,12 @@ namespace Packages.Rider.Editor.ProjectGeneration
       Assembly island,
       Dictionary<string, string> allAssetsProjectParts,
       IEnumerable<ResponseFileData> responseFilesData,
-      List<Assembly> allProjectIslands,
       Type[] types,
       string[] roslynAnalyzerDllPaths)
     {
       SyncProjectFileIfNotChanged(
         ProjectFile(island),
-        ProjectText(island, allAssetsProjectParts, responseFilesData.ToList(), allProjectIslands, roslynAnalyzerDllPaths),
+        ProjectText(island, allAssetsProjectParts, responseFilesData.ToList(), roslynAnalyzerDllPaths),
         types);
     }
 
@@ -473,12 +472,10 @@ namespace Packages.Rider.Editor.ProjectGeneration
     string ProjectText(Assembly assembly,
       Dictionary<string, string> allAssetsProjectParts,
       List<ResponseFileData> responseFilesData,
-      List<Assembly> allProjectIslands,
       string[] roslynAnalyzerDllPaths)
     {
       var projectBuilder = new StringBuilder(ProjectHeader(assembly, responseFilesData, roslynAnalyzerDllPaths));
       var references = new List<string>();
-      var projectReferences = new List<Match>();
 
       foreach (string file in assembly.sourceFiles)
       {
@@ -501,52 +498,23 @@ namespace Packages.Rider.Editor.ProjectGeneration
       if (allAssetsProjectParts.TryGetValue(assembly.name, out var additionalAssetsForProject))
         projectBuilder.Append(additionalAssetsForProject);
 
-      var islandRefs = references.Union(assembly.allReferences).Except(roslynAnalyzerDllPaths);
-      foreach (string reference in islandRefs)
+      var responseRefs = responseFilesData.SelectMany(x => x.FullPathReferences.Select(r => r));
+      foreach (var reference in assembly.compiledAssemblyReferences.Union(responseRefs).Union(references).Except(roslynAnalyzerDllPaths))
       {
-        var match = k_ScriptReferenceExpression.Match(reference);
-        if (match.Success)
-        {
-          // assume csharp language
-          // Add a reference to a project except if it's a reference to a script assembly
-          // that we are not generating a project for. This will be the case for assemblies
-          // coming from .assembly.json files in non-internalized packages.
-          var dllName = match.Groups["dllname"].Value;
-          if (allProjectIslands.Any(i => Path.GetFileName(i.outputPath) == dllName))
-          {
-            projectReferences.Add(match);
-            continue;
-          }
-        }
-
         string fullReference = Path.IsPathRooted(reference) ? reference : Path.Combine(ProjectDirectory, reference);
-
         AppendReference(fullReference, projectBuilder);
       }
 
-      var responseRefs = responseFilesData.SelectMany(x => x.FullPathReferences.Select(r => r));
-      foreach (var reference in responseRefs)
+      if (0 < assembly.assemblyReferences.Length)
       {
-        AppendReference(reference, projectBuilder);
-      }
-
-      if (0 < projectReferences.Count)
-      {
-        projectBuilder.AppendLine("  </ItemGroup>");
-        projectBuilder.AppendLine("  <ItemGroup>");
-        foreach (Match reference in projectReferences)
+        projectBuilder.Append("  </ItemGroup>").Append(Environment.NewLine);
+        projectBuilder.Append("  <ItemGroup>").Append(Environment.NewLine);
+        foreach (Assembly reference in assembly.assemblyReferences.Where(i => i.sourceFiles.Any(ShouldFileBePartOfSolution)))
         {
-          var referencedProject = reference.Groups["project"].Value;
-
-          projectBuilder.Append("    <ProjectReference Include=\"").Append(referencedProject)
-            .Append(GetProjectExtension()).Append("\">").Append(Environment.NewLine);
-          projectBuilder
-            .Append("      <Project>{")
-            .Append(m_GUIDGenerator.ProjectGuid(m_ProjectName, reference.Groups["project"].Value))
-            .Append("}</Project>")
-            .Append(Environment.NewLine);
-          projectBuilder.Append("      <Name>").Append(referencedProject).Append("</Name>").Append(Environment.NewLine);
-          projectBuilder.AppendLine("    </ProjectReference>");
+          projectBuilder.Append("    <ProjectReference Include=\"").Append(reference.name).Append(GetProjectExtension()).Append("\">").Append(Environment.NewLine);
+          projectBuilder.Append("      <Project>{").Append(ProjectGuid(reference)).Append("}</Project>").Append(Environment.NewLine);
+          projectBuilder.Append("      <Name>").Append(reference.name).Append("</Name>").Append(Environment.NewLine);
+          projectBuilder.Append("    </ProjectReference>").Append(Environment.NewLine);
         }
       }
 

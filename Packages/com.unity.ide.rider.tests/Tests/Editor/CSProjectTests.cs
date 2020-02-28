@@ -156,7 +156,7 @@ namespace Packages.Rider.Editor.Tests
             {
                 string[] files = { "test.cs" };
                 var assemblyB = new Assembly("Test", "Temp/Test.dll", files, new string[0], new Assembly[0], new string[0], AssemblyFlags.None);
-                var assemblyA = new Assembly("Test2", "some/path/file.dll", files, new string[0], new[] { assemblyB }, new[] { "Library.ScriptAssemblies.Test.dll" }, AssemblyFlags.None);
+                var assemblyA = new Assembly("Test2", "some/path/file.dll", files, new string[0], new[] { assemblyB }, new string[0], AssemblyFlags.None);
                 var synchronizer = m_Builder.WithAssemblies(new[] { assemblyA, assemblyB }).Build();
 
                 synchronizer.Sync();
@@ -164,15 +164,15 @@ namespace Packages.Rider.Editor.Tests
                 var assemblyACSproject = Path.Combine(SynchronizerBuilder.projectDirectory, $"{assemblyA.name}.csproj");
                 var assemblyBCSproject = Path.Combine(SynchronizerBuilder.projectDirectory, $"{assemblyB.name}.csproj");
 
-                Assert.True(m_Builder.FileExists(assemblyACSproject));
-                Assert.True(m_Builder.FileExists(assemblyBCSproject));
+                Assert.That(m_Builder.FileExists(assemblyACSproject));
+                Assert.That(m_Builder.FileExists(assemblyBCSproject));
 
                 XmlDocument scriptProject = XMLUtilities.FromText(m_Builder.ReadFile(assemblyACSproject));
                 XmlDocument scriptPluginProject = XMLUtilities.FromText(m_Builder.ReadFile(assemblyBCSproject));
 
                 var a = XMLUtilities.GetInnerText(scriptPluginProject, "/msb:Project/msb:PropertyGroup/msb:ProjectGuid");
                 var b = XMLUtilities.GetInnerText(scriptProject, "/msb:Project/msb:ItemGroup/msb:ProjectReference/msb:Project");
-                Assert.AreEqual(a, b);
+                StringAssert.AreEqualIgnoringCase(a, b);
             }
         }
 
@@ -184,10 +184,10 @@ namespace Packages.Rider.Editor.Tests
                 var synchronizer = m_Builder.Build();
 
                 synchronizer.Sync();
-                Assert.AreEqual(2, m_Builder.WriteTimes, "One write for solution and one write for csproj");
+                Assert.That(m_Builder.WriteTimes, Is.EqualTo(2), "One write for solution and one write for csproj");
 
                 synchronizer.Sync();
-                Assert.AreEqual(2, m_Builder.WriteTimes, "No more files should be written");
+                Assert.That(m_Builder.WriteTimes, Is.EqualTo(2), "No more files should be written");
             }
 
             [Test]
@@ -195,11 +195,11 @@ namespace Packages.Rider.Editor.Tests
             {
                 var synchronizer = m_Builder.Build();
 
-                Assert.IsFalse(m_Builder.FileExists(m_Builder.ProjectFilePath(m_Builder.Assembly)));
+                Assert.That(!m_Builder.FileExists(m_Builder.ProjectFilePath(m_Builder.Assembly)));
 
                 synchronizer.Sync();
 
-                Assert.IsTrue(m_Builder.FileExists(m_Builder.ProjectFilePath(m_Builder.Assembly)));
+                Assert.That(m_Builder.FileExists(m_Builder.ProjectFilePath(m_Builder.Assembly)));
             }
 
             [Test]
@@ -211,8 +211,8 @@ namespace Packages.Rider.Editor.Tests
 
                 synchronizer.Sync();
 
-                Assert.IsTrue(m_Builder.FileExists(m_Builder.ProjectFilePath(assemblyA)));
-                Assert.IsTrue(m_Builder.FileExists(m_Builder.ProjectFilePath(assemblyB)));
+                Assert.That(m_Builder.FileExists(m_Builder.ProjectFilePath(assemblyA)));
+                Assert.That(m_Builder.FileExists(m_Builder.ProjectFilePath(assemblyB)));
             }
 
             [Test]
@@ -222,7 +222,7 @@ namespace Packages.Rider.Editor.Tests
                 synchronizer.Sync();
                 var packageAsset = "packageAsset.cs";
                 m_Builder.WithPackageAsset(packageAsset, false);
-                Assert.IsTrue(synchronizer.SyncIfNeeded(new[] { packageAsset }, new string[0]));
+                Assert.That(synchronizer.SyncIfNeeded(new[] { packageAsset }, new string[0]));
             }
         }
 
@@ -235,8 +235,8 @@ namespace Packages.Rider.Editor.Tests
 
                 synchronizer.Sync();
 
-                Assert.False(
-                    m_Builder.FileExists(Path.Combine(SynchronizerBuilder.projectDirectory, $"{m_Builder.Assembly.name}.csproj")),
+                Assert.That(
+                    !m_Builder.FileExists(Path.Combine(SynchronizerBuilder.projectDirectory, $"{m_Builder.Assembly.name}.csproj")),
                     "Should not create csproj file for assembly with no cs file");
             }
 
@@ -415,7 +415,7 @@ namespace Packages.Rider.Editor.Tests
                 var newFileArray = new[] { newFile };
                 m_Builder.WithAssemblyData(files: newFileArray);
 
-                Assert.True(synchronizer.SyncIfNeeded(newFileArray, new string[0]), "Should sync when file in assembly changes");
+                Assert.That(synchronizer.SyncIfNeeded(newFileArray, new string[0]), "Should sync when file in assembly changes");
 
                 var csprojContentAfter = m_Builder.ReadProjectFile(m_Builder.Assembly);
                 StringAssert.Contains(newFile, csprojContentAfter);
@@ -444,7 +444,7 @@ namespace Packages.Rider.Editor.Tests
                 var filesAfter = filesBefore.Skip(1).ToArray();
                 m_Builder.WithAssemblyData(files: filesAfter);
 
-                Assert.True(synchronizer.SyncIfNeeded(filesAfter, new string[0]), "Should sync when file in assembly changes");
+                Assert.That(synchronizer.SyncIfNeeded(filesAfter, new string[0]), "Should sync when file in assembly changes");
 
                 var csprojContentAfter = m_Builder.ReadProjectFile(m_Builder.Assembly);
                 StringAssert.Contains(filesAfter[0], csprojContentAfter);
@@ -712,7 +712,7 @@ namespace Packages.Rider.Editor.Tests
                 synchronizer.Sync();
 
                 var csprojFileContents = m_Builder.ReadProjectFile(m_Builder.Assembly);
-                Assert.That(csprojFileContents, Does.Match("<Reference Include=\"Goodbye\">\\W*<HintPath>Folder/Path With Space/Goodbye.dll\\W*</HintPath>\\W*</Reference>"));
+                Assert.That(csprojFileContents, Does.Match($"<Reference Include=\"Goodbye\">\\W*<HintPath>{SynchronizerBuilder.projectDirectory}/Folder/Path With Space/Goodbye.dll\\W*</HintPath>\\W*</Reference>"));
             }
 
             [Test]
@@ -726,7 +726,7 @@ namespace Packages.Rider.Editor.Tests
                 synchronizer.Sync();
 
                 var csprojFileContents = m_Builder.ReadProjectFile(m_Builder.Assembly);
-                Assert.That(csprojFileContents, Does.Match($"<Reference Include=\"assembly\">\\W*<HintPath>{assembly.outputPath}\\W*</HintPath>\\W*</Reference>"));
+                Assert.That(csprojFileContents, Does.Match($@"<ProjectReference Include=""{assembly.name}\.csproj"">[\S\s]*?</ProjectReference>"));
             }
 
             [Test]
@@ -741,8 +741,8 @@ namespace Packages.Rider.Editor.Tests
 
                 var csprojFileContents = m_Builder.ReadProjectFile(m_Builder.Assembly);
 
-                Assert.That(csprojFileContents, Does.Match("<Reference Include=\"Hello\">\\W*<HintPath>Hello.dll</HintPath>\\W*</Reference>"));
-                Assert.That(csprojFileContents, Does.Match("<Reference Include=\"MyPlugin\">\\W*<HintPath>MyPlugin.dll</HintPath>\\W*</Reference>"));
+                Assert.That(csprojFileContents, Does.Match($@"<Reference Include=""Hello"">\W*<HintPath>{SynchronizerBuilder.projectDirectory}/Hello\.dll</HintPath>\W*</Reference>"));
+                Assert.That(csprojFileContents, Does.Match($@"<Reference Include=""MyPlugin"">\W*<HintPath>{SynchronizerBuilder.projectDirectory}/MyPlugin\.dll</HintPath>\W*</Reference>"));
             }
 
             [Test]
@@ -759,8 +759,8 @@ namespace Packages.Rider.Editor.Tests
                 synchronizer.Sync();
 
                 var csprojFileContents = m_Builder.ReadProjectFile(m_Builder.Assembly);
-                Assert.That(csprojFileContents, Does.Match($"<Reference Include=\"{assemblyReferences[0].name}\">\\W*<HintPath>{assemblyReferences[0].outputPath}</HintPath>\\W*</Reference>"));
-                Assert.That(csprojFileContents, Does.Match($"<Reference Include=\"{assemblyReferences[1].name}\">\\W*<HintPath>{assemblyReferences[1].outputPath}</HintPath>\\W*</Reference>"));
+                Assert.That(csprojFileContents, Does.Match($@"<ProjectReference Include=""{assemblyReferences[0].name}\.csproj"">[\S\s]*?</ProjectReference>"));
+                Assert.That(csprojFileContents, Does.Match($@"<ProjectReference Include=""{assemblyReferences[1].name}\.csproj"">[\S\s]*?</ProjectReference>"));
             }
 
             [Test]
