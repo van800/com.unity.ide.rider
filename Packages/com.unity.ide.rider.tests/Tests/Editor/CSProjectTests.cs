@@ -295,7 +295,7 @@ namespace Packages.Rider.Editor.Tests
             }
 
             [Test]
-            public void InInternalizedPackage_WillBeAddedToCompileInclude()
+            public void InInternalizedPackage_WillNotBeAddedToCompileInclude()
             {
                 var synchronizer = m_Builder.WithPackageAsset(m_Builder.Assembly.sourceFiles[0], true).Build();
                 synchronizer.Sync();
@@ -759,6 +759,26 @@ namespace Packages.Rider.Editor.Tests
                 var csprojFileContents = m_Builder.ReadProjectFile(m_Builder.Assembly);
                 Assert.That(csprojFileContents, Does.Match($@"<ProjectReference Include=""{assemblyReferences[0].name}\.csproj"">[\S\s]*?</ProjectReference>"));
                 Assert.That(csprojFileContents, Does.Match($@"<ProjectReference Include=""{assemblyReferences[1].name}\.csproj"">[\S\s]*?</ProjectReference>"));
+            }
+
+            [Test]
+            public void AssemblyReferenceFromInternalizedPackage_IsAddedAsReference()
+            {
+                string[] files = { "test.cs" };
+                var assemblyReferences = new[]
+                {
+                    new Assembly("MyPlugin", "/some/path/MyPlugin.dll", files, new string[0], new Assembly[0], new string[0], AssemblyFlags.None),
+                    new Assembly("Hello", "/some/path/Hello.dll", files, new string[0], new Assembly[0], new string[0], AssemblyFlags.None),
+                };
+                var synchronizer = m_Builder.WithPackageAsset(files[0], true).WithAssemblyData(assemblyReferences: assemblyReferences).Build();
+
+                synchronizer.Sync();
+
+                var csprojFileContents = m_Builder.ReadProjectFile(m_Builder.Assembly);
+                Assert.That(csprojFileContents, Does.Not.Match($@"<ProjectReference Include=""{assemblyReferences[0].name}\.csproj"">[\S\s]*?</ProjectReference>"));
+                Assert.That(csprojFileContents, Does.Not.Match($@"<ProjectReference Include=""{assemblyReferences[1].name}\.csproj"">[\S\s]*?</ProjectReference>"));
+                Assert.That(csprojFileContents, Does.Match($"<Reference Include=\"{assemblyReferences[0].name}\">\\W*<HintPath>{assemblyReferences[0].outputPath}</HintPath>\\W*</Reference>"));
+                Assert.That(csprojFileContents, Does.Match($"<Reference Include=\"{assemblyReferences[1].name}\">\\W*<HintPath>{assemblyReferences[1].outputPath}</HintPath>\\W*</Reference>"));
             }
 
             [Test]
