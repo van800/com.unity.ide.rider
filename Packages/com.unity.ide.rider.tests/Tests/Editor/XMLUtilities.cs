@@ -5,25 +5,31 @@ using System.Xml;
 
 namespace Packages.Rider.Editor.Tests
 {
-    public static class XMLUtilities
+    static class XMLUtilities
     {
         public static void AssertCompileItemsMatchExactly(XmlDocument projectXml, IEnumerable<string> expectedCompileItems)
         {
             var compileItems = projectXml.SelectAttributeValues("/msb:Project/msb:ItemGroup/msb:Compile/@Include", GetModifiedXmlNamespaceManager(projectXml)).ToArray();
             CollectionAssert.AreEquivalent(RelativeAssetPathsFor(expectedCompileItems), compileItems);
         }
-        
+
         public static void AssertAnalyzerItemsMatchExactly(XmlDocument projectXml, IEnumerable<string> expectedAnalyzers)
         {
             CollectionAssert.AreEquivalent(
-                expected: RelativeAssetPathsFor(expectedAnalyzers), 
-                actual:projectXml.SelectAttributeValues("/msb:Project/msb:ItemGroup/msb:Analyzer/@Include", GetModifiedXmlNamespaceManager(projectXml)).ToArray());
+                expected: RelativeAssetPathsFor(expectedAnalyzers),
+                actual: projectXml.SelectAttributeValues("/msb:Project/msb:ItemGroup/msb:Analyzer/@Include", GetModifiedXmlNamespaceManager(projectXml)).ToArray());
         }
 
         public static void AssertNonCompileItemsMatchExactly(XmlDocument projectXml, IEnumerable<string> expectedNoncompileItems)
         {
             var nonCompileItems = projectXml.SelectAttributeValues("/msb:Project/msb:ItemGroup/msb:None/@Include", GetModifiedXmlNamespaceManager(projectXml)).ToArray();
             CollectionAssert.AreEquivalent(RelativeAssetPathsFor(expectedNoncompileItems), nonCompileItems);
+        }
+
+        public static void AssertOutputPath(XmlDocument projectXml, string expectedOutputPath)
+        {
+            var debugOutputPath = projectXml.SelectInnerText("/msb:Project/msb:PropertyGroup/msb:OutputPath", GetModifiedXmlNamespaceManager(projectXml)).First();
+            Assert.AreEqual(expectedOutputPath, debugOutputPath);
         }
 
         static XmlNamespaceManager GetModifiedXmlNamespaceManager(XmlDocument projectXml)
@@ -43,6 +49,15 @@ namespace Packages.Rider.Editor.Tests
             var result = xmlDocument.SelectNodes(xpathQuery, xmlNamespaceManager);
             foreach (XmlAttribute attribute in result)
                 yield return attribute.Value;
+        }
+
+        static IEnumerable<string> SelectInnerText(this XmlDocument xmlDocument, string xpathQuery, XmlNamespaceManager xmlNamespaceManager)
+        {
+            var result = xmlDocument.SelectNodes(xpathQuery, xmlNamespaceManager);
+            foreach (XmlElement node in result)
+            {
+                yield return node.InnerText;
+            }
         }
 
         public static XmlDocument FromText(string textContent)
