@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using Packages.Rider.Editor.ProjectGeneration;
 using Packages.Rider.Editor.Util;
 using Unity.CodeEditor;
 using UnityEditor;
@@ -11,7 +12,7 @@ using Debug = UnityEngine.Debug;
 namespace Packages.Rider.Editor
 {
   [InitializeOnLoad]
-  public class RiderScriptEditor : IExternalCodeEditor
+  internal class RiderScriptEditor : IExternalCodeEditor
   {
     IDiscovery m_Discoverability;
     IGenerator m_ProjectGeneration;
@@ -21,7 +22,7 @@ namespace Packages.Rider.Editor
     {
       try
       {
-        var projectGeneration = new ProjectGeneration();
+        var projectGeneration = new ProjectGeneration.ProjectGeneration();
         var editor = new RiderScriptEditor(new Discovery(), projectGeneration);
         CodeEditor.Register(editor);
         var path = GetEditorRealPath(CurrentEditor);
@@ -36,7 +37,7 @@ namespace Packages.Rider.Editor
             // is likely outdated
             if (installations.Any() && installations.All(a => GetEditorRealPath(a.Path) != path))
             {
-              if (RiderPathLocator.IsToolbox(path)) // is toolbox - update
+              if (RiderPathLocator.GetIsToolbox(path)) // is toolbox - update
               {
                 var toolboxInstallations = installations.Where(a => a.IsToolbox).ToArray();
                 if (toolboxInstallations.Any())
@@ -127,6 +128,7 @@ namespace Packages.Rider.Editor
       // Add event handlers.
       watcher.Changed += OnChanged;
       watcher.Created += OnChanged;
+      watcher.Deleted += OnChanged;
 
       watcher.EnableRaisingEvents = true; // Begin watching.
       
@@ -156,7 +158,7 @@ namespace Packages.Rider.Editor
       if (SystemInfo.operatingSystemFamily != OperatingSystemFamily.Windows)
       {
         var realPath = FileSystemUtil.GetFinalPathName(path);
-        
+
         // case of snap installation
         if (SystemInfo.operatingSystemFamily == OperatingSystemFamily.Linux)
         {
@@ -168,16 +170,13 @@ namespace Packages.Rider.Editor
               return snapInstallPath;
           }
         }
-        
+
         // in case of symlink
         return realPath;
       }
 
       return path;
     }
-
-    const string unity_generate_all = "unity_generate_all_csproj";
-    const string unity_generate_player_projects = "unity_generate_player_projects";
 
     public RiderScriptEditor(IDiscovery discovery, IGenerator projectGeneration)
     {
@@ -209,12 +208,12 @@ namespace Packages.Rider.Editor
       get { return EditorPrefs.GetString("Rider_UserExtensions", string.Join(";", defaultExtensions));}
       set { EditorPrefs.SetString("Rider_UserExtensions", value); }
     }
-    
+
     private static bool SupportsExtension(string path)
     {
       var extension = Path.GetExtension(path);
       if (string.IsNullOrEmpty(extension))
-        return false; 
+        return false;
       return HandledExtensions.Contains(extension.TrimStart('.'));
     }
 
@@ -227,22 +226,38 @@ namespace Packages.Rider.Editor
 
       EditorGUILayout.LabelField("Generate .csproj files for:");
       EditorGUI.indentLevel++;
-      m_ProjectGeneration.GenerateAll(SettingsButton(unity_generate_all, "Internal packages", "Generate csproj files for all packages, including packages marked as internal."));
-      m_ProjectGeneration.AssemblyNameProvider.GeneratePlayerProjects(SettingsButton(unity_generate_player_projects, "Player projects", "For each player project generate an additional csproj with the name 'project-player.csproj'."));
+      SettingsButton(ProjectGenerationFlag.Embedded, "Embedded packages", "");
+      SettingsButton(ProjectGenerationFlag.Local, "Local packages", "");
+      SettingsButton(ProjectGenerationFlag.Registry, "Registry packages", "");
+      SettingsButton(ProjectGenerationFlag.Git, "Git packages", "");
+      SettingsButton(ProjectGenerationFlag.BuiltIn, "Built-in packages", "");
+#if UNITY_2019_3_OR_NEWER
+      SettingsButton(ProjectGenerationFlag.LocalTarBall, "Local tarball", "");
+#endif
+      SettingsButton(ProjectGenerationFlag.Unknown, "Packages from unknown sources", "");
+      SettingsButton(ProjectGenerationFlag.PlayerAssemblies, "Player projects", "For each player project generate an additional csproj with the name 'project-player.csproj'");
+      RegenerateProjectFiles();
       EditorGUI.indentLevel--;
     }
 
-    static bool SettingsButton(string preference, string guiMessage, string toolTip)
+    void RegenerateProjectFiles()
     {
-      var prevValue = EditorPrefs.GetBool(preference, false);
-      ;
+      var rect = EditorGUI.IndentedRect(EditorGUILayout.GetControlRect(new GUILayoutOption[] {}));
+      rect.width = 252;
+      if (GUI.Button(rect, "Regenerate project files"))
+      {
+        m_ProjectGeneration.Sync();
+      }
+    }
+
+    void SettingsButton(ProjectGenerationFlag preference, string guiMessage, string toolTip)
+    {
+      var prevValue = m_ProjectGeneration.AssemblyNameProvider.ProjectGenerationFlag.HasFlag(preference);
       var newValue = EditorGUILayout.Toggle(new GUIContent(guiMessage, toolTip), prevValue);
       if (newValue != prevValue)
       {
-        EditorPrefs.SetBool(preference, newValue);
+        m_ProjectGeneration.AssemblyNameProvider.ToggleProjectGeneration(preference);
       }
-
-      return newValue;
     }
 
     public void SyncIfNeeded(string[] addedFiles, string[] deletedFiles, string[] movedFiles, string[] movedFromFiles,
@@ -254,7 +269,7 @@ namespace Packages.Rider.Editor
 
     public void SyncAll()
     {
-      AssetDatabase.Refresh();
+      AssetDatabase.Refresh(); // refresh would automatically call sync if needed
       if (RiderScriptEditorData.instance.hasChanges)
       {
         m_ProjectGeneration.Sync();

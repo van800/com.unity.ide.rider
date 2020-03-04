@@ -5,7 +5,7 @@ using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading;
 using NUnit.Framework;
-using Packages.Rider.Editor;
+using Packages.Rider.Editor.ProjectGeneration;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -14,7 +14,7 @@ namespace RiderEditor.Runtime_spec.CSProject
 {
     [TestFixture]
     [Serializable]
-    public abstract class CleanupTest
+    internal abstract class CleanupTest
     {
         [SerializeField]
         protected IGenerator m_ProjectGeneration;
@@ -82,7 +82,7 @@ public class SimpleCSharpScript : MonoBehaviour
         }
     }
 
-    public class BuildTarget : CleanupTest
+    internal class BuildTarget : CleanupTest
     {
         [SerializeField]
         UnityEditor.BuildTarget m_Original;
