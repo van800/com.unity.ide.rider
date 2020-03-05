@@ -1,6 +1,6 @@
 # Code Editor Package for Rider
 
-## [2.0.0] - 2020-03-04
+## [2.0.1] - 2020-03-05
 
 Speed improvements,
 ProjectTypeGuids for unity-generated project
