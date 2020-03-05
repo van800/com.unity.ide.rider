@@ -116,9 +116,10 @@ namespace Packages.Rider.Editor.ProjectGeneration
     {
       SetupProjectSupportedExtensions();
 
-      if (HasFilesBeenModified(affectedFiles, reimportedFiles))
+      if (HasFilesBeenModified(affectedFiles, reimportedFiles) || RiderScriptEditorData.instance.hasChanges)
       {
         Sync();
+        RiderScriptEditorData.instance.hasChanges = false;
         return true;
       }
 

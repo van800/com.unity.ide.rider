@@ -270,11 +270,6 @@ namespace Packages.Rider.Editor
     public void SyncAll()
     {
       AssetDatabase.Refresh(); // refresh would automatically call sync if needed
-      if (RiderScriptEditorData.instance.hasChanges)
-      {
-        m_ProjectGeneration.Sync();
-        RiderScriptEditorData.instance.hasChanges = false;
-      }
     }
 
     public void Initialize(string editorInstallationPath) // is called each time ExternalEditor is changed
@@ -298,6 +293,7 @@ namespace Packages.Rider.Editor
 
       if (!IsUnityScript(path))
       {
+        m_ProjectGeneration.SyncIfNeeded(affectedFiles: new string[] { }, new string[] { });
         var fastOpenResult = EditorPluginInterop.OpenFileDllImplementation(path, line, column);
         if (fastOpenResult)
           return true;
@@ -327,7 +323,7 @@ namespace Packages.Rider.Editor
 
     private bool OpenOSXApp(string path, int line, int column)
     {
-      var solution = GetSolutionFile(path); // TODO: If solution file doesn't exist resync.
+      var solution = GetSolutionFile(path);
       solution = solution == "" ? "" : $"\"{solution}\"";
       var pathArguments = path == "" ? "" : $"-l {line} \"{path}\"";
       var process = new Process
@@ -430,7 +426,7 @@ namespace Packages.Rider.Editor
 
     public CodeEditor.Installation[] Installations => m_Discoverability.PathCallback();
 
-    public void CreateSolutionIfDoesntExist()
+    private void CreateSolutionIfDoesntExist()
     {
       if (!m_ProjectGeneration.HasSolutionBeenGenerated())
       {
