@@ -4,6 +4,7 @@ test_suite_name: Rider
 editors:
   - version: 2019.2
   - version: 2019.3
+  - version: 2020.1
   - version: trunk
 platforms:
   - name: win
@@ -31,7 +32,7 @@ pack:
     image: package-ci/win10:stable
     flavor: b1.large
   commands:
-    - npm install upm-ci-utils -g --registry https://api.bintray.com/npm/unity/unity-npm
+    - npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
     - upm-ci project pack
   artifacts:
     packages:
@@ -47,6 +48,7 @@ commit_ci:
         - "/.*/"
       except:
         - next/master
+        - publish-release
   dependencies:
   {% for editor in editors %}
   - .yamato/CI.yml#run_test_project_linux_{{ editor.version }}
@@ -67,7 +69,11 @@ run_test_project_{{ platform.name }}_{{ editor.version }}:
     DISPLAY: ":0"
   {% endif %}
   commands:
+{% if platform.name == "linux" -%}
+    - pip install unity-downloader-cli --user --upgrade --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple
+{% else -%}
     - pip install unity-downloader-cli --upgrade --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple
+{% endif -%}    
     - {{ platform.envsetup }}
     - unity-downloader-cli -u {{editor.version}} -c editor -c linux -c macos -c windows --wait --published-only
     - npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
@@ -119,8 +125,8 @@ publish_release:
     image: package-ci/win10:stable
     flavor: b1.large
   commands:
-    - npm install upm-ci-utils --registry https://api.bintray.com/npm/unity/unity-npm
-    - node node_modules/upm-ci-utils project publish
+    - npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+    - upm-ci project publish
     - git push origin HEAD:refs/heads/next/master HEAD:refs/heads/master -f
 
 
