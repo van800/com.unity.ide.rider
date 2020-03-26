@@ -110,8 +110,8 @@ namespace Packages.Rider.Editor
 
     private static void LinkButton(string url)
     {
+#if UNITY_2019_3_OR_NEWER
       var style = EditorStyles.linkLabel;
-
       var bClicked = GUILayout.Button(url, style);
 
       var rect = GUILayoutUtility.GetLastRect();
@@ -120,6 +120,22 @@ namespace Packages.Rider.Editor
 
       if (bClicked)
         Application.OpenURL(url);
+#else
+      var caption = $"<color=#0000FF>{url}</color>";
+      var style = GUI.skin.label;
+      style.richText = true;
+
+      var bClicked = GUILayout.Button(caption, style);
+
+      var rect = GUILayoutUtility.GetLastRect();
+      rect.width = style.CalcSize(new GUIContent(caption)).x;
+      EditorGUIUtility.AddCursorRect(rect, MouseCursor.Link);
+
+      if (bClicked)
+        Application.OpenURL(url);
+#endif
+
+      
     }
   }
 }
