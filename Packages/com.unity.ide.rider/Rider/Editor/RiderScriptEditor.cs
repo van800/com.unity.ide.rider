@@ -214,7 +214,8 @@ namespace Packages.Rider.Editor
       var extension = Path.GetExtension(path);
       if (string.IsNullOrEmpty(extension))
         return false;
-      return HandledExtensions.Contains(extension.TrimStart('.'));
+      // cs is a default extension, which should always be handled
+      return extension == ".cs" || HandledExtensions.Contains(extension.TrimStart('.'));
     }
 
     public void OnGUI()
