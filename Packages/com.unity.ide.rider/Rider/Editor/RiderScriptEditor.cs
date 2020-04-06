@@ -332,7 +332,7 @@ namespace Packages.Rider.Editor
         StartInfo = new ProcessStartInfo
         {
           FileName = "open",
-          Arguments = $"-n \"{CodeEditor.CurrentEditorInstallation}\" --args {solution} {pathArguments}",
+          Arguments = $"-n -j \"{CodeEditor.CurrentEditorInstallation}\" --args {solution} {pathArguments}",
           CreateNoWindow = true,
           UseShellExecute = true,
         }
