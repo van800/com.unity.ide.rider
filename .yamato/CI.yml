@@ -2,7 +2,6 @@ codeeditor: rider
 test_suite_name: Rider
 
 editors:
-  - version: 2019.2
   - version: 2019.3
   - version: 2020.1
   - version: trunk
