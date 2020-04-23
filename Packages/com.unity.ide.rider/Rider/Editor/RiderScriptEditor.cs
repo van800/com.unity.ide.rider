@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Packages.Rider.Editor.ProjectGeneration;
 using Packages.Rider.Editor.Util;
 using Unity.CodeEditor;
@@ -22,6 +23,7 @@ namespace Packages.Rider.Editor
     {
       try
       {
+        // todo: make ProjectGeneration lazy
         var projectGeneration = new ProjectGeneration.ProjectGeneration();
         var editor = new RiderScriptEditor(new Discovery(), projectGeneration);
         CodeEditor.Register(editor);
@@ -120,22 +122,33 @@ namespace Packages.Rider.Editor
 
     private static void InitProjectFilesWatcher()
     {
-      var watcher = new FileSystemWatcher();
-      watcher.Path = Directory.GetCurrentDirectory();
-      watcher.NotifyFilter = NotifyFilters.LastWrite; //Watch for changes in LastWrite times
-      watcher.Filter = "*.*";
-
-      // Add event handlers.
-      watcher.Changed += OnChanged;
-      watcher.Created += OnChanged;
-      watcher.Deleted += OnChanged;
-
-      watcher.EnableRaisingEvents = true; // Begin watching.
-      
-      AppDomain.CurrentDomain.DomainUnload += (EventHandler) ((_, __) =>
+      Task.Run(() =>
       {
-        watcher.Dispose();
-      });
+        var watcher = new FileSystemWatcher();
+        watcher.Path = Directory.GetCurrentDirectory();
+        watcher.NotifyFilter = NotifyFilters.LastWrite; //Watch for changes in LastWrite times
+        watcher.Filter = "*.*";
+
+        // Add event handlers.
+        watcher.Changed += OnChanged;
+        watcher.Created += OnChanged;
+        watcher.Deleted += OnChanged;
+        
+        watcher.EnableRaisingEvents = true;// Begin watching.
+
+        return watcher;
+      }).ContinueWith(task =>
+      {
+        try
+        {
+          var watcher = task.Result;
+          AppDomain.CurrentDomain.DomainUnload += (EventHandler) ((_, __) => { watcher.Dispose(); });
+        }
+        catch (Exception ex)
+        {
+          Debug.LogError(ex);
+        }
+      }, TaskScheduler.FromCurrentSynchronizationContext());
     }
 
     private static void OnChanged(object sender, FileSystemEventArgs e)
