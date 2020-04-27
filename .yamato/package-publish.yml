@@ -23,7 +23,7 @@ publish:{{ test.name }}:
     {{ v[0] }}: {{ v[1]}}
     {% endfor %}
   commands:
-    - npm install upm-ci-utils@stable --registry https://api.bintray.com/npm/unity/unity-npm -g
+    - npm install upm-ci-utils@stable --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm -g
     - >
 {% if test.type == "package" -%}
       upm-ci package publish
@@ -72,7 +72,7 @@ promote:{{ test.name }}:
   variables:
     UPMCI_PROMOTION: 1
   commands:
-    - npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+    - npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
     - >
 {% if test.type == "package" -%}
       upm-ci package promote
