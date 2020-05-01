@@ -129,7 +129,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
     bool HasFilesBeenModified(IEnumerable<string> affectedFiles, IEnumerable<string> reimportedFiles)
     {
       var files = reimportedFiles as string[] ?? reimportedFiles.ToArray();
-      return affectedFiles.Any(ShouldFileBePartOfSolution) || files.Any(ShouldSyncOnReimportedAsset) || files.Any(a => new FileInfo(a).Name == "csc.rsp");
+      return affectedFiles.Any(ShouldFileBePartOfSolution) || files.Any(ShouldSyncOnReimportedAsset) || files.Any(a => Path.GetFileName(a) == "csc.rsp");
     }
 
     static bool ShouldSyncOnReimportedAsset(string asset)
