@@ -448,6 +448,14 @@ namespace Packages.Rider.Editor.Tests
                 StringAssert.Contains(filesAfter[0], csprojContentAfter);
                 StringAssert.DoesNotContain(filesBefore[0], csprojContentAfter);
             }
+            
+            [Test] // https://github.cds.internal.unity3d.com/unity/com.unity.ide.rider/issues/121
+            public void EmptyPathWouldNotBrake()
+            {
+                var filesBefore = new[] { "Script.cs", string.Empty }; // empty path should not cause exception
+                var synchronizer = m_Builder.WithAssemblyData(filesBefore).Build();
+                Assert.False(synchronizer.SyncIfNeeded(new string[]{}, filesBefore), "Guarantees that all code paths were tried.");
+            }
 
             [Test, TestCaseSource(nameof(s_BuiltinSupportedExtensionsForSourceFiles))]
             public void BuiltinSupportedExtensions_InsideAssemblySourceFiles_WillBeAddedToCompileItems(string fileExtension)
