@@ -103,7 +103,7 @@ prepare_release:
   commands:
     - git clone git@github.cds.internal.unity3d.com:nicklas/Nicklas-CI.git /tmp/Nicklas-CI
     - python3 /tmp/Nicklas-CI/prepare_release.py
-    - git push origin HEAD:refs/heads/publish-release
+    - git push origin HEAD:refs/heads/publish-release -f
 
 
 publish_release:
