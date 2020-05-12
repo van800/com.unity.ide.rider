@@ -290,6 +290,20 @@ namespace Packages.Rider.Editor
     {
       RiderScriptEditorData.instance.Invalidate(editorInstallationPath);
       m_ProjectGeneration.Sync(); // regenerate csproj and sln for new editor
+
+      UpdateCustomDiffToolPath(editorInstallationPath);
+    }
+
+    private void UpdateCustomDiffToolPath(string editorInstallationPath)
+    {
+      var customDiffToolPath = EditorPrefs.GetString("customDiffToolPath", string.Empty);
+      if (customDiffToolPath == string.Empty)
+      {
+        EditorPrefs.SetString("customDiffToolPath", editorInstallationPath);
+        EditorPrefs.SetString("twoWayDiffArguments", "diff");
+        EditorPrefs.SetString("threeWayDiffArguments", "diff");
+        EditorPrefs.SetString("mergeArguments", "merge");
+      }
     }
 
     public bool OpenProject(string path, int line, int column)
