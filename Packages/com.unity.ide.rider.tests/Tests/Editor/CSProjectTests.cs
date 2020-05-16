@@ -295,11 +295,11 @@ namespace Packages.Rider.Editor.Tests
             }
 
             [Test]
-            public void InInternalizedPackage_WillNotBeAddedToCompileInclude()
+            public void InInternalizedPackage_WillBeAddedToCompileInclude()
             {
                 var synchronizer = m_Builder.WithPackageAsset(m_Builder.Assembly.sourceFiles[0], true).Build();
                 synchronizer.Sync();
-                StringAssert.DoesNotContain(m_Builder.Assembly.sourceFiles[0], m_Builder.ReadProjectFile(m_Builder.Assembly));
+                StringAssert.Contains(m_Builder.Assembly.sourceFiles[0], m_Builder.ReadProjectFile(m_Builder.Assembly));
             }
 
             [Test]
