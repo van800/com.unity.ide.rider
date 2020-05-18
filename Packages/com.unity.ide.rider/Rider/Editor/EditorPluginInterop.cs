@@ -27,7 +27,7 @@ namespace Packages.Rider.Editor
         {
           try
           {
-            return a.GetName().Name.StartsWith(EditorPluginAssemblyNamePrefix);
+            return a.GetName().Name.StartsWith(EditorPluginAssemblyNamePrefix); // some user assemblies may fail here
           }
           catch (Exception)
           { 
