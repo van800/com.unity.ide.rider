@@ -23,7 +23,18 @@ namespace Packages.Rider.Editor
         if (ourEditorPluginAssembly != null)
           return ourEditorPluginAssembly;
         var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-        ourEditorPluginAssembly = assemblies.FirstOrDefault(a => a.GetName().Name.StartsWith(EditorPluginAssemblyNamePrefix));
+        ourEditorPluginAssembly = assemblies.FirstOrDefault(a =>
+        {
+          try
+          {
+            return a.GetName().Name.StartsWith(EditorPluginAssemblyNamePrefix);
+          }
+          catch (Exception)
+          { 
+          }
+
+          return default;
+        });
         return ourEditorPluginAssembly;
       }
     }
