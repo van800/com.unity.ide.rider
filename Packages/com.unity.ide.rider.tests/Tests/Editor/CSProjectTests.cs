@@ -457,17 +457,6 @@ namespace Packages.Rider.Editor.Tests
                 var synchronizer = m_Builder.WithAssemblyData(filesBefore).Build();
                 Assert.False(synchronizer.SyncIfNeeded(new string[]{}, filesBefore), "Guarantees that all code paths were tried.");
             }
-            
-            [Test]
-            public void ProjectSettingsChangeTest()
-            {
-                var filesBefore = new string[] {  };
-                var defines = PlayerSettings.GetScriptingDefineSymbolsForGroup(BuildTargetGroup.Standalone);
-                PlayerSettings.SetScriptingDefineSymbolsForGroup(BuildTargetGroup.Standalone, "test;" + defines);
-                PlayerSettings.SetScriptingDefineSymbolsForGroup(BuildTargetGroup.Standalone, defines);
-                var synchronizer = m_Builder.WithAssemblyData(filesBefore).Build();
-                Assert.True(synchronizer.SyncIfNeeded(new string[]{}, filesBefore), "Guarantees that all code paths were tried.");
-            }
 
             [Test, TestCaseSource(nameof(s_BuiltinSupportedExtensionsForSourceFiles))]
             public void BuiltinSupportedExtensions_InsideAssemblySourceFiles_WillBeAddedToCompileItems(string fileExtension)
