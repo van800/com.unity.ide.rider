@@ -462,7 +462,6 @@ namespace Packages.Rider.Editor.Tests
             public void ProjectSettingsChangeTest()
             {
                 var filesBefore = new string[] {  };
-                //File.SetLastWriteTimeUtc("Library/EditorOnlyScriptingUserSettings.json", DateTime.UtcNow);
                 var defines = PlayerSettings.GetScriptingDefineSymbolsForGroup(BuildTargetGroup.Standalone);
                 PlayerSettings.SetScriptingDefineSymbolsForGroup(BuildTargetGroup.Standalone, "test;" + defines);
                 PlayerSettings.SetScriptingDefineSymbolsForGroup(BuildTargetGroup.Standalone, defines);
