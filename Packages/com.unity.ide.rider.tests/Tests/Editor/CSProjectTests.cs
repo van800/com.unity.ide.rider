@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Xml;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEditor.Compilation;
 
 namespace Packages.Rider.Editor.Tests
@@ -455,6 +456,18 @@ namespace Packages.Rider.Editor.Tests
                 var filesBefore = new[] { "Script.cs", string.Empty }; // empty path should not cause exception
                 var synchronizer = m_Builder.WithAssemblyData(filesBefore).Build();
                 Assert.False(synchronizer.SyncIfNeeded(new string[]{}, filesBefore), "Guarantees that all code paths were tried.");
+            }
+            
+            [Test]
+            public void ProjectSettingsChangeTest()
+            {
+                var filesBefore = new string[] {  };
+                //File.SetLastWriteTimeUtc("Library/EditorOnlyScriptingUserSettings.json", DateTime.UtcNow);
+                var defines = PlayerSettings.GetScriptingDefineSymbolsForGroup(BuildTargetGroup.Standalone);
+                PlayerSettings.SetScriptingDefineSymbolsForGroup(BuildTargetGroup.Standalone, "test;" + defines);
+                PlayerSettings.SetScriptingDefineSymbolsForGroup(BuildTargetGroup.Standalone, defines);
+                var synchronizer = m_Builder.WithAssemblyData(filesBefore).Build();
+                Assert.True(synchronizer.SyncIfNeeded(new string[]{}, filesBefore), "Guarantees that all code paths were tried.");
             }
 
             [Test, TestCaseSource(nameof(s_BuiltinSupportedExtensionsForSourceFiles))]
