@@ -1,4 +1,19 @@
 # Code Editor Package for Rider
+
+## [2.0.2] - 2020-03-18
+
+fix bug in searching Rider path on MacOS
+
+
+## [2.0.1] - 2020-03-05
+
+Speed improvements,
+ProjectTypeGuids for unity-generated project
+Improve UI for Project Generation settings
+Changes in csc.rsp would cause project-generation
+Remove NoWarn 0169 from generated csproj
+Support custom JetBrains Toolbox installation location
+
 ## [1.2.1] - 2019-12-09
 
 - Load optimised EditorPlugin version compiled to net 461, with fallback to previous version.

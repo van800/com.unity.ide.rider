@@ -2,6 +2,8 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
+using Packages.Rider.Editor.ProjectGeneration;
 using Packages.Rider.Editor.Util;
 using Unity.CodeEditor;
 using UnityEditor;
@@ -11,7 +13,7 @@ using Debug = UnityEngine.Debug;
 namespace Packages.Rider.Editor
 {
   [InitializeOnLoad]
-  public class RiderScriptEditor : IExternalCodeEditor
+  internal class RiderScriptEditor : IExternalCodeEditor
   {
     IDiscovery m_Discoverability;
     IGenerator m_ProjectGeneration;
@@ -21,7 +23,8 @@ namespace Packages.Rider.Editor
     {
       try
       {
-        var projectGeneration = new ProjectGeneration();
+        // todo: make ProjectGeneration lazy
+        var projectGeneration = new ProjectGeneration.ProjectGeneration();
         var editor = new RiderScriptEditor(new Discovery(), projectGeneration);
         CodeEditor.Register(editor);
         var path = GetEditorRealPath(CurrentEditor);
@@ -36,7 +39,7 @@ namespace Packages.Rider.Editor
             // is likely outdated
             if (installations.Any() && installations.All(a => GetEditorRealPath(a.Path) != path))
             {
-              if (RiderPathLocator.IsToolbox(path)) // is toolbox - update
+              if (RiderPathLocator.GetIsToolbox(path)) // is toolbox - update
               {
                 var toolboxInstallations = installations.Where(a => a.IsToolbox).ToArray();
                 if (toolboxInstallations.Any())
@@ -119,21 +122,33 @@ namespace Packages.Rider.Editor
 
     private static void InitProjectFilesWatcher()
     {
-      var watcher = new FileSystemWatcher();
-      watcher.Path = Directory.GetCurrentDirectory();
-      watcher.NotifyFilter = NotifyFilters.LastWrite; //Watch for changes in LastWrite times
-      watcher.Filter = "*.*";
-
-      // Add event handlers.
-      watcher.Changed += OnChanged;
-      watcher.Created += OnChanged;
-
-      watcher.EnableRaisingEvents = true; // Begin watching.
-      
-      AppDomain.CurrentDomain.DomainUnload += (EventHandler) ((_, __) =>
+      Task.Run(() =>
       {
-        watcher.Dispose();
-      });
+        var watcher = new FileSystemWatcher();
+        watcher.Path = Directory.GetCurrentDirectory();
+        watcher.NotifyFilter = NotifyFilters.LastWrite; //Watch for changes in LastWrite times
+        watcher.Filter = "*.*";
+
+        // Add event handlers.
+        watcher.Changed += OnChanged;
+        watcher.Created += OnChanged;
+        watcher.Deleted += OnChanged;
+        
+        watcher.EnableRaisingEvents = true;// Begin watching.
+
+        return watcher;
+      }).ContinueWith(task =>
+      {
+        try
+        {
+          var watcher = task.Result;
+          AppDomain.CurrentDomain.DomainUnload += (EventHandler) ((_, __) => { watcher.Dispose(); });
+        }
+        catch (Exception ex)
+        {
+          Debug.LogError(ex);
+        }
+      }, TaskScheduler.FromCurrentSynchronizationContext());
     }
 
     private static void OnChanged(object sender, FileSystemEventArgs e)
@@ -156,7 +171,7 @@ namespace Packages.Rider.Editor
       if (SystemInfo.operatingSystemFamily != OperatingSystemFamily.Windows)
       {
         var realPath = FileSystemUtil.GetFinalPathName(path);
-        
+
         // case of snap installation
         if (SystemInfo.operatingSystemFamily == OperatingSystemFamily.Linux)
         {
@@ -168,16 +183,13 @@ namespace Packages.Rider.Editor
               return snapInstallPath;
           }
         }
-        
+
         // in case of symlink
         return realPath;
       }
 
       return path;
     }
-
-    const string unity_generate_all = "unity_generate_all_csproj";
-    const string unity_generate_player_projects = "unity_generate_player_projects";
 
     public RiderScriptEditor(IDiscovery discovery, IGenerator projectGeneration)
     {
@@ -209,13 +221,14 @@ namespace Packages.Rider.Editor
       get { return EditorPrefs.GetString("Rider_UserExtensions", string.Join(";", defaultExtensions));}
       set { EditorPrefs.SetString("Rider_UserExtensions", value); }
     }
-    
+
     private static bool SupportsExtension(string path)
     {
       var extension = Path.GetExtension(path);
       if (string.IsNullOrEmpty(extension))
-        return false; 
-      return HandledExtensions.Contains(extension.TrimStart('.'));
+        return false;
+      // cs is a default extension, which should always be handled
+      return extension == ".cs" || HandledExtensions.Contains(extension.TrimStart('.'));
     }
 
     public void OnGUI()
@@ -227,22 +240,38 @@ namespace Packages.Rider.Editor
 
       EditorGUILayout.LabelField("Generate .csproj files for:");
       EditorGUI.indentLevel++;
-      m_ProjectGeneration.GenerateAll(SettingsButton(unity_generate_all, "Internal packages", "Generate csproj files for all packages, including packages marked as internal."));
-      m_ProjectGeneration.AssemblyNameProvider.GeneratePlayerProjects(SettingsButton(unity_generate_player_projects, "Player projects", "For each player project generate an additional csproj with the name 'project-player.csproj'."));
+      SettingsButton(ProjectGenerationFlag.Embedded, "Embedded packages", "");
+      SettingsButton(ProjectGenerationFlag.Local, "Local packages", "");
+      SettingsButton(ProjectGenerationFlag.Registry, "Registry packages", "");
+      SettingsButton(ProjectGenerationFlag.Git, "Git packages", "");
+      SettingsButton(ProjectGenerationFlag.BuiltIn, "Built-in packages", "");
+#if UNITY_2019_3_OR_NEWER
+      SettingsButton(ProjectGenerationFlag.LocalTarBall, "Local tarball", "");
+#endif
+      SettingsButton(ProjectGenerationFlag.Unknown, "Packages from unknown sources", "");
+      SettingsButton(ProjectGenerationFlag.PlayerAssemblies, "Player projects", "For each player project generate an additional csproj with the name 'project-player.csproj'");
+      RegenerateProjectFiles();
       EditorGUI.indentLevel--;
     }
 
-    static bool SettingsButton(string preference, string guiMessage, string toolTip)
+    void RegenerateProjectFiles()
     {
-      var prevValue = EditorPrefs.GetBool(preference, false);
-      ;
+      var rect = EditorGUI.IndentedRect(EditorGUILayout.GetControlRect(new GUILayoutOption[] {}));
+      rect.width = 252;
+      if (GUI.Button(rect, "Regenerate project files"))
+      {
+        m_ProjectGeneration.Sync();
+      }
+    }
+
+    void SettingsButton(ProjectGenerationFlag preference, string guiMessage, string toolTip)
+    {
+      var prevValue = m_ProjectGeneration.AssemblyNameProvider.ProjectGenerationFlag.HasFlag(preference);
       var newValue = EditorGUILayout.Toggle(new GUIContent(guiMessage, toolTip), prevValue);
       if (newValue != prevValue)
       {
-        EditorPrefs.SetBool(preference, newValue);
+        m_ProjectGeneration.AssemblyNameProvider.ToggleProjectGeneration(preference);
       }
-
-      return newValue;
     }
 
     public void SyncIfNeeded(string[] addedFiles, string[] deletedFiles, string[] movedFiles, string[] movedFromFiles,
@@ -254,12 +283,7 @@ namespace Packages.Rider.Editor
 
     public void SyncAll()
     {
-      AssetDatabase.Refresh();
-      if (RiderScriptEditorData.instance.hasChanges)
-      {
-        m_ProjectGeneration.Sync();
-        RiderScriptEditorData.instance.hasChanges = false;
-      }
+      AssetDatabase.Refresh(); // refresh would automatically call sync if needed
     }
 
     public void Initialize(string editorInstallationPath) // is called each time ExternalEditor is changed
@@ -283,6 +307,7 @@ namespace Packages.Rider.Editor
 
       if (!IsUnityScript(path))
       {
+        m_ProjectGeneration.SyncIfNeeded(affectedFiles: new string[] { }, new string[] { });
         var fastOpenResult = EditorPluginInterop.OpenFileDllImplementation(path, line, column);
         if (fastOpenResult)
           return true;
@@ -312,7 +337,7 @@ namespace Packages.Rider.Editor
 
     private bool OpenOSXApp(string path, int line, int column)
     {
-      var solution = GetSolutionFile(path); // TODO: If solution file doesn't exist resync.
+      var solution = GetSolutionFile(path);
       solution = solution == "" ? "" : $"\"{solution}\"";
       var pathArguments = path == "" ? "" : $"-l {line} \"{path}\"";
       var process = new Process
@@ -320,7 +345,7 @@ namespace Packages.Rider.Editor
         StartInfo = new ProcessStartInfo
         {
           FileName = "open",
-          Arguments = $"-n \"{CodeEditor.CurrentEditorInstallation}\" --args {solution} {pathArguments}",
+          Arguments = $"-n -j \"{CodeEditor.CurrentEditorInstallation}\" --args {solution} {pathArguments}",
           CreateNoWindow = true,
           UseShellExecute = true,
         }
@@ -415,7 +440,7 @@ namespace Packages.Rider.Editor
 
     public CodeEditor.Installation[] Installations => m_Discoverability.PathCallback();
 
-    public void CreateSolutionIfDoesntExist()
+    private void CreateSolutionIfDoesntExist()
     {
       if (!m_ProjectGeneration.HasSolutionBeenGenerated())
       {

@@ -1,10 +1,9 @@
 {
     "name": "Unity.Rider.EditorTests",
     "references": [
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner",
         "Unity.Rider.Editor"
-    ],
-    "optionalUnityReferences": [
-        "TestAssemblies"
     ],
     "includePlatforms": [
         "Editor"
@@ -13,9 +12,13 @@
     "allowUnsafeCode": false,
     "overrideReferences": true,
     "precompiledReferences": [
-        "Moq.dll"
+        "Moq.dll",
+        "nunit.framework.dll"
     ],
     "autoReferenced": false,
-    "defineConstraints": [],
-    "versionDefines": []
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
 }

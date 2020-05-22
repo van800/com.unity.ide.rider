@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using Moq;
+using Packages.Rider.Editor.ProjectGeneration;
 using UnityEditor.Compilation;
 
 namespace Packages.Rider.Editor.Tests
@@ -49,9 +50,9 @@ namespace Packages.Rider.Editor.Tests
             WithAssemblyData();
         }
 
-        public IGenerator Build()
+        internal IGenerator Build()
         {
-            return m_Synchronizer = new ProjectGeneration(projectDirectory, m_AssemblyProvider.Object, m_FileIoMock, m_GUIDGenerator.Object);
+            return m_Synchronizer = new ProjectGeneration.ProjectGeneration(projectDirectory, m_AssemblyProvider.Object, m_FileIoMock, m_GUIDGenerator.Object);
         }
 
         public SynchronizerBuilder WithSolutionText(string solutionText)
@@ -81,6 +82,10 @@ namespace Packages.Rider.Editor.Tests
         {
             m_Assemblies = assemblies;
             m_AssemblyProvider.Setup(x => x.GetAssemblies(It.IsAny<Func<string, bool>>())).Returns(m_Assemblies);
+            foreach (var assembly in assemblies)
+            {
+                m_AssemblyProvider.Setup(x => x.GetProjectName(assembly.outputPath, assembly.name)).Returns(assembly.name);
+            }
             return this;
         }
 
@@ -142,7 +147,7 @@ namespace Packages.Rider.Editor.Tests
             m_AssemblyProvider.Setup(p => p.GetRoslynAnalyzerPaths()).Returns(roslynAnalyzerDllPaths);
             return this;
         }
-        
+
         public SynchronizerBuilder AssignFilesToAssembly(string[] files, Assembly assembly)
         {
             m_AssemblyProvider.Setup(x => x.GetAssemblyNameFromScriptPath(It.Is<string>(file => files.Contains(file.Substring(0, file.Length - ".cs".Length))))).Returns(assembly.name);
@@ -178,6 +183,12 @@ namespace Packages.Rider.Editor.Tests
         public SynchronizerBuilder WithUserSupportedExtensions(string[] extensions)
         {
             m_AssemblyProvider.Setup(x => x.ProjectSupportedExtensions).Returns(extensions);
+            return this;
+        }
+
+        public SynchronizerBuilder WithOutputPathForAssemblyPath(string outputPath, string assemblyName, string resAssemblyName)
+        {
+            m_AssemblyProvider.Setup(x => x.GetProjectName(outputPath, assemblyName)).Returns(resAssemblyName);
             return this;
         }
     }
