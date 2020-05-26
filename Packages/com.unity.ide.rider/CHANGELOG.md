@@ -1,5 +1,13 @@
 # Code Editor Package for Rider
 
+## [2.0.4] - 2020-05-26
+
+Fix Regression in 2.0.3: In Unity 2019.2.9 on Mac, changing csproj and calling AssetDatabase.Refresh is not regenerating csproj.
+Regenerate projects on changes in manifest.json and Project Settings (EditorOnlyScriptingUserSettings.json) (#51)
+Fix: Assembly references to package assemblies break IDE projects.
+Fix: Reporting test duration.
+
+
 ## [2.0.2] - 2020-03-18
 
 fix bug in searching Rider path on MacOS

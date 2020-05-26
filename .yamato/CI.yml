@@ -13,7 +13,7 @@ platforms:
     envsetup: echo
   - name: mac
     type: Unity::VM::osx
-    image: buildfarm/mac:stable
+    image: package-ci/mac:stable
     flavor: m1.mac
     envsetup: echo
   - name: linux
@@ -126,7 +126,7 @@ publish_release:
   commands:
     - npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
     - upm-ci project publish
-    - git push origin HEAD:refs/heads/next/master HEAD:refs/heads/master -f
+    - git push origin HEAD:refs/heads/master -f
 
 
 prepare_promotion:
