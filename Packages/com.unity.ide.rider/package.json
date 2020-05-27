@@ -2,13 +2,13 @@
   "name": "com.unity.ide.rider",
   "displayName": "JetBrains Rider Editor",
   "description": "Code editor integration for supporting JetBrains Rider as code editor for Unity. Adds support for generating csproj files for code completion, auto discovery of installations, etc.",
-  "version": "2.0.2",
+  "version": "2.0.5",
   "unity": "2019.2",
   "unityRelease": "6f1",
   "dependencies": {
     "com.unity.test-framework": "1.1.1"
   },
   "relatedPackages": {
-    "com.unity.ide.rider.tests": "2.0.2"
+    "com.unity.ide.rider.tests": "2.0.5"
   }
 }
