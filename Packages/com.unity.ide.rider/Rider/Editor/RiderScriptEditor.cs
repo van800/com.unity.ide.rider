@@ -407,7 +407,9 @@ namespace Packages.Rider.Editor
 
     private static bool IsAssetImportWorkerProcess()
     {
-#if UNITY_2019_3_OR_NEWER
+#if UNITY_2020_2_OR_NEWER
+      return UnityEditor.AssetDatabase.IsAssetImportWorkerProcess();
+#elif UNITY_2019_3_OR_NEWER
       return UnityEditor.Experimental.AssetDatabaseExperimental.IsAssetImportWorkerProcess();
 #else
       return false;
