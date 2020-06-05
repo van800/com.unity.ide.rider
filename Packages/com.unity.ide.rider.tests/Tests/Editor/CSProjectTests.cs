@@ -3,7 +3,6 @@ using System.IO;
 using System.Linq;
 using System.Xml;
 using NUnit.Framework;
-using UnityEditor;
 using UnityEditor.Compilation;
 
 namespace Packages.Rider.Editor.Tests
