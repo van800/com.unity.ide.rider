@@ -574,7 +574,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
         MSBuildNamespaceUri,
         assembly.name,
         assembly.outputPath,
-        m_AssemblyNameProvider.ProjectGenerationRootNamespace,
+        GetRootNamespace(assembly),
         k_TargetFrameworkVersion,
         GenerateLangVersion(otherResponseFilesData["langversion"]),
         k_BaseDirectory,
@@ -943,5 +943,14 @@ namespace Packages.Rider.Editor.ProjectGeneration
         m_ProjectName,
         m_AssemblyNameProvider.GetProjectName(assembly.outputPath, assembly.name));
     }
-  }
+
+    static string GetRootNamespace(Assembly assembly)
+    {
+#if UNITY_2020_2_OR_NEWER
+      return assembly.rootNamespace;
+#else
+      return EditorSettings.projectGenerationRootNamespace;
+#endif
+    }
+}
 }
