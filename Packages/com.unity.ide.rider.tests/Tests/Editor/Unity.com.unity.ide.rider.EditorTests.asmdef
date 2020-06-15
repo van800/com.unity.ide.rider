@@ -1,5 +1,6 @@
 {
     "name": "Unity.Rider.EditorTests",
+    "rootNamespace": "Packages.Rider.Editor.Tests",
     "references": [
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
