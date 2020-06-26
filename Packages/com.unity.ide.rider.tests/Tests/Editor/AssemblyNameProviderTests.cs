@@ -67,6 +67,21 @@ namespace Packages.Rider.Editor.Tests
             }
         }
 
+#if UNITY_2020_2_OR_NEWER
+        [Test]
+        public void EditorAssemblies_WillIncludeRootNamespace()
+        {
+            var editorAssemblies = CompilationPipeline.GetAssemblies(AssembliesType.Editor);
+            var collectedAssemblies = m_AssemblyNameProvider.GetAssemblies(s => true).ToList();
+
+            var editorTestAssembly = editorAssemblies.Single(a => a.name == "Unity.Rider.EditorTests");
+            Assert.AreEqual("Packages.Rider.Editor.Tests", editorTestAssembly.rootNamespace);
+
+            var collectedTestAssembly = collectedAssemblies.Single(a => a.name == editorTestAssembly.name);
+            Assert.AreEqual(editorTestAssembly.rootNamespace, collectedTestAssembly.rootNamespace);
+        }
+#endif
+
         [Test]
         public void AllEditorAssemblies_HaveAReferenceToUnityEditorAndUnityEngine()
         {

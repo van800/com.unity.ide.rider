@@ -95,6 +95,7 @@ namespace Packages.Rider.Editor.Tests
             Assembly[] assemblyReferences = null, 
             string[] compiledAssemblyReferences = null, 
             bool unsafeSettings = false,
+            string rootNamespace = "",
             string roslynAnalyzerRulesetPath = null)
         {
             Assembly assembly;
@@ -112,7 +113,8 @@ namespace Packages.Rider.Editor.Tests
                 {
                     AllowUnsafeCode = unsafeSettings,
                     RoslynAnalyzerRulesetPath = roslynAnalyzerRulesetPath
-                });
+                },
+                rootNamespace);
 #else
             assembly = new Assembly(
                 "Test",
@@ -127,7 +129,6 @@ namespace Packages.Rider.Editor.Tests
                     AllowUnsafeCode = unsafeSettings
                 });
 #endif
-            
             return WithAssembly(assembly);
         }
 
