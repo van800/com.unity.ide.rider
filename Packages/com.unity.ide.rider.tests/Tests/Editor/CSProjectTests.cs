@@ -694,7 +694,7 @@ namespace Packages.Rider.Editor.Tests
             [Test]
             public void RoslynAnalyzerRulesetFiles_WillBeIncluded()
             {
-                #if UNITY_EDITOR_2020_2_OR_NEWER
+                #if UNITY_2020_2_OR_NEWER
                 var roslynAnalyzerRuleSetPath = "Assets/RoslynRuleSet.ruleset";
                 
                 m_Builder.WithAssemblyData(files: new[] {"file.cs"}, roslynAnalyzerRulesetPath: roslynAnalyzerRuleSetPath).Build().Sync();

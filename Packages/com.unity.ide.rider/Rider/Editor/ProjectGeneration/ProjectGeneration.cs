@@ -583,7 +583,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
                                                   .Distinct()
                                                   .ToArray()),
         GenerateAnalyserAdditionalFiles(otherResponseFilesData["additionalfile"].SelectMany(x=>x.Split(';')).Distinct().ToArray()),
-        #if UNITY_EDITOR_2020_2_OR_NEWER
+        #if UNITY_2020_2_OR_NEWER
         GenerateAnalyserRuleSet(otherResponseFilesData["ruleset"].Append(assembly.compilerOptions.RoslynAnalyzerRulesetPath).Distinct().ToArray()),
         #else
         GenerateAnalyserRuleSet(otherResponseFilesData["ruleset"].Distinct().ToArray()),

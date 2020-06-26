@@ -99,7 +99,7 @@ namespace Packages.Rider.Editor.Tests
         {
             Assembly assembly;
             
-#if UNITY_EDITOR_2020_2_OR_NEWER
+#if UNITY_2020_2_OR_NEWER
             assembly = new Assembly(
                 "Test",
                 "some/path/file.dll",
