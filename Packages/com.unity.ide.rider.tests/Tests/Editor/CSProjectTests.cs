@@ -3,7 +3,6 @@ using System.IO;
 using System.Linq;
 using System.Xml;
 using NUnit.Framework;
-using UnityEditor;
 using UnityEditor.Compilation;
 
 namespace Packages.Rider.Editor.Tests
@@ -224,6 +223,26 @@ namespace Packages.Rider.Editor.Tests
                 Assert.That(synchronizer.SyncIfNeeded(new[] { packageAsset }, new string[0]));
             }
         }
+
+#if UNITY_2020_2_OR_NEWER
+        class RootNamespace : ProjectGenerationTestBase
+        {
+            [Test]
+            public void RootNamespaceFromAssembly_AddBlockToCsproj()
+            {
+                var @namespace = "TestNamespace";
+
+                var synchronizer = m_Builder
+                    .WithAssemblyData(rootNamespace: @namespace)
+                    .Build();
+
+                synchronizer.Sync();
+
+                var csprojFileContents = m_Builder.ReadProjectFile(m_Builder.Assembly);
+                StringAssert.Contains($"<RootNamespace>{@namespace}</RootNamespace>", csprojFileContents);
+            }
+        }
+#endif
 
         class SourceFiles : ProjectGenerationTestBase
         {
