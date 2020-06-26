@@ -710,18 +710,18 @@ namespace Packages.Rider.Editor.Tests
                 XMLUtilities.AssertAnalyzerItemsMatchExactly(projectFileXml, new[] { roslynAnalyzerDllPath });
             }
 
+#if UNITY_2020_2_OR_NEWER
             [Test]
             public void RoslynAnalyzerRulesetFiles_WillBeIncluded()
             {
-                #if UNITY_2020_2_OR_NEWER
                 var roslynAnalyzerRuleSetPath = "Assets/RoslynRuleSet.ruleset";
                 
                 m_Builder.WithAssemblyData(files: new[] {"file.cs"}, roslynAnalyzerRulesetPath: roslynAnalyzerRuleSetPath).Build().Sync();
                 var csProjectFileContents = m_Builder.ReadProjectFile(m_Builder.Assembly);
                 XmlDocument csProjectXmlFile = XMLUtilities.FromText(csProjectFileContents);
                 XMLUtilities.AssertAnalyzerRuleSetsMatchExactly(csProjectXmlFile, roslynAnalyzerRuleSetPath);
-                #endif
             }
+#endif
             
             [Test]
             public void DllInSourceFiles_WillBeAddedAsReference()
