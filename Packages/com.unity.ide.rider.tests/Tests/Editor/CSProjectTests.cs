@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml;
@@ -74,7 +75,7 @@ namespace Packages.Rider.Editor.Tests
                 synchronizer.Sync();
 
                 var csprojContent = m_Builder.ReadProjectFile(m_Builder.Assembly);
-                var content = new[]
+                var content = new List<string>
                 {
                     "<?xml version=\"1.0\" encoding=\"utf-8\"?>",
                     "<Project ToolsVersion=\"4.0\" DefaultTargets=\"Build\" xmlns=\"http://schemas.microsoft.com/developer/msbuild/2003\">",
@@ -83,7 +84,6 @@ namespace Packages.Rider.Editor.Tests
                     "    <_TargetFrameworkDirectories>non_empty_path_generated_by_unity.rider.package</_TargetFrameworkDirectories>",
                     "    <_FullFrameworkReferenceAssemblyPaths>non_empty_path_generated_by_unity.rider.package</_FullFrameworkReferenceAssemblyPaths>",
                     "    <DisableHandlePackageFileConflicts>true</DisableHandlePackageFileConflicts>",
-                    "  <CodeAnalysisRuleSet></CodeAnalysisRuleSet>",
                     "  </PropertyGroup>",
                     "  <PropertyGroup>",
                     "    <Configuration Condition=\" '$(Configuration)' == '' \">Debug</Configuration>",
@@ -144,6 +144,10 @@ namespace Packages.Rider.Editor.Tests
                     ""
                 };
 
+                #if UNITY_2020_2_OR_NEWER
+                content.Insert(index: 7, item: "  <CodeAnalysisRuleSet></CodeAnalysisRuleSet>");
+                #endif
+                
                 StringAssert.AreEqualIgnoringCase(string.Join(Environment.NewLine, content), csprojContent);
             }
         }
