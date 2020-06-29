@@ -89,23 +89,45 @@ namespace Packages.Rider.Editor.Tests
             return this;
         }
 
-        public SynchronizerBuilder WithAssemblyData(string[] files = null, string[] defines = null, Assembly[] assemblyReferences = null, string[] compiledAssemblyReferences = null, bool unsafeSettings = false, string rootNamespace = "")
+        public SynchronizerBuilder WithAssemblyData
+            (string[] files = null, 
+            string[] defines = null,
+            Assembly[] assemblyReferences = null, 
+            string[] compiledAssemblyReferences = null, 
+            bool unsafeSettings = false,
+            string rootNamespace = "",
+            string roslynAnalyzerRulesetPath = null)
         {
-            var options = new ScriptCompilerOptions() { AllowUnsafeCode = unsafeSettings };
-
-            var assembly = new Assembly(
+            Assembly assembly;
+            
+#if UNITY_2020_2_OR_NEWER
+            assembly = new Assembly(
                 "Test",
                 "some/path/file.dll",
-                files ?? new[] { "test.cs" },
+                files ?? new[] {"test.cs"},
                 defines ?? new string[0],
                 assemblyReferences ?? new Assembly[0],
                 compiledAssemblyReferences ?? new string[0],
                 AssemblyFlags.None,
-#if UNITY_2020_2_OR_NEWER
-                options,
+                new ScriptCompilerOptions
+                {
+                    AllowUnsafeCode = unsafeSettings,
+                    RoslynAnalyzerRulesetPath = roslynAnalyzerRulesetPath
+                },
                 rootNamespace);
 #else
-                options);
+            assembly = new Assembly(
+                "Test",
+                "some/path/file.dll",
+                files ?? new[] {"test.cs"},
+                defines ?? new string[0],
+                assemblyReferences ?? new Assembly[0],
+                compiledAssemblyReferences ?? new string[0],
+                AssemblyFlags.None,
+                new ScriptCompilerOptions
+                {
+                    AllowUnsafeCode = unsafeSettings
+                });
 #endif
             return WithAssembly(assembly);
         }
