@@ -7,6 +7,7 @@ using Packages.Rider.Editor.ProjectGeneration;
 using Packages.Rider.Editor.Util;
 using Unity.CodeEditor;
 using UnityEditor;
+using UnityEditor.Build;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 
@@ -102,6 +103,14 @@ namespace Packages.Rider.Editor
           RiderFileSystemWatcher.InitWatcher(
             Path.Combine(Directory.GetCurrentDirectory(), "Packages"),
             "manifest.json", (sender, args) => { RiderScriptEditorData.instance.hasChanges = true; });
+
+          // can't switch to non-deprecated api, because UnityEditor.Build.BuildPipelineInterfaces.processors is internal
+#pragma warning disable 618
+          EditorUserBuildSettings.activeBuildTargetChanged += () =>
+#pragma warning restore 618
+          {
+            RiderScriptEditorData.instance.hasChanges = true;
+          };
         }
       }
       catch (Exception e)
