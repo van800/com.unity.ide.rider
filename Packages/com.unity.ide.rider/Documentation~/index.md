@@ -1,6 +1,6 @@
 # About JetBrains Rider Editor
 ​
-The JetBrains Rider editor package integrates support for the [JetBrains Rider](https://www.jetbrains.com/rider/) .NET Integrated Development Environment (IDE), into the Unity Editor. This package provides an end-point for Rider to call different Unity APIs and to generate .cproj and .sln files, which Rider uses to implement support for Unity in its [plug-in](https://github.com/JetBrains/resharper-unity). 
+The JetBrains Rider editor package integrates support for the [JetBrains Rider](https://www.jetbrains.com/rider/) .NET Integrated Development Environment (IDE), into the Unity Editor. This package provides an end-point for Rider to call different Unity APIs and to generate .csproj and .sln files, which Rider uses to implement support for Unity in its [plug-in](https://github.com/JetBrains/resharper-unity). 
 
 This package ensures that IDE features like autocomplete suggestions and flagging dependency conflicts work in Rider. It uses .cproj and .sln files which store information about your project such as:
 
@@ -29,4 +29,4 @@ For more information about the Rider IDE, see the [JetBrains Rider documentation
 
 ### Submitting issues
 
-This package is maintained by JetBrains and Unity. Submit issues to the [GitHub page](https://github.com/JetBrains/resharper-unity/issues). Unity intends for this package to become accessible to the public on GitHub in the future.
+This package is maintained by JetBrains and Unity. Submit issues to the [JetBrains/resharper-unity/issues GitHub page](https://github.com/JetBrains/resharper-unity/issues). Unity intends for this package to become accessible to the public on GitHub in the future.
