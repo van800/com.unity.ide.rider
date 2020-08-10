@@ -89,21 +89,47 @@ namespace Packages.Rider.Editor.Tests
             return this;
         }
 
-        public SynchronizerBuilder WithAssemblyData(string[] files = null, string[] defines = null, Assembly[] assemblyReferences = null, string[] compiledAssemblyReferences = null, bool unsafeSettings = false)
+        public SynchronizerBuilder WithAssemblyData
+            (string[] files = null,
+            string[] defines = null,
+            Assembly[] assemblyReferences = null,
+            string[] compiledAssemblyReferences = null,
+            bool unsafeSettings = false,
+            string rootNamespace = "",
+            string roslynAnalyzerRulesetPath = null)
         {
-            var assembly = new Assembly(
+            Assembly assembly = CreateAssembly(
                 "Test",
                 "some/path/file.dll",
-                files ?? new[] { "test.cs" },
+                files ?? new[] {"test.cs"},
                 defines ?? new string[0],
                 assemblyReferences ?? new Assembly[0],
                 compiledAssemblyReferences ?? new string[0],
-                AssemblyFlags.None);
-            assembly.compilerOptions.AllowUnsafeCode = unsafeSettings;
-            return WithAssembly(
-                assembly
+                AssemblyFlags.None,
+                new ScriptCompilerOptions
+                {
+                    AllowUnsafeCode = unsafeSettings,
+                },
+                rootNamespace
             );
+
+#if UNITY_2020_2_OR_NEWER
+            assembly.compilerOptions.RoslynAnalyzerRulesetPath = roslynAnalyzerRulesetPath;
+#endif
+            return WithAssembly(assembly);
         }
+
+#if UNITY_2020_2_OR_NEWER
+        private Assembly CreateAssembly(string name, string path, string[] files, string[] defines, Assembly[] assemblyReferences, string[] compiledAssemblyReferences, AssemblyFlags flags, ScriptCompilerOptions options, string rootNamespace)
+        {
+            return new Assembly(name, path, files, defines, assemblyReferences, compiledAssemblyReferences, flags, options, rootNamespace);
+        }
+#else
+        private Assembly CreateAssembly(string name, string path, string[] files, string[] defines, Assembly[] assemblyReferences, string[] compiledAssemblyReferences, AssemblyFlags flags, ScriptCompilerOptions options, string rootNamespace)
+        {
+            return new Assembly(name, path, files, defines, assemblyReferences, compiledAssemblyReferences, flags, options);
+        }
+#endif
 
         public SynchronizerBuilder WithAssembly(Assembly assembly)
         {

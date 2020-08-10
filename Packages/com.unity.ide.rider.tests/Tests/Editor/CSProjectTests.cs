@@ -3,7 +3,6 @@ using System.IO;
 using System.Linq;
 using System.Xml;
 using NUnit.Framework;
-using UnityEditor;
 using UnityEditor.Compilation;
 
 namespace Packages.Rider.Editor.Tests
@@ -84,6 +83,9 @@ namespace Packages.Rider.Editor.Tests
                     "    <_TargetFrameworkDirectories>non_empty_path_generated_by_unity.rider.package</_TargetFrameworkDirectories>",
                     "    <_FullFrameworkReferenceAssemblyPaths>non_empty_path_generated_by_unity.rider.package</_FullFrameworkReferenceAssemblyPaths>",
                     "    <DisableHandlePackageFileConflicts>true</DisableHandlePackageFileConflicts>",
+                    # if UNITY_2020_2_OR_NEWER
+                    "  <CodeAnalysisRuleSet></CodeAnalysisRuleSet>",
+                    #endif 
                     "  </PropertyGroup>",
                     "  <PropertyGroup>",
                     "    <Configuration Condition=\" '$(Configuration)' == '' \">Debug</Configuration>",
@@ -224,6 +226,26 @@ namespace Packages.Rider.Editor.Tests
                 Assert.That(synchronizer.SyncIfNeeded(new[] { packageAsset }, new string[0]));
             }
         }
+
+#if UNITY_2020_2_OR_NEWER
+        class RootNamespace : ProjectGenerationTestBase
+        {
+            [Test]
+            public void RootNamespaceFromAssembly_AddBlockToCsproj()
+            {
+                var @namespace = "TestNamespace";
+
+                var synchronizer = m_Builder
+                    .WithAssemblyData(rootNamespace: @namespace)
+                    .Build();
+
+                synchronizer.Sync();
+
+                var csprojFileContents = m_Builder.ReadProjectFile(m_Builder.Assembly);
+                StringAssert.Contains($"<RootNamespace>{@namespace}</RootNamespace>", csprojFileContents);
+            }
+        }
+#endif
 
         class SourceFiles : ProjectGenerationTestBase
         {
@@ -691,6 +713,19 @@ namespace Packages.Rider.Editor.Tests
                 XMLUtilities.AssertAnalyzerItemsMatchExactly(projectFileXml, new[] { roslynAnalyzerDllPath });
             }
 
+#if UNITY_2020_2_OR_NEWER
+            [Test]
+            public void RoslynAnalyzerRulesetFiles_WillBeIncluded()
+            {
+                var roslynAnalyzerRuleSetPath = "Assets/RoslynRuleSet.ruleset";
+                
+                m_Builder.WithAssemblyData(files: new[] {"file.cs"}, roslynAnalyzerRulesetPath: roslynAnalyzerRuleSetPath).Build().Sync();
+                var csProjectFileContents = m_Builder.ReadProjectFile(m_Builder.Assembly);
+                XmlDocument csProjectXmlFile = XMLUtilities.FromText(csProjectFileContents);
+                XMLUtilities.AssertAnalyzerRuleSetsMatchExactly(csProjectXmlFile, roslynAnalyzerRuleSetPath);
+            }
+#endif
+            
             [Test]
             public void DllInSourceFiles_WillBeAddedAsReference()
             {

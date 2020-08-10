@@ -13,7 +13,7 @@ platforms:
     envsetup: echo
   - name: mac
     type: Unity::VM::osx
-    image: buildfarm/mac:stable
+    image: package-ci/mac:stable
     flavor: m1.mac
     envsetup: echo
   - name: linux
