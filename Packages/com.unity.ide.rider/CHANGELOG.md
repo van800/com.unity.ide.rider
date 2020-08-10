@@ -1,5 +1,21 @@
 # Code Editor Package for Rider
 
+## [2.0.6] - 2020-08-10
+
+Improve performance
+Add support for asmdef Root Namespace in .csproj generation
+ProjectGeneration for custom roslyn analysers https://docs.unity3d.com/2020.2/Documentation/Manual/roslyn-analyzers.html
+Switch target platform in Unity would regenerate csproj files (https://github.com/JetBrains/resharper-unity/issues/1740)
+
+
+## [2.0.5] - 2020-05-27
+
+Fix Regression in 2.0.3: In Unity 2019.2.9 on Mac, changing csproj and calling AssetDatabase.Refresh is not regenerating csproj.
+Regenerate projects on changes in manifest.json and Project Settings (EditorOnlyScriptingUserSettings.json) (#51)
+Fix: Assembly references to package assemblies break IDE projects.
+Fix: Reporting test duration.
+
+
 ## [2.0.2] - 2020-03-18
 
 fix bug in searching Rider path on MacOS

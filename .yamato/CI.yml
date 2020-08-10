@@ -2,6 +2,7 @@ codeeditor: rider
 test_suite_name: Rider
 
 editors:
+  - version: 2019.2
   - version: 2019.3
   - version: 2020.1
   - version: trunk
@@ -13,7 +14,7 @@ platforms:
     envsetup: echo
   - name: mac
     type: Unity::VM::osx
-    image: buildfarm/mac:stable
+    image: package-ci/mac:stable
     flavor: m1.mac
     envsetup: echo
   - name: linux
@@ -31,7 +32,7 @@ pack:
     image: package-ci/win10:stable
     flavor: b1.large
   commands:
-    - npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+    - npm install upm-ci-utils@latest -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
     - upm-ci project pack
   artifacts:
     packages:
@@ -69,13 +70,13 @@ run_test_project_{{ platform.name }}_{{ editor.version }}:
   {% endif %}
   commands:
 {% if platform.name == "linux" -%}
-    - pip install unity-downloader-cli --user --upgrade --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple
+    - pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade --user
 {% else -%}
-    - pip install unity-downloader-cli --upgrade --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple
+    - pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
 {% endif -%}    
     - {{ platform.envsetup }}
     - unity-downloader-cli -u {{editor.version}} -c editor -c linux -c macos -c windows --wait --published-only
-    - npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+    - npm install upm-ci-utils@latest -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
     - upm-ci project test -u .Editor --project-path . --platform editmode
   artifacts:
     logs:
@@ -98,7 +99,7 @@ prepare_release:
         - next/master
   agent:
     type: Unity::VM
-    image: cds-ops/ubuntu-18.04-agent:latest
+    image: cds-ops/ubuntu-18.04-agent:stable
     flavor: b1.large
   commands:
     - git clone git@github.cds.internal.unity3d.com:nicklas/Nicklas-CI.git /tmp/Nicklas-CI
@@ -124,7 +125,7 @@ publish_release:
     image: package-ci/win10:stable
     flavor: b1.large
   commands:
-    - npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+    - npm install upm-ci-utils@latest -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
     - upm-ci project publish
     - git push origin HEAD:refs/heads/next/master HEAD:refs/heads/master -f
 
@@ -135,7 +136,7 @@ prepare_promotion:
     - .yamato/CI.yml#pack
   agent:
     type: Unity::VM
-    image: cds-ops/win10-katana-agent:stable
+    image: build-system/unity-windows-10-katana:latest
     flavor: b1.large
   commands:
     - if NOT "%GIT_BRANCH%" == "master" echo %GIT_BRANCH% && exit 1
