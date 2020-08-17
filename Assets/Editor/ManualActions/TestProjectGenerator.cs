@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 
-namespace Editor
+namespace Editor.ManualActions
 {
     public static class TestProjectGenerator
     {
