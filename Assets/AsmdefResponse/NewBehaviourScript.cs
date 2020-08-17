@@ -1,3 +1,4 @@
+using System.Threading;
 using UnityEngine;
 
 public class NewBehaviourScript : MonoBehaviour
@@ -10,6 +11,10 @@ public class NewBehaviourScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-
+        Debug.Log("main thread log message.");
+        new Thread(() =>
+        {
+            Debug.Log("background thread log message.");
+        }).Start();
     }
 }
