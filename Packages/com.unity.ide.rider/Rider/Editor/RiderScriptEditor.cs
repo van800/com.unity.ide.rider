@@ -2,12 +2,10 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using Packages.Rider.Editor.ProjectGeneration;
 using Packages.Rider.Editor.Util;
 using Unity.CodeEditor;
 using UnityEditor;
-using UnityEditor.Build;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 
