@@ -1,4 +1,6 @@
 {
   "disableProjectUpdate": true,
-  "dependencies": {}
+  "dependencies": {
+    "com.unity.collab-proxy": "1.3.9"
+  }
 }
