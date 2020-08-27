@@ -94,11 +94,6 @@ namespace Packages.Rider.Editor
             });
 
           RiderFileSystemWatcher.InitWatcher(
-            Path.Combine(Directory.GetCurrentDirectory(), "Library"),
-            "EditorOnlyScriptingUserSettings.json",
-            (sender, args) => { RiderScriptEditorData.instance.hasChanges = true; });
-
-          RiderFileSystemWatcher.InitWatcher(
             Path.Combine(Directory.GetCurrentDirectory(), "Packages"),
             "manifest.json", (sender, args) => { RiderScriptEditorData.instance.hasChanges = true; });
 
