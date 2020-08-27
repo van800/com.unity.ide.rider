@@ -2,7 +2,8 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 
-namespace Editor.ManualActions
+// ReSharper disable once CheckNamespace
+namespace Editor
 {
     public static class TestProjectGenerator
     {
