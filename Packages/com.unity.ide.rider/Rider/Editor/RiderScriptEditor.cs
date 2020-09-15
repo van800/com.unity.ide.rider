@@ -57,7 +57,7 @@ namespace Packages.Rider.Editor
               else // is non toolbox - notify
               {
                 var newEditorName = installations.Last().Presentation;
-                Debug.LogWarning($"Consider updating External Editor in Unity to Rider {newEditorName}.");
+                Debug.LogWarning($"Consider updating External Editor in Unity to {newEditorName}.");
               }
             }
 
