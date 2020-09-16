@@ -43,18 +43,18 @@ namespace Packages.Rider.Editor.ProjectGeneration
             ApiCompatibilityLevel = assembly.compilerOptions.ApiCompatibilityLevel
           };
 
-          yield return new Assembly(assembly.name, "Temp\\Bin\\Debug\\", 
-            assembly.sourceFiles, 
-            new[] { "DEBUG", "TRACE" }.Concat(assembly.defines).Concat(EditorUserBuildSettings.activeScriptCompilationDefines).ToArray(), 
-            assembly.assemblyReferences, 
-            assembly.compiledAssemblyReferences, 
-            assembly.flags,
+          yield return new Assembly(assembly.name
+            , "Temp\\Bin\\Debug\\"
+            , assembly.sourceFiles
+            , new[] { "DEBUG", "TRACE" }.Concat(assembly.defines).Concat(EditorUserBuildSettings.activeScriptCompilationDefines).ToArray()
+            , assembly.assemblyReferences
+            , assembly.compiledAssemblyReferences
+            , assembly.flags
+            , options
 #if UNITY_2020_2_OR_NEWER
-            options,
-            assembly.rootNamespace);
-#else
-            options);
+            , assembly.rootNamespace
 #endif
+          );
         }
       }
 
