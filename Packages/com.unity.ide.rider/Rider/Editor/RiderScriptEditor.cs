@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using JetBrains.Annotations;
 using Packages.Rider.Editor.ProjectGeneration;
 using Packages.Rider.Editor.Util;
 using Unity.CodeEditor;
@@ -15,7 +16,7 @@ namespace Packages.Rider.Editor
   internal class RiderScriptEditor : IExternalCodeEditor
   {
     IDiscovery m_Discoverability;
-    IGenerator m_ProjectGeneration;
+    static IGenerator m_ProjectGeneration;
     RiderInitializer m_Initiliazer = new RiderInitializer();
 
     static RiderScriptEditor()
@@ -265,6 +266,12 @@ namespace Packages.Rider.Editor
     {
       AssetDatabase.Refresh();
       m_ProjectGeneration.SyncIfNeeded(new string[] { }, new string[] { });
+    }
+    
+    [UsedImplicitly]
+    public static void SyncSolution() // generate-the-sln-file-via-script-or-command-line
+    {
+      m_ProjectGeneration.Sync();
     }
 
     public void Initialize(string editorInstallationPath) // is called each time ExternalEditor is changed
