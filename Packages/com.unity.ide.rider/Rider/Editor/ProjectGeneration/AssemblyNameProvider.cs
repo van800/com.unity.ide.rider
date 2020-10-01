@@ -53,12 +53,11 @@ namespace Packages.Rider.Editor.ProjectGeneration
           AllowUnsafeCode = assembly.compilerOptions.AllowUnsafeCode,
           ApiCompatibilityLevel = assembly.compilerOptions.ApiCompatibilityLevel
         };
-        
+
         if (assembly.sourceFiles.Any(shouldFileBePartOfSolution))
         {
           yield return new Assembly(assembly.name
-            , outputPath, assembly.sourceFiles
-            , new[] {"DEBUG", "TRACE"}.Concat(assembly.defines).ToArray()
+            , outputPath, assembly.sourceFiles, assembly.defines
             , assembly.assemblyReferences, assembly.compiledAssemblyReferences, assembly.flags, options
 #if UNITY_2020_2_OR_NEWER
             , assembly.rootNamespace
