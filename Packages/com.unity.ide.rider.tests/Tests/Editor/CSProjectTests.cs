@@ -85,7 +85,7 @@ namespace Packages.Rider.Editor.Tests
                     "    <DisableHandlePackageFileConflicts>true</DisableHandlePackageFileConflicts>",
                     # if UNITY_2020_2_OR_NEWER
                     "  <CodeAnalysisRuleSet></CodeAnalysisRuleSet>",
-                    #endif 
+                    #endif
                     "  </PropertyGroup>",
                     "  <PropertyGroup>",
                     "    <Configuration Condition=\" '$(Configuration)' == '' \">Debug</Configuration>",
@@ -107,7 +107,7 @@ namespace Packages.Rider.Editor.Tests
                     "    <DebugType>full</DebugType>",
                     "    <Optimize>false</Optimize>",
                     $"    <OutputPath>{m_Builder.Assembly.outputPath}</OutputPath>",
-                    $"    <DefineConstants></DefineConstants>",
+                    "    <DefineConstants></DefineConstants>",
                     "    <ErrorReport>prompt</ErrorReport>",
                     "    <WarningLevel>4</WarningLevel>",
                     "    <NoWarn></NoWarn>",
@@ -471,7 +471,7 @@ namespace Packages.Rider.Editor.Tests
                 StringAssert.Contains(filesAfter[0], csprojContentAfter);
                 StringAssert.DoesNotContain(filesBefore[0], csprojContentAfter);
             }
-            
+
             [Test] // https://github.cds.internal.unity3d.com/unity/com.unity.ide.rider/issues/121
             public void EmptyPathWouldNotBrake()
             {
@@ -574,9 +574,7 @@ namespace Packages.Rider.Editor.Tests
             {
                 var combined = string.Join(";", errorCodes);
 
-                string expectedOutput = string.Empty;
-
-                expectedOutput = $"<WarningsAsErrors>{string.Join(";", errorCodes)}</WarningsAsErrors>";
+                var expectedOutput = $"<WarningsAsErrors>{string.Join(";", errorCodes)}</WarningsAsErrors>";
 
                 CheckOtherArgument(new[] { $"-warnaserror:{combined}" }, expectedOutput);
                 CheckOtherArgument(new[] { $"/warnaserror:{combined}" }, expectedOutput);
@@ -638,7 +636,7 @@ namespace Packages.Rider.Editor.Tests
             [Test]
             public void CheckDefaultWarningLevel()
             {
-                CheckOtherArgument(new string[0], $"<WarningLevel>4</WarningLevel>");
+                CheckOtherArgument(new string[0], "<WarningLevel>4</WarningLevel>");
             }
 
             [TestCase(new[] { "-nowarn:10" }, ",10")]
@@ -661,7 +659,7 @@ namespace Packages.Rider.Editor.Tests
                 CheckOtherArgument(new string[0], "<LangVersion>latest</LangVersion>");
             }
 
-            public void CheckOtherArgument(string[] argumentString, params string[] expectedContents)
+            void CheckOtherArgument(string[] argumentString, params string[] expectedContents)
             {
                 const string responseFile = "csc.rsp";
                 var synchronizer = m_Builder
@@ -718,14 +716,14 @@ namespace Packages.Rider.Editor.Tests
             public void RoslynAnalyzerRulesetFiles_WillBeIncluded()
             {
                 var roslynAnalyzerRuleSetPath = "Assets/RoslynRuleSet.ruleset";
-                
+
                 m_Builder.WithAssemblyData(files: new[] {"file.cs"}, roslynAnalyzerRulesetPath: roslynAnalyzerRuleSetPath).Build().Sync();
                 var csProjectFileContents = m_Builder.ReadProjectFile(m_Builder.Assembly);
                 XmlDocument csProjectXmlFile = XMLUtilities.FromText(csProjectFileContents);
                 XMLUtilities.AssertAnalyzerRuleSetsMatchExactly(csProjectXmlFile, roslynAnalyzerRuleSetPath);
             }
 #endif
-            
+
             [Test]
             public void DllInSourceFiles_WillBeAddedAsReference()
             {

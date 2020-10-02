@@ -3,6 +3,7 @@ using NUnit.Framework;
 using Packages.Rider.Editor.ProjectGeneration;
 using UnityEditor;
 using UnityEditor.Compilation;
+using UnityEngine;
 
 namespace Packages.Rider.Editor.Tests
 {
@@ -51,19 +52,6 @@ namespace Packages.Rider.Editor.Tests
             foreach (Assembly editorAssembly in editorAssemblies)
             {
                 Assert.IsTrue(collectedAssemblies.Any(assembly => assembly.name == editorAssembly.name && assembly.outputPath == @"Temp\Bin\Debug\"), $"{editorAssembly.name}: was not found in collection.");
-            }
-        }
-
-        [Test]
-        public void EditorAssemblies_WillIncludeEditorSettingsDefines()
-        {
-            var defines = new[] { "DEBUG", "TRACE" }.Concat(EditorUserBuildSettings.activeScriptCompilationDefines);
-
-            var collectedAssemblies = m_AssemblyNameProvider.GetAssemblies(s => true).ToList();
-
-            foreach (Assembly editorAssembly in collectedAssemblies)
-            {
-                CollectionAssert.IsSubsetOf(defines, editorAssembly.defines);
             }
         }
 

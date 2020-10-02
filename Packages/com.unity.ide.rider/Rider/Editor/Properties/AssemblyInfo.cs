@@ -7,4 +7,4 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Assembly-CSharp-Editor")]
 [assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
 
-[assembly: AssemblyVersion("1.0.0")]
+[assembly: AssemblyVersion("2.0.8")]
