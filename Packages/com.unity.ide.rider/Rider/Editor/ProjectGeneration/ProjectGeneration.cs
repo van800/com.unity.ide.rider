@@ -48,9 +48,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
     string m_SolutionProjectConfigurationTemplate = string.Join(Environment.NewLine,
       @"        {{{0}}}.Debug|Any CPU.ActiveCfg = Debug|Any CPU",
-      @"        {{{0}}}.Debug|Any CPU.Build.0 = Debug|Any CPU",
-      @"        {{{0}}}.Release|Any CPU.ActiveCfg = Release|Any CPU",
-      @"        {{{0}}}.Release|Any CPU.Build.0 = Release|Any CPU").Replace("    ", "\t");
+      @"        {{{0}}}.Debug|Any CPU.Build.0 = Debug|Any CPU").Replace("    ", "\t");
 
     static readonly string[] k_ReimportSyncExtensions = { ".dll", ".asmdef" };
 
@@ -658,7 +656,6 @@ namespace Packages.Rider.Editor.ProjectGeneration
         @"Global",
         @"    GlobalSection(SolutionConfigurationPlatforms) = preSolution",
         @"        Debug|Any CPU = Debug|Any CPU",
-        @"        Release|Any CPU = Release|Any CPU",
         @"    EndGlobalSection",
         @"    GlobalSection(ProjectConfigurationPlatforms) = postSolution",
         @"{3}",
@@ -719,15 +716,6 @@ namespace Packages.Rider.Editor.ProjectGeneration
         @"    <Optimize>false</Optimize>",
         @"    <OutputPath>{8}</OutputPath>",
         @"    <DefineConstants>{5}</DefineConstants>",
-        @"    <ErrorReport>prompt</ErrorReport>",
-        @"    <WarningLevel>{18}</WarningLevel>",
-        @"    <NoWarn>{14}</NoWarn>",
-        @"    <AllowUnsafeBlocks>{13}</AllowUnsafeBlocks>{19}{20}",
-        @"  </PropertyGroup>",
-        @"  <PropertyGroup Condition="" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' "">",
-        @"    <DebugType>pdbonly</DebugType>",
-        @"    <Optimize>true</Optimize>",
-        @"    <OutputPath>Temp\bin\Release\</OutputPath>",
         @"    <ErrorReport>prompt</ErrorReport>",
         @"    <WarningLevel>{18}</WarningLevel>",
         @"    <NoWarn>{14}</NoWarn>",
