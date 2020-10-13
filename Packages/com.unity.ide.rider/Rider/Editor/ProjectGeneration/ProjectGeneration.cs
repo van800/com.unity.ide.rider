@@ -506,8 +506,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
         assembly.compiledAssemblyReferences
           .Union(responseRefs)
           .Union(references)
-          .Union(internalAssemblyReferences)
-          .Except(roslynAnalyzerDllPaths);
+          .Union(internalAssemblyReferences).ToArray();
 
       foreach (var reference in allReferences)
       {
