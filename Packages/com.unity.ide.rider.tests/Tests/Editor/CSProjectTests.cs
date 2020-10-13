@@ -693,8 +693,8 @@ namespace Packages.Rider.Editor.Tests
                 XMLUtilities.AssertAnalyzerRuleSetsMatchExactly(csProjectXmlFile, roslynAnalyzerRuleSetPath);
             }
 #endif
-
-          [Test]
+            
+            [Test]
             public void Containing_PathWithSpaces_IsParsedCorrectly()
             {
                 const string responseFile = "csc.rsp";
