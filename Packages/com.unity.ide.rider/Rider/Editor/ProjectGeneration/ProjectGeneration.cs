@@ -951,5 +951,5 @@ namespace Packages.Rider.Editor.ProjectGeneration
       return EditorSettings.projectGenerationRootNamespace;
 #endif
     }
-}
+  }
 }
