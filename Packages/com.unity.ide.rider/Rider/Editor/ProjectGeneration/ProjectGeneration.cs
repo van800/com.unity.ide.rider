@@ -177,11 +177,11 @@ namespace Packages.Rider.Editor.ProjectGeneration
       string extension = Path.GetExtension(file);
 
       // Dll's are not scripts but still need to be included..
-      if (extension == ".dll")
+      if (extension.Equals(".dll", StringComparison.OrdinalIgnoreCase))
           return true;
 
-      if (file.ToLower().EndsWith(".asmdef"))
-          return true;
+      if (extension.Equals(".asmdef", StringComparison.OrdinalIgnoreCase))
+        return true;
 
       return IsSupportedExtension(extension);
     }
@@ -483,9 +483,9 @@ namespace Packages.Rider.Editor.ProjectGeneration
         if (!HasValidExtension(file))
           continue;
 
-        var extension = Path.GetExtension(file).ToLower();
+        var extension = Path.GetExtension(file);
         var fullFile = EscapedRelativePathFor(file);
-        if (".dll" != extension)
+        if (!extension.Equals(".dll", StringComparison.OrdinalIgnoreCase))
         {
           projectBuilder.Append("     <Compile Include=\"").Append(fullFile).Append("\" />").Append(Environment.NewLine);
         }
@@ -585,7 +585,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
                                                   .ToArray()),
         GenerateAnalyserAdditionalFiles(otherResponseFilesData["additionalfile"].SelectMany(x=>x.Split(';')).Distinct().ToArray()),
         #if UNITY_2020_2_OR_NEWER
-        GenerateAnalyserRuleSet(otherResponseFilesData["ruleset"].Append(assembly.compilerOptions.RoslynAnalyzerRulesetPath).Distinct().ToArray()),
+        GenerateAnalyserRuleSet(otherResponseFilesData["ruleset"].Append(assembly.compilerOptions.RoslynAnalyzerRulesetPath).Where(a=>!string.IsNullOrEmpty(a)).Distinct().ToArray()),
         #else
         GenerateAnalyserRuleSet(otherResponseFilesData["ruleset"].Distinct().ToArray()),
         #endif
@@ -836,7 +836,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
       if (!paths.Any())
         return string.Empty;
 
-      return $"{Environment.NewLine}{string.Join(Environment.NewLine, paths.Select(a => $"  <CodeAnalysisRuleSet>{a}</CodeAnalysisRuleSet>"))}";
+      return $"{Environment.NewLine}{string.Join(Environment.NewLine, paths.Select(a => $"    <CodeAnalysisRuleSet>{a}</CodeAnalysisRuleSet>"))}";
     }
 
     private static string GenerateAnalyserAdditionalFiles(string[] paths)

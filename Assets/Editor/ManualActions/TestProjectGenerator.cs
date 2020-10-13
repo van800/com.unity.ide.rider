@@ -32,7 +32,10 @@ namespace Editor
 
                 Directory.CreateDirectory(dirPath);
                 File.WriteAllText(Path.Combine(dirPath, $"{assemblyName}.asmdef"), asmdefContents);
-                File.WriteAllText(Path.Combine(dirPath, $"Script{i}.cs"), $"public class Script{i} {{ }}");
+                for (int j = 0; j < 50; j++)
+                {
+                  File.WriteAllText(Path.Combine(dirPath, $"Script{i}{j}.cs"), $"public class Script{i}{j} {{ }}");
+                }
             }
         }
 
