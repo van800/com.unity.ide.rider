@@ -192,30 +192,6 @@ namespace Packages.Rider.Editor.ProjectGeneration
       return k_BuiltinSupportedExtensions.ContainsKey(extension) || m_ProjectSupportedExtensions.Contains(extension);
     }
 
-    static ScriptingLanguage ScriptingLanguageFor(Assembly island)
-    {
-      return ScriptingLanguageFor(GetExtensionOfSourceFiles(island.sourceFiles));
-    }
-
-    static string GetExtensionOfSourceFiles(string[] files)
-    {
-      return files.Length > 0 ? GetExtensionOfSourceFile(files[0]) : "NA";
-    }
-
-    static string GetExtensionOfSourceFile(string file)
-    {
-      var ext = Path.GetExtension(file).ToLower();
-      ext = ext.Substring(1); //strip dot
-      return ext;
-    }
-
-    static ScriptingLanguage ScriptingLanguageFor(string extension)
-    {
-      return k_BuiltinSupportedExtensions.TryGetValue(extension.TrimStart('.'), out var result)
-        ? result
-        : ScriptingLanguage.None;
-    }
-
     public void GenerateAndWriteSolutionAndProjects(Type[] types)
     {
       // Only synchronize islands that have associated source files and ones that we actually want in the project.
@@ -225,10 +201,9 @@ namespace Packages.Rider.Editor.ProjectGeneration
       var allAssetProjectParts = GenerateAllAssetProjectParts();
 
       var monoIslands = assemblies.ToList();
-
       SyncSolution(monoIslands, types);
-      var allProjectIslands = GetRelevantIslands(monoIslands);
-      foreach (var assembly in allProjectIslands)
+      
+      foreach (var assembly in monoIslands)
       {
         var responseFileData = ParseResponseFileData(assembly);
         SyncProject(assembly, allAssetProjectParts, responseFileData, types, GetAllRoslynAnalyzerPaths().ToArray());
@@ -280,7 +255,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
         }
 
         string extension = Path.GetExtension(asset);
-        if (IsSupportedExtension(extension) && ScriptingLanguage.None == ScriptingLanguageFor(extension))
+        if (IsSupportedExtension(extension) && !extension.Equals(".cs", StringComparison.OrdinalIgnoreCase))
         {
           // Find assembly the asset belongs to by adding script extension and using compilation pipeline.
           var assemblyName = m_AssemblyNameProvider.GetAssemblyNameFromScriptPath(asset + ".cs");
@@ -480,19 +455,8 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
       foreach (string file in assembly.sourceFiles)
       {
-        if (!HasValidExtension(file))
-          continue;
-
-        var extension = Path.GetExtension(file);
         var fullFile = EscapedRelativePathFor(file);
-        if (!extension.Equals(".dll", StringComparison.OrdinalIgnoreCase))
-        {
-          projectBuilder.Append("     <Compile Include=\"").Append(fullFile).Append("\" />").Append(Environment.NewLine);
-        }
-        else
-        {
-          references.Add(fullFile);
-        }
+        projectBuilder.Append("     <Compile Include=\"").Append(fullFile).Append("\" />").Append(Environment.NewLine);
       }
 
       // Append additional non-script files that should be included in project generation.
@@ -764,11 +728,10 @@ namespace Packages.Rider.Editor.ProjectGeneration
     {
       var fileversion = "11.00";
       var vsversion = "2010";
-
-      var relevantIslands = GetRelevantIslands(islands);
-      string projectEntries = GetProjectEntries(relevantIslands);
+      
+      string projectEntries = GetProjectEntries(islands);
       string projectConfigurations = string.Join(Environment.NewLine,
-        relevantIslands.Select(i => GetProjectActiveConfigurations(ProjectGuid(i))).ToArray());
+        islands.Select(i => GetProjectActiveConfigurations(ProjectGuid(i))).ToArray());
       return string.Format(GetSolutionText(), fileversion, vsversion, projectEntries, projectConfigurations);
     }
 
@@ -862,11 +825,6 @@ namespace Packages.Rider.Editor.ProjectGeneration
       return $",{string.Join(",", codes)}";
     }
 
-    private static Assembly[] GetRelevantIslands(IEnumerable<Assembly> islands)
-    {
-      return islands.Where(i => ScriptingLanguage.CSharp == ScriptingLanguageFor(i)).ToArray();
-    }
-
     /// <summary>
     /// Get a Project("{guid}") = "MyProject", "MyProject.unityproj", "{projectguid}"
     /// entry for each relevant language
@@ -875,7 +833,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
     {
       var projectEntries = islands.Select(i => string.Format(
         m_SolutionProjectEntryTemplate,
-        m_GUIDGenerator.SolutionGuid(m_ProjectName, GetExtensionOfSourceFiles(i.sourceFiles)),
+        SolutionGuidGenerator.GuidForSolution(),
         i.name,
         Path.GetFileName(ProjectFile(i)),
         ProjectGuid(i)

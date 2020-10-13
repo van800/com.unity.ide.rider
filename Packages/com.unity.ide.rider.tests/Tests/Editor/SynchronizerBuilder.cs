@@ -66,12 +66,6 @@ namespace Packages.Rider.Editor.Tests
             return this;
         }
 
-        public SynchronizerBuilder WithSolutionGuid(string solutionGuid)
-        {
-            m_GUIDGenerator.Setup(x => x.SolutionGuid(Path.GetFileName(projectDirectory), "cs")).Returns(solutionGuid);
-            return this;
-        }
-
         public SynchronizerBuilder WithProjectGuid(string projectGuid, Assembly assembly)
         {
             m_GUIDGenerator.Setup(x => x.ProjectGuid(Path.GetFileName(projectDirectory), assembly.name)).Returns(projectGuid);

@@ -146,10 +146,9 @@ namespace Packages.Rider.Editor.Tests
             [Test]
             public void DefaultSyncSettings_WhenSynced_CreatesSolutionFileFromDefaultTemplate()
             {
-                var solutionGUID = "SolutionGUID";
+                var solutionGUID = "FAE04EC0-301F-11D3-BF4B-00C04F79EFBC";
                 var projectGUID = "ProjectGUID";
                 var synchronizer = m_Builder
-                    .WithSolutionGuid(solutionGUID)
                     .WithProjectGuid(projectGUID, m_Builder.Assembly)
                     .Build();
 

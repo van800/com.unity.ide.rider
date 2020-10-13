@@ -83,9 +83,6 @@ namespace Packages.Rider.Editor.Tests
                     "    <_TargetFrameworkDirectories>non_empty_path_generated_by_unity.rider.package</_TargetFrameworkDirectories>",
                     "    <_FullFrameworkReferenceAssemblyPaths>non_empty_path_generated_by_unity.rider.package</_FullFrameworkReferenceAssemblyPaths>",
                     "    <DisableHandlePackageFileConflicts>true</DisableHandlePackageFileConflicts>",
-                    # if UNITY_2020_2_OR_NEWER
-                    "  <CodeAnalysisRuleSet></CodeAnalysisRuleSet>",
-                    #endif
                     "  </PropertyGroup>",
                     "  <PropertyGroup>",
                     "    <Configuration Condition=\" '$(Configuration)' == '' \">Debug</Configuration>",
@@ -249,18 +246,6 @@ namespace Packages.Rider.Editor.Tests
 
         class SourceFiles : ProjectGenerationTestBase
         {
-            [Test]
-            public void NoCSFile_CreatesNoProjectFile()
-            {
-                var synchronizer = m_Builder.WithAssemblyData(files: new string[0]).Build();
-
-                synchronizer.Sync();
-
-                Assert.That(
-                    !m_Builder.FileExists(Path.Combine(SynchronizerBuilder.projectDirectory, $"{m_Builder.Assembly.name}.csproj")),
-                    "Should not create csproj file for assembly with no cs file");
-            }
-
             [Test]
             public void NotContributedAnAssembly_WillNotGetAdded()
             {
