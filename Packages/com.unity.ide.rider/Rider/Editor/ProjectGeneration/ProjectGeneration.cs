@@ -748,7 +748,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
       var footer = new[]
       {
-        @"  {15}{16}<ItemGroup>",
+        @"{15}{16}  <ItemGroup>",
         @""
       };
 
