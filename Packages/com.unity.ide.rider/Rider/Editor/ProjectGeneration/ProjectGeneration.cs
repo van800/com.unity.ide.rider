@@ -316,26 +316,6 @@ namespace Packages.Rider.Editor.ProjectGeneration
       SyncFileIfNotChanged(path, newContents);
     }
 
-    static List<Type> SafeGetTypes(System.Reflection.Assembly a)
-    {
-      List<Type> ret;
-
-      try
-      {
-        ret = a.GetTypes().ToList();
-      }
-      catch (System.Reflection.ReflectionTypeLoadException rtl)
-      {
-        ret = rtl.Types.ToList();
-      }
-      catch (Exception)
-      {
-        return new List<Type>();
-      }
-
-      return ret.Where(r => r != null).ToList();
-    }
-
     static void OnGeneratedCSProjectFiles(Type[] types)
     {
       var args = new object[0];
@@ -349,7 +329,9 @@ namespace Packages.Rider.Editor.ProjectGeneration
           continue;
         }
 
-        method.Invoke(null, args);
+        Debug.LogWarning("OnGeneratedCSProjectFiles is not supported.");
+        // RIDER-51958
+        //method.Invoke(null, args);
       }
     }
 
