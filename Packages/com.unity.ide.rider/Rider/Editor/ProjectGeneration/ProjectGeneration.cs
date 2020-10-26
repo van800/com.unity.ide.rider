@@ -478,10 +478,10 @@ namespace Packages.Rider.Editor.ProjectGeneration
       //replace \ with / and \\ with /
       var escapedFullPath = SecurityElement.Escape(fullReference);
       escapedFullPath = escapedFullPath.Replace("\\\\", "/").Replace("\\", "/");
-      projectBuilder.Append(" <Reference Include=\"").Append(FileSystemUtil.FileNameWithoutExtension(escapedFullPath))
+      projectBuilder.Append("     <Reference Include=\"").Append(FileSystemUtil.FileNameWithoutExtension(escapedFullPath))
         .Append("\">").Append(Environment.NewLine);
-      projectBuilder.Append(" <HintPath>").Append(escapedFullPath).Append("</HintPath>").Append(Environment.NewLine);
-      projectBuilder.Append(" </Reference>").Append(Environment.NewLine);
+      projectBuilder.Append("     <HintPath>").Append(escapedFullPath).Append("</HintPath>").Append(Environment.NewLine);
+      projectBuilder.Append("     </Reference>").Append(Environment.NewLine);
     }
 
     public string ProjectFile(Assembly assembly)
