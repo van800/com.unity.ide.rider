@@ -27,21 +27,6 @@ namespace Packages.Rider.Editor.Tests
             }
 
             [Test]
-            public void NoExtension_IsNotValid()
-            {
-                var validFile = "dimmer.cs";
-                var invalidFile = "foo";
-                var file = new[] { validFile, invalidFile };
-                var synchronizer = m_Builder.WithAssemblyData(files: file).Build();
-
-                synchronizer.Sync();
-
-                var csprojContent = m_Builder.ReadProjectFile(m_Builder.Assembly);
-                XmlDocument scriptProject = XMLUtilities.FromText(csprojContent);
-                XMLUtilities.AssertCompileItemsMatchExactly(scriptProject, new[] { validFile });
-            }
-
-            [Test]
             public void AbsoluteSourceFilePaths_WillBeMadeRelativeToProjectDirectory()
             {
                 var absoluteFilePath = Path.Combine(SynchronizerBuilder.projectDirectory, "dimmer.cs");
@@ -83,9 +68,6 @@ namespace Packages.Rider.Editor.Tests
                     "    <_TargetFrameworkDirectories>non_empty_path_generated_by_unity.rider.package</_TargetFrameworkDirectories>",
                     "    <_FullFrameworkReferenceAssemblyPaths>non_empty_path_generated_by_unity.rider.package</_FullFrameworkReferenceAssemblyPaths>",
                     "    <DisableHandlePackageFileConflicts>true</DisableHandlePackageFileConflicts>",
-                    # if UNITY_2020_2_OR_NEWER
-                    "  <CodeAnalysisRuleSet></CodeAnalysisRuleSet>",
-                    #endif
                     "  </PropertyGroup>",
                     "  <PropertyGroup>",
                     "    <Configuration Condition=\" '$(Configuration)' == '' \">Debug</Configuration>",
@@ -108,16 +90,6 @@ namespace Packages.Rider.Editor.Tests
                     "    <Optimize>false</Optimize>",
                     $"    <OutputPath>{m_Builder.Assembly.outputPath}</OutputPath>",
                     "    <DefineConstants></DefineConstants>",
-                    "    <ErrorReport>prompt</ErrorReport>",
-                    "    <WarningLevel>4</WarningLevel>",
-                    "    <NoWarn></NoWarn>",
-                    "    <AllowUnsafeBlocks>False</AllowUnsafeBlocks>",
-                    "    <TreatWarningsAsErrors>False</TreatWarningsAsErrors>",
-                    "  </PropertyGroup>",
-                    "  <PropertyGroup Condition=\" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' \">",
-                    "    <DebugType>pdbonly</DebugType>",
-                    "    <Optimize>true</Optimize>",
-                    "    <OutputPath>Temp\\bin\\Release\\</OutputPath>",
                     "    <ErrorReport>prompt</ErrorReport>",
                     "    <WarningLevel>4</WarningLevel>",
                     "    <NoWarn></NoWarn>",
@@ -249,18 +221,6 @@ namespace Packages.Rider.Editor.Tests
 
         class SourceFiles : ProjectGenerationTestBase
         {
-            [Test]
-            public void NoCSFile_CreatesNoProjectFile()
-            {
-                var synchronizer = m_Builder.WithAssemblyData(files: new string[0]).Build();
-
-                synchronizer.Sync();
-
-                Assert.That(
-                    !m_Builder.FileExists(Path.Combine(SynchronizerBuilder.projectDirectory, $"{m_Builder.Assembly.name}.csproj")),
-                    "Should not create csproj file for assembly with no cs file");
-            }
-
             [Test]
             public void NotContributedAnAssembly_WillNotGetAdded()
             {
@@ -723,24 +683,7 @@ namespace Packages.Rider.Editor.Tests
                 XMLUtilities.AssertAnalyzerRuleSetsMatchExactly(csProjectXmlFile, roslynAnalyzerRuleSetPath);
             }
 #endif
-
-            [Test]
-            public void DllInSourceFiles_WillBeAddedAsReference()
-            {
-                var referenceDll = "reference.dll";
-                var synchronizer = m_Builder
-                    .WithAssemblyData(files: new[] { "file.cs", referenceDll })
-                    .Build();
-
-                synchronizer.Sync();
-
-                var csprojFileContents = m_Builder.ReadProjectFile(m_Builder.Assembly);
-                XmlDocument scriptProject = XMLUtilities.FromText(csprojFileContents);
-                XMLUtilities.AssertCompileItemsMatchExactly(scriptProject, new[] { "file.cs" });
-                XMLUtilities.AssertNonCompileItemsMatchExactly(scriptProject, new string[0]);
-                Assert.That(csprojFileContents, Does.Match($"<Reference Include=\"reference\">\\W*<HintPath>{SynchronizerBuilder.projectDirectory}/{referenceDll}\\W*</HintPath>\\W*</Reference>"));
-            }
-
+            
             [Test]
             public void Containing_PathWithSpaces_IsParsedCorrectly()
             {
