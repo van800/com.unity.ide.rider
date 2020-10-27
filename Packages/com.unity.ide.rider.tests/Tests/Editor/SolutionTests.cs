@@ -146,10 +146,9 @@ namespace Packages.Rider.Editor.Tests
             [Test]
             public void DefaultSyncSettings_WhenSynced_CreatesSolutionFileFromDefaultTemplate()
             {
-                var solutionGUID = "SolutionGUID";
+                var solutionGUID = "FAE04EC0-301F-11D3-BF4B-00C04F79EFBC";
                 var projectGUID = "ProjectGUID";
                 var synchronizer = m_Builder
-                    .WithSolutionGuid(solutionGUID)
                     .WithProjectGuid(projectGUID, m_Builder.Assembly)
                     .Build();
 
@@ -164,13 +163,10 @@ namespace Packages.Rider.Editor.Tests
                     @"Global",
                     @"    GlobalSection(SolutionConfigurationPlatforms) = preSolution",
                     @"        Debug|Any CPU = Debug|Any CPU",
-                    @"        Release|Any CPU = Release|Any CPU",
                     @"    EndGlobalSection",
                     @"    GlobalSection(ProjectConfigurationPlatforms) = postSolution",
                     @"        {{{1}}}.Debug|Any CPU.ActiveCfg = Debug|Any CPU",
                     @"        {{{1}}}.Debug|Any CPU.Build.0 = Debug|Any CPU",
-                    @"        {{{1}}}.Release|Any CPU.ActiveCfg = Release|Any CPU",
-                    @"        {{{1}}}.Release|Any CPU.Build.0 = Release|Any CPU",
                     @"    EndGlobalSection",
                     @"    GlobalSection(SolutionProperties) = preSolution",
                     @"        HideSolutionNode = FALSE",
