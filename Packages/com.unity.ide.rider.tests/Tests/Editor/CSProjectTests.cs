@@ -221,6 +221,24 @@ namespace Packages.Rider.Editor.Tests
 
         class SourceFiles : ProjectGenerationTestBase
         {
+            [Test] // RIDER-53082 - Generate csproj without cs files, when there are any assets inside
+            public void ShaderWithoutCompileScript_WillGetAdded()
+            {
+                var assembly = new Assembly("name", "Temp/Bin/Debug", new string[0], new string[0], new Assembly[0],
+                    new string[0], AssemblyFlags.EditorAssembly);
+
+                var synchronizer = m_Builder
+                    .WithOutputPathForAssemblyPath(assembly.outputPath, assembly.name, assembly.name)
+                    .WithAssetFiles(new[] {"file.hlsl"})
+                    .AssignFilesToAssembly(new[] {"file.hlsl"}, assembly)
+                    .Build();
+
+                synchronizer.Sync();
+
+                var csprojContent = m_Builder.ReadProjectFile(assembly);
+                StringAssert.Contains("file.hlsl", csprojContent);
+            }
+            
             [Test]
             public void NotContributedAnAssembly_WillNotGetAdded()
             {
@@ -414,7 +432,7 @@ namespace Packages.Rider.Editor.Tests
                     "WillBeDeletedScript.cs",
                     "Script.cs",
                 };
-                var synchronizer = m_Builder.WithAssemblyData(files: filesBefore).Build();
+                var synchronizer = m_Builder.WithAssemblyData(filesBefore).Build();
 
                 synchronizer.Sync();
 
@@ -423,7 +441,7 @@ namespace Packages.Rider.Editor.Tests
                 StringAssert.Contains(filesBefore[1], csprojContentBefore);
 
                 var filesAfter = filesBefore.Skip(1).ToArray();
-                m_Builder.WithAssemblyData(files: filesAfter);
+                m_Builder.WithAssemblyData(filesAfter);
 
                 Assert.That(synchronizer.SyncIfNeeded(filesAfter, new string[0]), "Should sync when file in assembly changes");
 
