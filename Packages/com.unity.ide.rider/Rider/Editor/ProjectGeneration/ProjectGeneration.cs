@@ -204,7 +204,9 @@ namespace Packages.Rider.Editor.ProjectGeneration
       foreach (var assembly in monoIslands)
       {
         var responseFileData = ParseResponseFileData(assembly);
-        SyncProject(assembly, allAssetProjectParts, responseFileData, types, GetAllRoslynAnalyzerPaths().ToArray());
+        // additional non-script files that should be included in project generation.
+        allAssetProjectParts.TryGetValue(assembly.name, out var additionalAssetsForProject);
+        SyncProject(assembly, additionalAssetsForProject, responseFileData, types, GetAllRoslynAnalyzerPaths().ToArray());
       }
     }
 
@@ -286,14 +288,14 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
     private void SyncProject(
       Assembly island,
-      Dictionary<string, string> allAssetsProjectParts,
+      string additionalAssetsForProject,
       IEnumerable<ResponseFileData> responseFilesData,
       Type[] types,
       string[] roslynAnalyzerDllPaths)
     {
       SyncProjectFileIfNotChanged(
         ProjectFile(island),
-        ProjectText(island, allAssetsProjectParts, responseFilesData.ToList(), roslynAnalyzerDllPaths),
+        ProjectText(island, additionalAssetsForProject, responseFilesData.ToList(), roslynAnalyzerDllPaths),
         types);
     }
 
@@ -426,7 +428,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
     }
 
     private string ProjectText(Assembly assembly,
-      Dictionary<string, string> allAssetsProjectParts,
+      string additionalAssetsForProject,
       List<ResponseFileData> responseFilesData,
       string[] roslynAnalyzerDllPaths)
     {
@@ -438,9 +440,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
         projectBuilder.Append("     <Compile Include=\"").Append(fullFile).Append("\" />").Append(Environment.NewLine);
       }
 
-      // Append additional non-script files that should be included in project generation.
-      if (allAssetsProjectParts.TryGetValue(assembly.name, out var additionalAssetsForProject))
-        projectBuilder.Append(additionalAssetsForProject);
+      projectBuilder.Append(additionalAssetsForProject);
 
       var responseRefs = responseFilesData.SelectMany(x => x.FullPathReferences.Select(r => r));
       var internalAssemblyReferences = assembly.assemblyReferences
