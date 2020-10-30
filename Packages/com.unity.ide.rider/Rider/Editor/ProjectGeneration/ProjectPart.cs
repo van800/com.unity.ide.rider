@@ -25,7 +25,11 @@ namespace Packages.Rider.Editor.ProjectGeneration
       AssetsProjectPart = assetsProjectPart;
       OutputPath = assembly != null ? assembly.outputPath : "Temp/Bin/Debug";
       SourceFiles = assembly != null ? assembly.sourceFiles : new string[0];
+#if UNITY_2020_2_OR_NEWER
       RootNamespace = assembly != null ? assembly.rootNamespace : string.Empty;
+#else
+      RootNamespace = UnityEditor.EditorSettings.projectGenerationRootNamespace;
+#endif
       AssemblyReferences = assembly != null ? assembly.assemblyReferences : new Assembly[0];
       CompiledAssemblyReferences = assembly!=null? assembly.compiledAssemblyReferences:new string[0];
       Defines = assembly != null ? assembly.defines : new string[0];
