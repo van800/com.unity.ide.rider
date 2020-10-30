@@ -10,7 +10,6 @@ using UnityEditor;
 using UnityEditor.Compilation;
 using UnityEditorInternal;
 using UnityEngine;
-using Assembly = UnityEditor.Compilation.Assembly;
 
 namespace Packages.Rider.Editor.ProjectGeneration
 {
@@ -194,47 +193,25 @@ namespace Packages.Rider.Editor.ProjectGeneration
     {
       // Only synchronize islands that have associated source files and ones that we actually want in the project.
       // This also filters out DLLs coming from .asmdef files in packages.
-      var assemblies = m_AssemblyNameProvider.GetAssemblies(ShouldFileBePartOfSolution);
-
+      var assemblies = m_AssemblyNameProvider.GetAssemblies(ShouldFileBePartOfSolution).ToArray();
       var allAssetProjectParts = GenerateAllAssetProjectParts();
 
-      var monoIslands = assemblies.ToList();
-      SyncSolution(monoIslands, types);
-      
-      foreach (var assembly in monoIslands)
+      var projectParts = new List<ProjectPart>();
+      foreach (var assembly in assemblies)
       {
-        var responseFileData = ParseResponseFileData(assembly);
-        // additional non-script files that should be included in project generation.
         allAssetProjectParts.TryGetValue(assembly.name, out var additionalAssetsForProject);
-        SyncProject(assembly, additionalAssetsForProject, responseFileData, types, GetAllRoslynAnalyzerPaths().ToArray());
+        projectParts.Add(new ProjectPart(assembly.name, assembly, additionalAssetsForProject));
       }
-    }
 
-    private IEnumerable<ResponseFileData> ParseResponseFileData(Assembly assembly)
-    {
-      var systemReferenceDirectories =
-        CompilationPipeline.GetSystemAssemblyDirectories(assembly.compilerOptions.ApiCompatibilityLevel);
+      var projectPartsWithoutAssembly = allAssetProjectParts.Where(a => !assemblies.Select(b => b.name).Contains(a.Key));
+      projectParts.AddRange(projectPartsWithoutAssembly.Select(allAssetProjectPart => new ProjectPart(allAssetProjectPart.Key, null, allAssetProjectPart.Value)));
 
-      var responseFilesData = assembly.compilerOptions.ResponseFiles.ToDictionary(
-        x => x, x => m_AssemblyNameProvider.ParseResponseFile(
-          x,
-          ProjectDirectory,
-          systemReferenceDirectories
-        ));
-
-      var responseFilesWithErrors = responseFilesData.Where(x => x.Value.Errors.Any())
-        .ToDictionary(x => x.Key, x => x.Value);
-
-      if (responseFilesWithErrors.Any())
+      SyncSolution(projectParts.ToArray(), types);
+      
+      foreach (var projectPart in projectParts)
       {
-        foreach (var error in responseFilesWithErrors)
-        foreach (var valueError in error.Value.Errors)
-        {
-          Debug.LogError($"{error.Key} Parse Error : {valueError}");
-        }
+        SyncProject(projectPart, types, GetAllRoslynAnalyzerPaths().ToArray());
       }
-
-      return responseFilesData.Select(x => x.Value);
     }
 
     private IEnumerable<string> GetAllRoslynAnalyzerPaths()
@@ -287,15 +264,13 @@ namespace Packages.Rider.Editor.ProjectGeneration
     }
 
     private void SyncProject(
-      Assembly island,
-      string additionalAssetsForProject,
-      IEnumerable<ResponseFileData> responseFilesData,
+      ProjectPart island,
       Type[] types,
       string[] roslynAnalyzerDllPaths)
     {
       SyncProjectFileIfNotChanged(
         ProjectFile(island),
-        ProjectText(island, additionalAssetsForProject, responseFilesData.ToList(), roslynAnalyzerDllPaths),
+        ProjectText(island, roslynAnalyzerDllPaths),
         types);
     }
 
@@ -318,7 +293,6 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
     private static void OnGeneratedCSProjectFiles(Type[] types)
     {
-      var args = new object[0];
       foreach (var type in types)
       {
         var method = type.GetMethod("OnGeneratedCSProjectFiles",
@@ -427,26 +401,25 @@ namespace Packages.Rider.Editor.ProjectGeneration
       m_FileIOProvider.WriteAllText(filename, newContents);
     }
 
-    private string ProjectText(Assembly assembly,
-      string additionalAssetsForProject,
-      List<ResponseFileData> responseFilesData,
+    private string ProjectText(ProjectPart assembly,
       string[] roslynAnalyzerDllPaths)
     {
+      var responseFilesData = assembly.ParseResponseFileData(m_AssemblyNameProvider, ProjectDirectory).ToList();
       var projectBuilder = new StringBuilder(ProjectHeader(assembly, responseFilesData, roslynAnalyzerDllPaths));
       
-      foreach (var file in assembly.sourceFiles)
+      foreach (var file in assembly.SourceFiles)
       {
         var fullFile = EscapedRelativePathFor(file);
         projectBuilder.Append("     <Compile Include=\"").Append(fullFile).Append("\" />").Append(Environment.NewLine);
       }
 
-      projectBuilder.Append(additionalAssetsForProject);
+      projectBuilder.Append(assembly.AssetsProjectPart);
 
       var responseRefs = responseFilesData.SelectMany(x => x.FullPathReferences.Select(r => r));
-      var internalAssemblyReferences = assembly.assemblyReferences
+      var internalAssemblyReferences = assembly.AssemblyReferences
         .Where(reference => !reference.sourceFiles.Any(ShouldFileBePartOfSolution)).Select(i => i.outputPath);
       var allReferences =
-        assembly.compiledAssemblyReferences
+        assembly.CompiledAssemblyReferences
           .Union(responseRefs)
           .Union(internalAssemblyReferences).ToArray();
 
@@ -456,14 +429,14 @@ namespace Packages.Rider.Editor.ProjectGeneration
         AppendReference(fullReference, projectBuilder);
       }
 
-      if (0 < assembly.assemblyReferences.Length)
+      if (0 < assembly.AssemblyReferences.Length)
       {
         projectBuilder.Append("  </ItemGroup>").Append(Environment.NewLine);
         projectBuilder.Append("  <ItemGroup>").Append(Environment.NewLine);
-        foreach (var reference in assembly.assemblyReferences.Where(i => i.sourceFiles.Any(ShouldFileBePartOfSolution)))
+        foreach (var reference in assembly.AssemblyReferences.Where(i => i.sourceFiles.Any(ShouldFileBePartOfSolution)))
         {
           projectBuilder.Append("    <ProjectReference Include=\"").Append(reference.name).Append(GetProjectExtension()).Append("\">").Append(Environment.NewLine);
-          projectBuilder.Append("      <Project>{").Append(ProjectGuid(reference)).Append("}</Project>").Append(Environment.NewLine);
+          projectBuilder.Append("      <Project>{").Append(ProjectGuid(reference.name, reference.outputPath)).Append("}</Project>").Append(Environment.NewLine);
           projectBuilder.Append("      <Name>").Append(reference.name).Append("</Name>").Append(Environment.NewLine);
           projectBuilder.Append("    </ProjectReference>").Append(Environment.NewLine);
         }
@@ -484,9 +457,9 @@ namespace Packages.Rider.Editor.ProjectGeneration
       projectBuilder.Append("     </Reference>").Append(Environment.NewLine);
     }
 
-    public string ProjectFile(Assembly assembly)
+    private string ProjectFile(ProjectPart projectPart)
     {
-      return Path.Combine(ProjectDirectory, $"{m_AssemblyNameProvider.GetProjectName(assembly.outputPath, assembly.name)}.csproj");
+      return Path.Combine(ProjectDirectory, $"{m_AssemblyNameProvider.GetProjectName(projectPart.OutputPath, projectPart.Name)}.csproj");
     }
 
     public string SolutionFile()
@@ -495,7 +468,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
     }
 
     private string ProjectHeader(
-      Assembly assembly,
+      ProjectPart assembly,
       List<ResponseFileData> responseFilesData,
       string[] roslynAnalyzerDllPaths
     )
@@ -505,18 +478,18 @@ namespace Packages.Rider.Editor.ProjectGeneration
       {
         k_ToolsVersion,
         k_ProductVersion,
-        ProjectGuid(assembly),
+        ProjectGuid(assembly.Name, assembly.OutputPath),
         InternalEditorUtility.GetEngineAssemblyPath(),
         InternalEditorUtility.GetEditorAssemblyPath(),
-        string.Join(";", assembly.defines.Concat(responseFilesData.SelectMany(x => x.Defines)).Distinct().ToArray()),
+        string.Join(";", assembly.Defines.Concat(responseFilesData.SelectMany(x => x.Defines)).Distinct().ToArray()),
         MSBuildNamespaceUri,
-        assembly.name,
-        assembly.outputPath,
+        assembly.Name,
+        assembly.OutputPath,
         GetRootNamespace(assembly),
         k_TargetFrameworkVersion,
         GenerateLangVersion(otherResponseFilesData["langversion"]),
         k_BaseDirectory,
-        assembly.compilerOptions.AllowUnsafeCode | responseFilesData.Any(x => x.Unsafe),
+        assembly.CompilerOptions.AllowUnsafeCode | responseFilesData.Any(x => x.Unsafe),
         GenerateNoWarn(otherResponseFilesData["nowarn"].Distinct().ToArray()),
         GenerateAnalyserItemGroup(
           otherResponseFilesData["analyzer"].Concat(otherResponseFilesData["a"])
@@ -526,13 +499,13 @@ namespace Packages.Rider.Editor.ProjectGeneration
                                                   .ToArray()),
         GenerateAnalyserAdditionalFiles(otherResponseFilesData["additionalfile"].SelectMany(x=>x.Split(';')).Distinct().ToArray()),
         #if UNITY_2020_2_OR_NEWER
-        GenerateAnalyserRuleSet(otherResponseFilesData["ruleset"].Append(assembly.compilerOptions.RoslynAnalyzerRulesetPath).Where(a=>!string.IsNullOrEmpty(a)).Distinct().ToArray()),
+        GenerateAnalyserRuleSet(otherResponseFilesData["ruleset"].Append(assembly.CompilerOptions.RoslynAnalyzerRulesetPath).Where(a=>!string.IsNullOrEmpty(a)).Distinct().ToArray()),
         #else
         GenerateAnalyserRuleSet(otherResponseFilesData["ruleset"].Distinct().ToArray()),
         #endif
         GenerateWarningLevel(otherResponseFilesData["warn"].Concat(otherResponseFilesData["w"]).Distinct()),
         GenerateWarningAsError(otherResponseFilesData["warnaserror"]),
-        GenerateDocumentationFile(otherResponseFilesData["doc"])
+        GenerateDocumentationFile(otherResponseFilesData["doc"].ToArray())
       };
 
       try
@@ -547,7 +520,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
       }
     }
 
-    private static string GenerateDocumentationFile(IEnumerable<string> paths)
+    private static string GenerateDocumentationFile(string[] paths)
     {
       if (!paths.Any())
         return String.Empty;
@@ -687,19 +660,19 @@ namespace Packages.Rider.Editor.ProjectGeneration
       return string.Join(Environment.NewLine, pieces);
     }
 
-    private void SyncSolution(IEnumerable<Assembly> islands, Type[] types)
+    private void SyncSolution(ProjectPart[] islands, Type[] types)
     {
       SyncSolutionFileIfNotChanged(SolutionFile(), SolutionText(islands), types);
     }
 
-    private string SolutionText(IEnumerable<Assembly> islands)
+    private string SolutionText(ProjectPart[] islands)
     {
       var fileversion = "11.00";
       var vsversion = "2010";
       
       var projectEntries = GetProjectEntries(islands);
       var projectConfigurations = string.Join(Environment.NewLine,
-        islands.Select(i => GetProjectActiveConfigurations(ProjectGuid(i))).ToArray());
+        islands.Select(i => GetProjectActiveConfigurations(ProjectGuid(i.Name, i.OutputPath))).ToArray());
       return string.Format(GetSolutionText(), fileversion, vsversion, projectEntries, projectConfigurations);
     }
 
@@ -792,19 +765,15 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
       return $",{string.Join(",", codes)}";
     }
-
-    /// <summary>
-    /// Get a Project("{guid}") = "MyProject", "MyProject.unityproj", "{projectguid}"
-    /// entry for each relevant language
-    /// </summary>
-    private string GetProjectEntries(IEnumerable<Assembly> islands)
+    
+    private string GetProjectEntries(ProjectPart[] islands)
     {
       var projectEntries = islands.Select(i => string.Format(
         m_SolutionProjectEntryTemplate,
         SolutionGuidGenerator.GuidForSolution(),
-        i.name,
+        i.Name,
         Path.GetFileName(ProjectFile(i)),
-        ProjectGuid(i)
+        ProjectGuid(i.Name, i.OutputPath)
       ));
 
       return string.Join(Environment.NewLine, projectEntries.ToArray());
@@ -862,17 +831,17 @@ namespace Packages.Rider.Editor.ProjectGeneration
       return ".csproj";
     }
 
-    private string ProjectGuid(Assembly assembly)
+    private string ProjectGuid(string name, string outputPath)
     {
       return m_GUIDGenerator.ProjectGuid(
         m_ProjectName,
-        m_AssemblyNameProvider.GetProjectName(assembly.outputPath, assembly.name));
+        m_AssemblyNameProvider.GetProjectName(outputPath, name));
     }
 
-    private static string GetRootNamespace(Assembly assembly)
+    private static string GetRootNamespace(ProjectPart projectPart)
     {
 #if UNITY_2020_2_OR_NEWER
-      return assembly.rootNamespace;
+      return projectPart.RootNamespace;
 #else
       return EditorSettings.projectGenerationRootNamespace;
 #endif
