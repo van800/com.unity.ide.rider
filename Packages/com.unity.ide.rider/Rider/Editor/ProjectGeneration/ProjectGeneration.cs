@@ -194,6 +194,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
       // Only synchronize islands that have associated source files and ones that we actually want in the project.
       // This also filters out DLLs coming from .asmdef files in packages.
       var assemblies = m_AssemblyNameProvider.GetAssemblies(ShouldFileBePartOfSolution).ToArray();
+      var assemblyNames = new HashSet<string>(assemblies.Select(a => a.name));
       var allAssetProjectParts = GenerateAllAssetProjectParts();
 
       var projectParts = new List<ProjectPart>();
@@ -203,7 +204,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
         projectParts.Add(new ProjectPart(assembly.name, assembly, additionalAssetsForProject));
       }
 
-      var projectPartsWithoutAssembly = allAssetProjectParts.Where(a => !assemblies.Select(b => b.name).Contains(a.Key));
+      var projectPartsWithoutAssembly = allAssetProjectParts.Where(a => !assemblyNames.Contains(a.Key));
       projectParts.AddRange(projectPartsWithoutAssembly.Select(allAssetProjectPart => new ProjectPart(allAssetProjectPart.Key, null, allAssetProjectPart.Value)));
 
       SyncSolution(projectParts.ToArray(), types);
