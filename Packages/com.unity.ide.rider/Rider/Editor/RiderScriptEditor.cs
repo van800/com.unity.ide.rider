@@ -420,9 +420,7 @@ namespace Packages.Rider.Editor
         return false;
       
       if (string.IsNullOrEmpty(path))
-      {
         return false;
-      }
 
       var fileInfo = new FileInfo(path);
       var filename = fileInfo.Name.ToLowerInvariant();
