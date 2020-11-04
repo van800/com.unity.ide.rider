@@ -271,7 +271,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
             stringBuilders[assemblyName] = projectBuilder;
           }
 
-          projectBuilder.Append("     <None Include=\"").Append(EscapedRelativePathFor(asset)).Append("\" />")
+          projectBuilder.Append("     <Content Include=\"").Append(EscapedRelativePathFor(asset)).Append("\" />")
             .Append(Environment.NewLine);
         }
       }
