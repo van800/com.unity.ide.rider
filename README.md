@@ -5,8 +5,13 @@ The root of this folder is a Unity project, so opening this folder with Unity wi
 # Changelog
 Refer to [Changelog](/Packages/com.unity.ide.rider/CHANGELOG.md)
 # How-to
-Q: Generate sln/csproj files for CI
+Q: Generate sln/csproj files for CI?
 
 A: `Unity -batchmode -quit -projectPath ProjectPath -executeMethod Packages.Rider.Editor.RiderScriptEditor.SyncSolution`
+
+Q: Generate sln/csproj and open External Editor?
+
+A: `Unity -batchmode -quit -projectPath ProjectPath -executeMethod Packages.Rider.Editor.RiderScriptEditor.SyncSolutionAndOpenExternalEditor`
+
 # Contributing
 This project welcomes contributions and suggestions. Please have a look at our [Guidelines](/Packages/com.unity.ide.rider/CONTRIBUTING.md) for contributing.

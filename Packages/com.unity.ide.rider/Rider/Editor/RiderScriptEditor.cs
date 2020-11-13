@@ -277,6 +277,13 @@ namespace Packages.Rider.Editor
     {
       m_ProjectGeneration.Sync();
     }
+    
+    [UsedImplicitly]
+    public static void SyncSolutionAndOpenExternalEditor()
+    {
+      m_ProjectGeneration.Sync();
+      CodeEditor.CurrentEditor.OpenProject();
+    }
 
     public void Initialize(string editorInstallationPath) // is called each time ExternalEditor is changed
     {
