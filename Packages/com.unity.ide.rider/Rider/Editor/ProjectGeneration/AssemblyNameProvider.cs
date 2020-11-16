@@ -37,6 +37,17 @@ namespace Packages.Rider.Editor.ProjectGeneration
       if (ProjectGenerationFlag.HasFlag(ProjectGenerationFlag.PlayerAssemblies))
       {
         var playerAssemblies = GetAssembliesByType(AssembliesType.Player, shouldFileBePartOfSolution, "Temp\\Bin\\Debug\\Player\\");
+        if (EditorUserBuildSettings.development)
+        {
+          playerAssemblies = playerAssemblies.Select(a =>
+          {
+            var list = a.defines.ToList();
+            list.Add("DEVELOPMENT_BUILD");
+            return new Assembly(a.name, a.outputPath, a.sourceFiles, list.ToArray(), a.assemblyReferences,
+              a.compiledAssemblyReferences, a.flags);
+          });
+        }
+
         assemblies = assemblies.Concat(playerAssemblies);
       }
 
