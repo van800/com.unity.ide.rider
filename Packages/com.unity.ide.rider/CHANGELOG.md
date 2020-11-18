@@ -1,10 +1,5 @@
 # Code Editor Package for Rider
 
-## [3.0.3] - 2020-11-16
-- Update License
-- Avoid connecting Rider from secondary MPE UnityEditor instances 
-- Fix RIDER-53082 - Generate csproj without cs files, when there are any assets inside
-
 ## [3.0.2] - 2020-10-27
 - Speedup ProjectGeneration
 - Fix RIDER-51958. Callbacks OnGeneratedCSProjectFiles would not work, but show a Warning instead.
