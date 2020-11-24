@@ -425,8 +425,11 @@ namespace Packages.Rider.Editor
     {
       if (IsAssetImportWorkerProcess())
         return false;
-      
-#if UNITY_2020_2_OR_NEWER
+
+#if UNITY_2021_1_OR_NEWER
+      if (UnityEditor.MPE.ProcessService.level == UnityEditor.MPE.ProcessLevel.Secondary)
+        return false;
+#elif UNITY_2020_2_OR_NEWER
       if (UnityEditor.MPE.ProcessService.level == UnityEditor.MPE.ProcessLevel.Slave)
         return false;
 #elif UNITY_2020_1_OR_NEWER
