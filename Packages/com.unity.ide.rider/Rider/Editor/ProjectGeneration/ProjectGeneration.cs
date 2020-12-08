@@ -488,7 +488,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
         assembly.OutputPath,
         assembly.RootNamespace,
         k_TargetFrameworkVersion,
-        GenerateLangVersion(otherResponseFilesData["langversion"]),
+        GenerateLangVersion(otherResponseFilesData["langversion"], assembly),
         k_BaseDirectory,
         assembly.CompilerOptions.AllowUnsafeCode | responseFilesData.Any(x => x.Unsafe),
         GenerateNoWarn(otherResponseFilesData["nowarn"].Distinct().ToArray()),
@@ -726,11 +726,14 @@ namespace Packages.Rider.Editor.ProjectGeneration
       return paths;
     }
 
-    private string GenerateLangVersion(IEnumerable<string> langVersionList)
+    private string GenerateLangVersion(IEnumerable<string> langVersionList, ProjectPart assembly)
     {
       var langVersion = langVersionList.FirstOrDefault();
       if (!string.IsNullOrWhiteSpace(langVersion))
         return langVersion;
+#if UNITY_2020_2_OR_NEWER
+      return assembly.CompilerOptions.LanguageVersion;
+#endif
       return k_TargetLanguageVersion;
     }
 
