@@ -309,12 +309,6 @@ namespace Packages.Rider.Editor
         return false;
       }
       
-      if (path == "" && SystemInfo.operatingSystemFamily == OperatingSystemFamily.MacOSX)
-      {
-        // there is a bug in DllImplementation - use package implementation here instead https://github.cds.internal.unity3d.com/unity/com.unity.ide.rider/issues/21
-        return OpenOSXApp(path, line, column);
-      }
-
       if (!IsUnityScript(path))
       {
         m_ProjectGeneration.SyncIfNeeded(affectedFiles: new string[] { }, new string[] { });
