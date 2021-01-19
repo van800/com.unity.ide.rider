@@ -475,6 +475,12 @@ namespace Packages.Rider.Editor.ProjectGeneration
     )
     {
       var otherResponseFilesData = GetOtherArgumentsFromResponseFilesData(responseFilesData);
+      var languageVersion =
+#if UNITY_2020_2_OR_NEWER
+        assembly.CompilerOptions.LanguageVersion;
+#else
+        k_TargetLanguageVersion;
+#endif
       var arguments = new object[]
       {
         k_ToolsVersion,
@@ -488,7 +494,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
         assembly.OutputPath,
         assembly.RootNamespace,
         k_TargetFrameworkVersion,
-        GenerateLangVersion(otherResponseFilesData["langversion"]),
+        GenerateLangVersion(otherResponseFilesData["langversion"], languageVersion),
         k_BaseDirectory,
         assembly.CompilerOptions.AllowUnsafeCode | responseFilesData.Any(x => x.Unsafe),
         GenerateNoWarn(otherResponseFilesData["nowarn"].Distinct().ToArray()),
@@ -726,12 +732,12 @@ namespace Packages.Rider.Editor.ProjectGeneration
       return paths;
     }
 
-    private string GenerateLangVersion(IEnumerable<string> langVersionList)
+    private string GenerateLangVersion(IEnumerable<string> langVersionList, string targetLanguageVersion)
     {
       var langVersion = langVersionList.FirstOrDefault();
       if (!string.IsNullOrWhiteSpace(langVersion))
         return langVersion;
-      return k_TargetLanguageVersion;
+      return targetLanguageVersion;
     }
 
     private static string GenerateAnalyserRuleSet(string[] paths)

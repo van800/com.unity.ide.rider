@@ -88,10 +88,11 @@ namespace Packages.Rider.Editor.Tests
             string[] defines = null,
             Assembly[] assemblyReferences = null,
             string[] compiledAssemblyReferences = null,
-            bool unsafeSettings = false,
+            ScriptCompilerOptions options = null,
             string rootNamespace = "",
             string roslynAnalyzerRulesetPath = null)
         {
+            options = options ?? new ScriptCompilerOptions();
             Assembly assembly = CreateAssembly(
                 "Test",
                 "some/path/file.dll",
@@ -100,10 +101,7 @@ namespace Packages.Rider.Editor.Tests
                 assemblyReferences ?? new Assembly[0],
                 compiledAssemblyReferences ?? new string[0],
                 AssemblyFlags.None,
-                new ScriptCompilerOptions
-                {
-                    AllowUnsafeCode = unsafeSettings,
-                },
+                options,
                 rootNamespace
             );
 
