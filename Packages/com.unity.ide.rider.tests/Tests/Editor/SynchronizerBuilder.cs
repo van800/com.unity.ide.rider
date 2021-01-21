@@ -92,7 +92,8 @@ namespace Packages.Rider.Editor.Tests
             string rootNamespace = "",
             string roslynAnalyzerRulesetPath = null)
         {
-            options ??= new ScriptCompilerOptions();
+            // ReSharper disable once ConvertToNullCoalescingCompoundAssignment
+            options = options ?? new ScriptCompilerOptions();
             Assembly assembly = CreateAssembly(
                 "Test",
                 "some/path/file.dll",
