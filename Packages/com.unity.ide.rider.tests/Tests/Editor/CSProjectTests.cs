@@ -636,6 +636,16 @@ namespace Packages.Rider.Editor.Tests
             {
                 CheckOtherArgument(new string[0], $"<LangVersion>{Helper.GetLangVersion()}</LangVersion>");
             }
+            
+            [Test]
+            public void CheckNullable()
+            {
+                CheckOtherArgument(new[] { "-nullable" }, "<Nullable>enable</Nullable>");
+                CheckOtherArgument(new[] { "-nullable:enable" }, "<Nullable>enable</Nullable>");
+                CheckOtherArgument(new[] { "-nullable:+" }, "<Nullable>enable</Nullable>");
+                CheckOtherArgument(new[] { "-nullable:disable" }, "<Nullable>disable</Nullable>");
+                CheckOtherArgument(new[] { "-nullable:-" }, "<Nullable>disable</Nullable>");
+            }
 
             void CheckOtherArgument(string[] argumentString, params string[] expectedContents)
             {
