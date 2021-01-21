@@ -64,7 +64,7 @@ namespace Packages.Rider.Editor.Tests
                     "<?xml version=\"1.0\" encoding=\"utf-8\"?>",
                     "<Project ToolsVersion=\"4.0\" DefaultTargets=\"Build\" xmlns=\"http://schemas.microsoft.com/developer/msbuild/2003\">",
                     "  <PropertyGroup>",
-                    "    <LangVersion>latest</LangVersion>",
+                    $"    <LangVersion>{Helper.GetLangVersion()}</LangVersion>",
                     "    <_TargetFrameworkDirectories>non_empty_path_generated_by_unity.rider.package</_TargetFrameworkDirectories>",
                     "    <_FullFrameworkReferenceAssemblyPaths>non_empty_path_generated_by_unity.rider.package</_FullFrameworkReferenceAssemblyPaths>",
                     "    <DisableHandlePackageFileConflicts>true</DisableHandlePackageFileConflicts>",
@@ -634,7 +634,7 @@ namespace Packages.Rider.Editor.Tests
             [Test]
             public void CheckDefaultLangVersion()
             {
-                CheckOtherArgument(new string[0], "<LangVersion>latest</LangVersion>");
+                CheckOtherArgument(new string[0], $"<LangVersion>{Helper.GetLangVersion()}</LangVersion>");
             }
 
             void CheckOtherArgument(string[] argumentString, params string[] expectedContents)
@@ -660,11 +660,30 @@ namespace Packages.Rider.Editor.Tests
                 }
             }
 
+#if UNITY_2020_2_OR_NEWER
+            [TestCase("8.0")]
+            [TestCase("13.14")]
+            [TestCase("42")]
+            public void LanguageVersionFromAssembly_WillBeSet(string languageVersion)
+            {
+                var options = new ScriptCompilerOptions();
+                typeof(ScriptCompilerOptions).GetProperty("LanguageVersion")?.SetValue(options, languageVersion, null);
+                var synchronizer = m_Builder
+                    .WithAssemblyData(options: options)
+                    .Build();
+
+                synchronizer.Sync();
+
+                var csprojFileContents = m_Builder.ReadProjectFile(m_Builder.Assembly);
+                StringAssert.Contains($"<LangVersion>{languageVersion}</LangVersion>", csprojFileContents);
+            }
+#endif
+            
             [Test]
             public void AllowUnsafeFromAssemblySettings_AddBlockToCsproj()
             {
                 var synchronizer = m_Builder
-                    .WithAssemblyData(unsafeSettings: true)
+                    .WithAssemblyData(options: new ScriptCompilerOptions{AllowUnsafeCode = true})
                     .Build();
 
                 synchronizer.Sync();
