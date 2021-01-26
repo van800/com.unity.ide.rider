@@ -95,6 +95,7 @@ public class SimpleCSharpScript : MonoBehaviour
 
         [UnityPlatform(RuntimePlatform.WindowsEditor)]
         [UnityTest]
+        [Ignore("Timestamp servers are broken, until we get a fix we cannot run with targetsupport")]
         public IEnumerator WhenActiveBuildTargetChanges_Windows()
         {
             m_Original = UnityEditor.BuildTarget.StandaloneWindows64;
@@ -108,6 +109,7 @@ public class SimpleCSharpScript : MonoBehaviour
 
         [UnityPlatform(RuntimePlatform.OSXEditor)]
         [UnityTest]
+        [Ignore("Timestamp servers are broken, until we get a fix we cannot run with targetsupport")]
         public IEnumerator WhenActiveBuildTargetChanges_MacOSX()
         {
             m_Original = UnityEditor.BuildTarget.StandaloneOSX;
@@ -121,6 +123,7 @@ public class SimpleCSharpScript : MonoBehaviour
 
         [UnityPlatform(RuntimePlatform.LinuxEditor)]
         [UnityTest]
+        [Ignore("Timestamp servers are broken, until we get a fix we cannot run with targetsupport")]
         public IEnumerator WhenActiveBuildTargetChanges_Linux()
         {
             m_Original = UnityEditor.BuildTarget.StandaloneLinux64;
@@ -134,6 +137,7 @@ public class SimpleCSharpScript : MonoBehaviour
 
         [UnityPlatform(RuntimePlatform.WindowsEditor)]
         [UnityTest]
+        [Ignore("Timestamp servers are broken, until we get a fix we cannot run with targetsupport")]
         public IEnumerator WhenActiveBuildTargetChangesAfterScriptReload_Windows()
         {
             m_Original = UnityEditor.BuildTarget.StandaloneWindows64;
@@ -147,6 +151,7 @@ public class SimpleCSharpScript : MonoBehaviour
 
         [UnityPlatform(RuntimePlatform.OSXEditor)]
         [UnityTest]
+        [Ignore("Timestamp servers are broken, until we get a fix we cannot run with targetsupport")]
         public IEnumerator WhenActiveBuildTargetChangesAfterScriptReload_MacOSX()
         {
             m_Original = UnityEditor.BuildTarget.StandaloneOSX;
@@ -160,6 +165,7 @@ public class SimpleCSharpScript : MonoBehaviour
 
         [UnityPlatform(RuntimePlatform.LinuxEditor)]
         [UnityTest]
+        [Ignore("Timestamp servers are broken, until we get a fix we cannot run with targetsupport")]
         public IEnumerator WhenActiveBuildTargetChangesAfterScriptReload_Linux()
         {
             m_Original = UnityEditor.BuildTarget.StandaloneLinux64;
