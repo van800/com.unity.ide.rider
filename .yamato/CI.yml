@@ -87,9 +87,9 @@ run_vetting_test_project_{{ editor.version }}:
     DISPLAY: ":0"
   commands:
 {% if platform.name == "linux" -%}
-    - pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade --user
+    - pip install unity-downloader-cli --fast --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade --user
 {% else -%}
-    - pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+    - pip install unity-downloader-cli --fast --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
 {% endif -%}
     - npm config set prefix '~/npm-global'
     - npm install upm-ci-utils@latest -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -120,9 +120,9 @@ run_feature_test_project_{{ platform.name }}_{{ editor.version }}:
   {% endif %}
   commands:
 {% if platform.name == "linux" -%}
-    - pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade --user
+    - pip install unity-downloader-cli --fast --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade --user
 {% else -%}
-    - pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
+    - pip install unity-downloader-cli --fast --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
 {% endif -%}
     - {{ platform.envsetup }}
     - unity-downloader-cli -u {{editor.version}} -c editor -c linux -c macos -c windows --fast --wait --published-only
