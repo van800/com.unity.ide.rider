@@ -747,6 +747,7 @@ namespace Packages.Rider.Editor.Tests
 
         class References : ProjectGenerationTestBase
         {
+#if UNITY_2020_2_OR_NEWER
             [Test]
             public void RoslynAnalyzerDlls_WillBeIncluded()
             {
@@ -760,19 +761,18 @@ namespace Packages.Rider.Editor.Tests
                 XMLUtilities.AssertAnalyzerItemsMatchExactly(projectFileXml, new[] { roslynAnalyzerDllPath });
             }
 
-#if UNITY_2020_2_OR_NEWER
             [Test]
             public void RoslynAnalyzerRulesetFiles_WillBeIncluded()
             {
                 var roslynAnalyzerRuleSetPath = "Assets/RoslynRuleSet.ruleset";
 
-                m_Builder.WithAssemblyData(files: new[] {"file.cs"}, roslynAnalyzerRulesetPath: roslynAnalyzerRuleSetPath).Build().Sync();
+                m_Builder.WithAssemblyData(files: new[] {"file.cs"}).WithRoslynAnalyzerRulesetPath(roslynAnalyzerRuleSetPath).Build().Sync();
                 var csProjectFileContents = m_Builder.ReadProjectFile(m_Builder.Assembly);
                 XmlDocument csProjectXmlFile = XMLUtilities.FromText(csProjectFileContents);
                 XMLUtilities.AssertAnalyzerRuleSetsMatchExactly(csProjectXmlFile, roslynAnalyzerRuleSetPath);
             }
 #endif
-            
+
             [Test]
             public void Containing_PathWithSpaces_IsParsedCorrectly()
             {

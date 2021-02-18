@@ -217,13 +217,8 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
       foreach (var projectPart in projectParts)
       {
-        SyncProject(projectPart, types, GetAllRoslynAnalyzerPaths().ToArray());
+        SyncProject(projectPart, types);
       }
-    }
-
-    private IEnumerable<string> GetAllRoslynAnalyzerPaths()
-    {
-      return m_AssemblyNameProvider.GetRoslynAnalyzerPaths();
     }
 
     private Dictionary<string, string> GenerateAllAssetProjectParts()
@@ -272,12 +267,11 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
     private void SyncProject(
       ProjectPart island,
-      Type[] types,
-      string[] roslynAnalyzerDllPaths)
+      Type[] types)
     {
       SyncProjectFileIfNotChanged(
         ProjectFile(island),
-        ProjectText(island, roslynAnalyzerDllPaths),
+        ProjectText(island),
         types);
     }
 
@@ -408,11 +402,10 @@ namespace Packages.Rider.Editor.ProjectGeneration
       m_FileIOProvider.WriteAllText(filename, newContents);
     }
 
-    private string ProjectText(ProjectPart assembly,
-      string[] roslynAnalyzerDllPaths)
+    private string ProjectText(ProjectPart assembly)
     {
       var responseFilesData = assembly.ParseResponseFileData(m_AssemblyNameProvider, ProjectDirectory).ToList();
-      var projectBuilder = new StringBuilder(ProjectHeader(assembly, responseFilesData, roslynAnalyzerDllPaths));
+      var projectBuilder = new StringBuilder(ProjectHeader(assembly, responseFilesData));
       
       foreach (var file in assembly.SourceFiles)
       {
@@ -476,8 +469,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
     private string ProjectHeader(
       ProjectPart assembly,
-      List<ResponseFileData> responseFilesData,
-      string[] roslynAnalyzerDllPaths
+      List<ResponseFileData> responseFilesData
     )
     {
       var otherResponseFilesData = GetOtherArgumentsFromResponseFilesData(responseFilesData);
@@ -497,19 +489,10 @@ namespace Packages.Rider.Editor.ProjectGeneration
         GenerateLangVersion(otherResponseFilesData["langversion"], assembly),
         k_BaseDirectory,
         assembly.CompilerOptions.AllowUnsafeCode | responseFilesData.Any(x => x.Unsafe),
-        GenerateNoWarn(otherResponseFilesData["nowarn"].ToList()),
-        GenerateAnalyserItemGroup(
-          otherResponseFilesData["analyzer"].Concat(otherResponseFilesData["a"])
-                                                  .SelectMany(x=>x.Split(';'))
-                                                  .Concat(roslynAnalyzerDllPaths)
-                                                  .Distinct()
-                                                  .ToArray()),
+        GenerateNoWarn(otherResponseFilesData["nowarn"].Distinct().ToArray()),
+        GenerateAnalyserItemGroup(RetrieveRoslynAnalyzers(assembly, otherResponseFilesData)),
         GenerateAnalyserAdditionalFiles(otherResponseFilesData["additionalfile"].SelectMany(x=>x.Split(';')).Distinct().ToArray()),
-        #if UNITY_2020_2_OR_NEWER
-        GenerateAnalyserRuleSet(otherResponseFilesData["ruleset"].Append(assembly.CompilerOptions.RoslynAnalyzerRulesetPath).Where(a=>!string.IsNullOrEmpty(a)).Distinct().ToArray()),
-        #else
-        GenerateAnalyserRuleSet(otherResponseFilesData["ruleset"].Distinct().ToArray()),
-        #endif
+        GenerateRoslynAnalyzerRulesetPath(assembly, otherResponseFilesData),
         GenerateWarningLevel(otherResponseFilesData["warn"].Concat(otherResponseFilesData["w"]).Distinct()),
         GenerateWarningAsError(otherResponseFilesData["warnaserror"], otherResponseFilesData["warnaserror-"], otherResponseFilesData["warnaserror+"]),
         GenerateDocumentationFile(otherResponseFilesData["doc"].ToArray()),
@@ -526,6 +509,31 @@ namespace Packages.Rider.Editor.ProjectGeneration
           "Failed creating c# project because the c# project header did not have the correct amount of arguments, which is " +
           arguments.Length);
       }
+    }
+
+    static string[] RetrieveRoslynAnalyzers(ProjectPart assembly, ILookup<string, string> otherResponseFilesData)
+    {
+#if UNITY_2020_2_OR_NEWER
+      return otherResponseFilesData["analyzer"].Concat(otherResponseFilesData["a"])
+        .SelectMany(x=>x.Split(';'))
+        .Concat(assembly.CompilerOptions.RoslynAnalyzerDllPaths)
+        .Distinct()
+        .ToArray();
+#else
+      return otherResponseFilesData["analyzer"].Concat(otherResponseFilesData["a"])
+        .SelectMany(x=>x.Split(';'))
+        .Distinct()
+        .ToArray();
+#endif
+    }
+
+    static string GenerateRoslynAnalyzerRulesetPath(ProjectPart assembly, ILookup<string, string> otherResponseFilesData)
+    {
+#if UNITY_2020_2_OR_NEWER
+      return GenerateAnalyserRuleSet(otherResponseFilesData["ruleset"].Append(assembly.CompilerOptions.RoslynAnalyzerRulesetPath).Where(a=>!string.IsNullOrEmpty(a)).Distinct().ToArray());
+#else
+      return GenerateAnalyserRuleSet(otherResponseFilesData["ruleset"].Distinct().ToArray());
+#endif
     }
 
     private string GenerateNullable(IEnumerable<string> enumerable)
