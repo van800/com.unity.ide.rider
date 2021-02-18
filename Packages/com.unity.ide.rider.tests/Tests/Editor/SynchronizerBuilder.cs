@@ -89,8 +89,7 @@ namespace Packages.Rider.Editor.Tests
             Assembly[] assemblyReferences = null,
             string[] compiledAssemblyReferences = null,
             ScriptCompilerOptions options = null,
-            string rootNamespace = "",
-            string roslynAnalyzerRulesetPath = null)
+            string rootNamespace = "")
         {
             // ReSharper disable once ConvertToNullCoalescingCompoundAssignment
             options = options ?? new ScriptCompilerOptions();
@@ -106,9 +105,6 @@ namespace Packages.Rider.Editor.Tests
                 rootNamespace
             );
 
-#if UNITY_2020_2_OR_NEWER
-            assembly.compilerOptions.RoslynAnalyzerRulesetPath = roslynAnalyzerRulesetPath;
-#endif
             return WithAssembly(assembly);
         }
 
@@ -135,11 +131,25 @@ namespace Packages.Rider.Editor.Tests
             return this;
         }
 
-        public SynchronizerBuilder WithRoslynAnalyzers(string[] roslynAnalyzerDllPaths)
+#if UNITY_2020_2_OR_NEWER
+        public SynchronizerBuilder WithRoslynAnalyzerRulesetPath(string roslynAnalyzerRuleSetPath)
         {
-            m_AssemblyProvider.Setup(p => p.GetRoslynAnalyzerPaths()).Returns(roslynAnalyzerDllPaths);
+            foreach (var assembly in m_Assemblies)
+            {
+                assembly.compilerOptions.RoslynAnalyzerRulesetPath = roslynAnalyzerRuleSetPath;
+            }
             return this;
         }
+
+        public SynchronizerBuilder WithRoslynAnalyzers(string[] roslynAnalyzerDllPaths)
+        {
+            foreach (var assembly in m_Assemblies)
+            {
+                assembly.compilerOptions.RoslynAnalyzerDllPaths = roslynAnalyzerDllPaths;
+            }
+            return this;
+        }
+#endif
 
         public SynchronizerBuilder AssignFilesToAssembly(string[] files, Assembly assembly)
         {
