@@ -34,7 +34,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
     public IEnumerable<Assembly> GetAssemblies(Func<string, bool> shouldFileBePartOfSolution)
     {
-      IEnumerable<Assembly> assemblies = GetAssembliesByType(AssembliesType.Editor, shouldFileBePartOfSolution, @"Temp\Bin\Debug\");
+      var assemblies = GetAssembliesByType(AssembliesType.Editor, shouldFileBePartOfSolution, @"Temp\Bin\Debug\");
 
       if (!ProjectGenerationFlag.HasFlag(ProjectGenerationFlag.PlayerAssemblies))
       {
