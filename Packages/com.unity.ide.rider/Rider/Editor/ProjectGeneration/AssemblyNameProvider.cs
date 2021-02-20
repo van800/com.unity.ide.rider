@@ -40,7 +40,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
       {
         return assemblies;
       }
-      var playerAssemblies = GetAssembliesByType(AssembliesType.Player, shouldFileBePartOfSolution, "Temp\\Bin\\Debug\\Player\\");
+      var playerAssemblies = GetAssembliesByType(AssembliesType.Player, shouldFileBePartOfSolution, @"Temp\Bin\Debug\Player\");
       return assemblies.Concat(playerAssemblies);
     }
 
