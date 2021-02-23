@@ -511,12 +511,16 @@ namespace Packages.Rider.Editor.ProjectGeneration
       }
     }
 
-    static string[] RetrieveRoslynAnalyzers(ProjectPart assembly, ILookup<string, string> otherResponseFilesData)
+    string[] RetrieveRoslynAnalyzers(ProjectPart assembly, ILookup<string, string> otherResponseFilesData)
     {
 #if UNITY_2020_2_OR_NEWER
       return otherResponseFilesData["analyzer"].Concat(otherResponseFilesData["a"])
         .SelectMany(x=>x.Split(';'))
+#if !ROSLYN_ANALYZER_FIX
+        .Concat(m_AssemblyNameProvider.GetRoslynAnalyzerPaths())
+#else
         .Concat(assembly.CompilerOptions.RoslynAnalyzerDllPaths)
+#endif
         .Distinct()
         .ToArray();
 #else
