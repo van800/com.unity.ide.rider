@@ -1,0 +1,19 @@
+{
+  "name": "JetBrains Rider",
+  "version": "2021.1",
+  "versionSuffix": "EAP 1",
+  "buildNumber": "211.4961.5",
+  "productCode": "RD",
+  "dataDirectoryName": "Rider2021.1",
+  "svgIconPath": "bin/rider.svg",
+  "launch": [
+    {
+      "os": "Linux",
+      "launcherPath": "bin/rider.sh",
+      "javaExecutablePath": "jbr/bin/java",
+      "vmOptionsFilePath": "bin/rider64.vmoptions",
+      "startupWmClass": "jetbrains-rider"
+    }
+  ],
+  "customProperties": []
+}
