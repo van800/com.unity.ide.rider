@@ -30,7 +30,8 @@ namespace Packages.Rider.Editor
             return a.GetName().Name.StartsWith(EditorPluginAssemblyNamePrefix); // some user assemblies may fail here
           }
           catch (Exception)
-          { 
+          {
+            
           }
 
           return default;
