@@ -491,7 +491,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
         GenerateLangVersion(otherResponseFilesData["langversion"], assembly),
         k_BaseDirectory,
         assembly.CompilerOptions.AllowUnsafeCode | responseFilesData.Any(x => x.Unsafe),
-        GenerateNoWarn(otherResponseFilesData["nowarn"].Distinct().ToArray()),
+        GenerateNoWarn(otherResponseFilesData["nowarn"].ToList()),
         GenerateAnalyserItemGroup(
           otherResponseFilesData["analyzer"].Concat(otherResponseFilesData["a"])
                                                   .SelectMany(x=>x.Split(';'))
@@ -789,12 +789,17 @@ namespace Packages.Rider.Editor.ProjectGeneration
       return analyserBuilder.ToString();
     }
 
-    private static string GenerateNoWarn(string[] codes)
+    private static string GenerateNoWarn(List<string> codes)
     {
+#if UNITY_2020_1_OR_NEWER
+      if (PlayerSettings.suppressCommonWarnings)
+        codes.AddRange(new[] {"0169", "0649"});
+#endif
+
       if (!codes.Any())
         return string.Empty;
 
-      return $",{string.Join(",", codes)}";
+      return $",{string.Join(",", codes.Distinct())}";
     }
     
     private string GetProjectEntries(ProjectPart[] islands)
