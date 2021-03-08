@@ -789,7 +789,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
       return analyserBuilder.ToString();
     }
 
-    private static string GenerateNoWarn(List<string> codes)
+    public static string GenerateNoWarn(List<string> codes)
     {
 #if UNITY_2020_1_OR_NEWER
       if (PlayerSettings.suppressCommonWarnings)
@@ -799,7 +799,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
       if (!codes.Any())
         return string.Empty;
 
-      return $",{string.Join(",", codes.Distinct())}";
+      return string.Join(",", codes.Distinct());
     }
     
     private string GetProjectEntries(ProjectPart[] islands)

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml;
@@ -92,7 +93,7 @@ namespace Packages.Rider.Editor.Tests
                     "    <DefineConstants></DefineConstants>",
                     "    <ErrorReport>prompt</ErrorReport>",
                     "    <WarningLevel>4</WarningLevel>",
-                    "    <NoWarn></NoWarn>",
+                    $"    <NoWarn>{ProjectGeneration.ProjectGeneration.GenerateNoWarn(new List<string>())}</NoWarn>",
                     "    <AllowUnsafeBlocks>False</AllowUnsafeBlocks>",
                     "    <TreatWarningsAsErrors>False</TreatWarningsAsErrors>",
                     "  </PropertyGroup>",
@@ -617,11 +618,14 @@ namespace Packages.Rider.Editor.Tests
                 CheckOtherArgument(new string[0], "<WarningLevel>4</WarningLevel>");
             }
 
-            [TestCase(new[] { "-nowarn:10" }, ",10")]
-            [TestCase(new[] { "-nowarn:10,11" }, ",10,11")]
-            [TestCase(new[] { "-nowarn:10,11", "-nowarn:12" }, ",10,11,12")]
+            [TestCase(new[] { "-nowarn:10" }, "10")]
+            [TestCase(new[] { "-nowarn:10,11" }, "10,11")]
+            [TestCase(new[] { "-nowarn:10,11", "-nowarn:12" }, "10,11,12")]
             public void CheckNoWarn(string[] args, string expected)
             {
+                var commonPart = ProjectGeneration.ProjectGeneration.GenerateNoWarn(new List<string>());
+                if (!string.IsNullOrEmpty(commonPart))
+                    expected = $"{expected},{commonPart}";
                 CheckOtherArgument(args, $"<NoWarn>{expected}</NoWarn>");
             }
 
