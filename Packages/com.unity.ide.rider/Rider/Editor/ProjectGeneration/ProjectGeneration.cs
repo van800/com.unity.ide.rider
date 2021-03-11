@@ -228,9 +228,9 @@ namespace Packages.Rider.Editor.ProjectGeneration
       {
         var extension = Path.GetExtension(asset);
         if (!IsSupportedExtension(extension) || extension.Equals(".cs", StringComparison.OrdinalIgnoreCase))
-	{
+        {
           continue;
-	}
+        }
 
         // Exclude files coming from packages except if they are internalized.
         if (m_AssemblyNameProvider.IsInternalizedPackagePath(asset))
