@@ -226,34 +226,36 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
       foreach (var asset in m_AssemblyNameProvider.GetAllAssetPaths())
       {
+        var extension = Path.GetExtension(asset);
+        if (!IsSupportedExtension(extension) || extension.Equals(".cs", StringComparison.OrdinalIgnoreCase))
+	{
+          continue;
+	}
+
         // Exclude files coming from packages except if they are internalized.
         if (m_AssemblyNameProvider.IsInternalizedPackagePath(asset))
         {
           continue;
         }
 
-        var extension = Path.GetExtension(asset);
-        if (IsSupportedExtension(extension) && !extension.Equals(".cs", StringComparison.OrdinalIgnoreCase))
+        // Find assembly the asset belongs to by adding script extension and using compilation pipeline.
+        var assemblyName = m_AssemblyNameProvider.GetAssemblyNameFromScriptPath(asset + ".cs");
+
+        if (string.IsNullOrEmpty(assemblyName))
         {
-          // Find assembly the asset belongs to by adding script extension and using compilation pipeline.
-          var assemblyName = m_AssemblyNameProvider.GetAssemblyNameFromScriptPath(asset + ".cs");
-
-          if (string.IsNullOrEmpty(assemblyName))
-          {
-            continue;
-          }
-
-          assemblyName = FileSystemUtil.FileNameWithoutExtension(assemblyName);
-
-          if (!stringBuilders.TryGetValue(assemblyName, out var projectBuilder))
-          {
-            projectBuilder = new StringBuilder();
-            stringBuilders[assemblyName] = projectBuilder;
-          }
-
-          projectBuilder.Append("     <None Include=\"").Append(EscapedRelativePathFor(asset)).Append("\" />")
-            .Append(Environment.NewLine);
+          continue;
         }
+
+        assemblyName = FileSystemUtil.FileNameWithoutExtension(assemblyName);
+
+        if (!stringBuilders.TryGetValue(assemblyName, out var projectBuilder))
+        {
+          projectBuilder = new StringBuilder();
+          stringBuilders[assemblyName] = projectBuilder;
+        }
+
+        projectBuilder.Append("     <None Include=\"").Append(EscapedRelativePathFor(asset)).Append("\" />")
+          .Append(Environment.NewLine);
       }
 
       var result = new Dictionary<string, string>();
