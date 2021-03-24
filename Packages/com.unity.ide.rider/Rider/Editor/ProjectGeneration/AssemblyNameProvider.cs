@@ -82,19 +82,19 @@ namespace Packages.Rider.Editor.ProjectGeneration
     }
     private static string ResolvePotentialParentPackageAssetPath(string assetPath)
     {
-      var lowered = assetPath.ToLowerInvariant();
-      if (!lowered.StartsWith("packages/"))
+      const string packagesPrefix = "packages/";
+      if (!assetPath.StartsWith(packagesPrefix, StringComparison.OrdinalIgnoreCase))
       {
         return null;
       }
 
-      var followupSeparator = lowered.IndexOf('/', "packages/".Length);
+      var followupSeparator = assetPath.IndexOf('/', packagesPrefix.Length);
       if (followupSeparator == -1)
       {
-        return lowered;
+        return assetPath.ToLowerInvariant();
       }
 
-      return lowered.Substring(0, followupSeparator);
+      return assetPath.Substring(0, followupSeparator).ToLowerInvariant();
     }
     
     public UnityEditor.PackageManager.PackageInfo FindForAssetPath(string assetPath)
