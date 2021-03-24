@@ -363,13 +363,27 @@ namespace Packages.Rider.Editor.Tests
             }
 
             [Test]
-            public void UnsupportedExtension_IsOverWrittenBy_UserSupportedExtensions()
+            public void UnsupportedExtension_IsOverWrittenBy_ProjectSupportedExtensions()
             {
                 var unsupported = new[] { "file.unsupported" };
                 var synchronizer = m_Builder
                     .WithAssetFiles(unsupported)
                     .AssignFilesToAssembly(unsupported, m_Builder.Assembly)
-                    .WithUserSupportedExtensions(new[] { "unsupported" })
+                    .WithProjectSupportedExtensions(new[] { "unsupported" })
+                    .Build();
+                synchronizer.Sync();
+                var xmlDocument = XMLUtilities.FromText(m_Builder.ReadProjectFile(m_Builder.Assembly));
+                XMLUtilities.AssertNonCompileItemsMatchExactly(xmlDocument, unsupported);
+            }
+            
+            [Test]
+            public void UnsupportedExtension_IsOverWrittenBy_SettingSupportedExtensions()
+            {
+                var unsupported = new[] { "file.unsupported" };
+                var synchronizer = m_Builder
+                    .WithAssetFiles(unsupported)
+                    .AssignFilesToAssembly(unsupported, m_Builder.Assembly)
+                    .WithSettingUserSupportedExtensions(new[] { "unsupported" })
                     .Build();
                 synchronizer.Sync();
                 var xmlDocument = XMLUtilities.FromText(m_Builder.ReadProjectFile(m_Builder.Assembly));

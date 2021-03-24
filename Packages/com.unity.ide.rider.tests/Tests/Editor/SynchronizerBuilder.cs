@@ -173,9 +173,15 @@ namespace Packages.Rider.Editor.Tests
             return this;
         }
 
-        public SynchronizerBuilder WithUserSupportedExtensions(string[] extensions)
+        public SynchronizerBuilder WithProjectSupportedExtensions(string[] extensions)
         {
             m_AssemblyProvider.Setup(x => x.ProjectSupportedExtensions).Returns(extensions);
+            return this;
+        }
+        
+        public SynchronizerBuilder WithSettingUserSupportedExtensions(string[] extensions)
+        {
+            m_AssemblyProvider.Setup(x => x.SettingSupportedExtensions).Returns(extensions);
             return this;
         }
 

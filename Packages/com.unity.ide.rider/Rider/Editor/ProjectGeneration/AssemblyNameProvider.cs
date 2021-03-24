@@ -12,6 +12,8 @@ namespace Packages.Rider.Editor.ProjectGeneration
     ProjectGenerationFlag m_ProjectGenerationFlag = (ProjectGenerationFlag)EditorPrefs.GetInt("unity_project_generation_flag", 3);
 
     public string[] ProjectSupportedExtensions => EditorSettings.projectGenerationUserExtensions;
+    
+    public string[] SettingSupportedExtensions => PluginSettings.HandledExtensions;
 
     public string ProjectGenerationRootNamespace => EditorSettings.projectGenerationRootNamespace;
 
