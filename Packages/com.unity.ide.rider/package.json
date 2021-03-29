@@ -5,6 +5,9 @@
   "version": "3.0.5",
   "unity": "2019.2",
   "unityRelease": "6f1",
+  "dependencies": {
+    "com.unity.ext.nunit": "1.0.6"
+  },
   "relatedPackages": {
     "com.unity.ide.rider.tests": "3.0.5"
   }
