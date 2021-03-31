@@ -181,12 +181,46 @@ namespace Packages.Rider.Editor
       m_Discoverability = discovery;
       m_ProjectGeneration = projectGeneration;
     }
+    
+    public static string[] defaultExtensions
+    {
+      get
+      {
+        var customExtensions = new[] {"log"};
+        return EditorSettings.projectGenerationBuiltinExtensions.Concat(EditorSettings.projectGenerationUserExtensions)
+          .Concat(customExtensions).Distinct().ToArray();
+      }
+    }
+
+    public static string[] HandledExtensions
+    {
+      get
+      {
+        return HandledExtensionsString.Split(new[] {';'}, StringSplitOptions.RemoveEmptyEntries).Select(s => s.TrimStart('.', '*'))
+          .ToArray();
+      } 
+    }
+
+    public static string HandledExtensionsString
+    {
+      get { return EditorPrefs.GetString("Rider_UserExtensions", string.Join(";", defaultExtensions));}
+      set { EditorPrefs.SetString("Rider_UserExtensions", value); }
+    }
+
+    public static bool SupportsExtension(string path)
+    {
+      var extension = Path.GetExtension(path);
+      if (string.IsNullOrEmpty(extension))
+        return false;
+      // cs is a default extension, which should always be handled
+      return extension == ".cs" || HandledExtensions.Contains(extension.TrimStart('.'));
+    }
 
     public void OnGUI()
     {
       if (RiderScriptEditorData.instance.shouldLoadEditorPlugin)
       {
-        PluginSettings.HandledExtensionsString = EditorGUILayout.TextField(new GUIContent("Extensions handled: "), PluginSettings.HandledExtensionsString);
+        HandledExtensionsString = EditorGUILayout.TextField(new GUIContent("Extensions handled: "), HandledExtensionsString);
       }
 
       EditorGUILayout.LabelField("Generate .csproj files for:");
@@ -274,7 +308,7 @@ namespace Packages.Rider.Editor
 
     public bool OpenProject(string path, int line, int column)
     {
-      if (path != "" && !PluginSettings.SupportsExtension(path)) // Assets - Open C# Project passes empty path here
+      if (path != "" && !SupportsExtension(path)) // Assets - Open C# Project passes empty path here
       {
         return false;
       }

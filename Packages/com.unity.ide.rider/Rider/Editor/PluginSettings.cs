@@ -1,61 +1,21 @@
-using System;
-using System.IO;
-using System.Linq;
 using Unity.CodeEditor;
 using UnityEditor;
 using UnityEngine;
 
 namespace Packages.Rider.Editor
 {
-  internal class PluginSettings
+  internal static class PluginSettings
   {
-    public static string[] defaultExtensions
-    {
-      get
-      {
-        var customExtensions = new[] {"log"};
-        return EditorSettings.projectGenerationBuiltinExtensions.Concat(EditorSettings.projectGenerationUserExtensions)
-          .Concat(customExtensions).Distinct().ToArray();
-      }
-    }
-
-    public static string[] HandledExtensions
-    {
-      get
-      {
-        return HandledExtensionsString.Split(new[] {';'}, StringSplitOptions.RemoveEmptyEntries).Select(s => s.TrimStart('.', '*'))
-          .ToArray();
-      } 
-    }
-
-    public static string HandledExtensionsString
-    {
-      get { return EditorPrefs.GetString("Rider_UserExtensions", string.Join(";", defaultExtensions));}
-      set { EditorPrefs.SetString("Rider_UserExtensions", value); }
-    }
-
-    public static bool SupportsExtension(string path)
-    {
-      var extension = Path.GetExtension(path);
-      if (string.IsNullOrEmpty(extension))
-        return false;
-      // cs is a default extension, which should always be handled
-      return extension == ".cs" || HandledExtensions.Contains(extension.TrimStart('.'));
-    }
-    
     public static LoggingLevel SelectedLoggingLevel
     {
       get => (LoggingLevel) EditorPrefs.GetInt("Rider_SelectedLoggingLevel", 0);
-      set
-      {
-        EditorPrefs.SetInt("Rider_SelectedLoggingLevel", (int) value);
-      }
+      private set => EditorPrefs.SetInt("Rider_SelectedLoggingLevel", (int) value);
     }
 
     public static bool LogEventsCollectorEnabled
     {
-      get { return EditorPrefs.GetBool("Rider_LogEventsCollectorEnabled", true); }
-      private set { EditorPrefs.SetBool("Rider_LogEventsCollectorEnabled", value); }
+      get => EditorPrefs.GetBool("Rider_LogEventsCollectorEnabled", true);
+      private set => EditorPrefs.SetBool("Rider_LogEventsCollectorEnabled", value);
     }
 
     /// <summary>
