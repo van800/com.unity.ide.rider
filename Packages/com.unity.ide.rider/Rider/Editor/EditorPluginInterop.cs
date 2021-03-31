@@ -31,7 +31,7 @@ namespace Packages.Rider.Editor
           }
           catch (Exception)
           {
-            
+            // ignored
           }
 
           return default;
