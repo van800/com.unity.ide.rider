@@ -178,12 +178,6 @@ namespace Packages.Rider.Editor.Tests
             m_AssemblyProvider.Setup(x => x.ProjectSupportedExtensions).Returns(extensions);
             return this;
         }
-        
-        public SynchronizerBuilder WithSettingUserSupportedExtensions(string[] extensions)
-        {
-            m_AssemblyProvider.Setup(x => x.SettingSupportedExtensions).Returns(extensions);
-            return this;
-        }
 
         public SynchronizerBuilder WithOutputPathForAssemblyPath(string outputPath, string assemblyName, string resAssemblyName)
         {

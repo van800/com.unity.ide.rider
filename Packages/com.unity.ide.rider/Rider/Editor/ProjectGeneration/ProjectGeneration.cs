@@ -38,7 +38,13 @@ namespace Packages.Rider.Editor.ProjectGeneration
         { "hlsl", ScriptingLanguage.None },
         { "glslinc", ScriptingLanguage.None },
         { "template", ScriptingLanguage.None },
-        { "raytrace", ScriptingLanguage.None }
+        { "raytrace", ScriptingLanguage.None },
+        { "json", ScriptingLanguage.None},
+        { "asmdef", ScriptingLanguage.None},
+        { "xaml", ScriptingLanguage.None},
+        { "tt", ScriptingLanguage.None},
+        { "t4", ScriptingLanguage.None},
+        { "ttinclude", ScriptingLanguage.None}
       };
 
     private string m_SolutionProjectEntryTemplate = string.Join(Environment.NewLine,
@@ -64,8 +70,6 @@ namespace Packages.Rider.Editor.ProjectGeneration
       RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
     private string[] m_ProjectSupportedExtensions = new string[0];
-    
-    private string[] m_SettingSupportedExtensions = new string[0];
 
     public string ProjectDirectory { get; }
 
@@ -159,7 +163,6 @@ namespace Packages.Rider.Editor.ProjectGeneration
     private void SetupSupportedExtensions()
     {
       m_ProjectSupportedExtensions = m_AssemblyNameProvider.ProjectSupportedExtensions;
-      m_SettingSupportedExtensions = m_AssemblyNameProvider.SettingSupportedExtensions;
     }
 
     private bool ShouldFileBePartOfSolution(string file)
@@ -189,7 +192,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
     private bool IsSupportedExtension(string extension)
     {
       extension = extension.TrimStart('.');
-      return k_BuiltinSupportedExtensions.ContainsKey(extension) || m_ProjectSupportedExtensions.Contains(extension) || m_SettingSupportedExtensions.Contains(extension);
+      return k_BuiltinSupportedExtensions.ContainsKey(extension) || m_ProjectSupportedExtensions.Contains(extension);
     }
 
     public void GenerateAndWriteSolutionAndProjects(Type[] types)

@@ -7,7 +7,6 @@ namespace Packages.Rider.Editor.ProjectGeneration
   internal interface IAssemblyNameProvider
   {
     string[] ProjectSupportedExtensions { get; }
-    string[] SettingSupportedExtensions { get; }
     string ProjectGenerationRootNamespace { get; }
     ProjectGenerationFlag ProjectGenerationFlag { get; }
 

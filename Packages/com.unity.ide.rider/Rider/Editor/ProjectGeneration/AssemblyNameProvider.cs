@@ -15,8 +15,6 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
     public string[] ProjectSupportedExtensions => EditorSettings.projectGenerationUserExtensions;
     
-    public string[] SettingSupportedExtensions => PluginSettings.HandledExtensions;
-
     public string ProjectGenerationRootNamespace => EditorSettings.projectGenerationRootNamespace;
 
     public ProjectGenerationFlag ProjectGenerationFlag

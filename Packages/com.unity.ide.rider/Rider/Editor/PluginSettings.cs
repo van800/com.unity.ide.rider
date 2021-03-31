@@ -13,7 +13,7 @@ namespace Packages.Rider.Editor
     {
       get
       {
-        var customExtensions = new[] {"json", "asmdef", "log", "xaml", "tt", "t4", "ttinclude"};
+        var customExtensions = new[] {"log"};
         return EditorSettings.projectGenerationBuiltinExtensions.Concat(EditorSettings.projectGenerationUserExtensions)
           .Concat(customExtensions).Distinct().ToArray();
       }
