@@ -262,14 +262,12 @@ namespace Packages.Rider.Editor
     public void SyncIfNeeded(string[] addedFiles, string[] deletedFiles, string[] movedFiles, string[] movedFromFiles,
       string[] importedFiles)
     {
-      m_ProjectGeneration.AssemblyNameProvider.ResetPackageInfoCache();
       m_ProjectGeneration.SyncIfNeeded(addedFiles.Union(deletedFiles).Union(movedFiles).Union(movedFromFiles),
         importedFiles);
     }
 
     public void SyncAll()
     {
-      m_ProjectGeneration.AssemblyNameProvider.ResetPackageInfoCache();
       AssetDatabase.Refresh();
       m_ProjectGeneration.SyncIfNeeded(new string[] { }, new string[] { });
     }
@@ -277,14 +275,12 @@ namespace Packages.Rider.Editor
     [UsedImplicitly]
     public static void SyncSolution() // generate-the-sln-file-via-script-or-command-line
     {
-      m_ProjectGeneration.AssemblyNameProvider.ResetPackageInfoCache();
       m_ProjectGeneration.Sync();
     }
     
     [UsedImplicitly]
     public static void SyncSolutionAndOpenExternalEditor()
     {
-      m_ProjectGeneration.AssemblyNameProvider.ResetPackageInfoCache();
       m_ProjectGeneration.Sync();
       CodeEditor.CurrentEditor.OpenProject();
     }

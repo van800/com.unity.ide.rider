@@ -142,6 +142,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
     public void Sync()
     {
+      m_AssemblyNameProvider.ResetPackageInfoCache();
       SetupSupportedExtensions();
       var types = GetAssetPostprocessorTypes();
       isRiderProjectGeneration = true;

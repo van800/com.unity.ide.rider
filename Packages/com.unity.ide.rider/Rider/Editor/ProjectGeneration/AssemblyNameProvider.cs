@@ -78,6 +78,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
     {
       return AssetDatabase.GetAllAssetPaths();
     }
+
     private static string ResolvePotentialParentPackageAssetPath(string assetPath)
     {
       const string packagesPrefix = "packages/";
@@ -94,7 +95,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
       return assetPath.Substring(0, followupSeparator).ToLowerInvariant();
     }
-    
+
     public UnityEditor.PackageManager.PackageInfo FindForAssetPath(string assetPath)
     {
       var parentPackageAssetPath = ResolvePotentialParentPackageAssetPath(assetPath);
@@ -112,7 +113,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
       m_PackageInfoCache[parentPackageAssetPath] = result;
       return result;
     }
-    
+
     public void ResetPackageInfoCache()
     {
       m_PackageInfoCache.Clear();
