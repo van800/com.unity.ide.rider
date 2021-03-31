@@ -181,8 +181,8 @@ namespace Packages.Rider.Editor
       m_Discoverability = discovery;
       m_ProjectGeneration = projectGeneration;
     }
-    
-    public static string[] defaultExtensions
+
+    private static string[] defaultExtensions
     {
       get
       {
@@ -192,7 +192,7 @@ namespace Packages.Rider.Editor
       }
     }
 
-    public static string[] HandledExtensions
+    private static string[] HandledExtensions
     {
       get
       {
@@ -201,13 +201,13 @@ namespace Packages.Rider.Editor
       } 
     }
 
-    public static string HandledExtensionsString
+    private static string HandledExtensionsString
     {
       get { return EditorPrefs.GetString("Rider_UserExtensions", string.Join(";", defaultExtensions));}
       set { EditorPrefs.SetString("Rider_UserExtensions", value); }
     }
 
-    public static bool SupportsExtension(string path)
+    private static bool SupportsExtension(string path)
     {
       var extension = Path.GetExtension(path);
       if (string.IsNullOrEmpty(extension))
