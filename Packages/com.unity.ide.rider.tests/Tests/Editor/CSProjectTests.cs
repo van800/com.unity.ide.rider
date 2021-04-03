@@ -240,6 +240,29 @@ namespace Packages.Rider.Editor.Tests
                 StringAssert.Contains("file.hlsl", csprojContent);
             }
             
+            [Test] // RIDER-60508 Don't have support for Shaderlab
+            public void ShaderWithoutCompileScript_WithReference_WillGetAdded()
+            {
+                var assembly = new Assembly("name", "Temp/Bin/Debug", new string[0], new string[0], new Assembly[0],
+                    new string[0], AssemblyFlags.EditorAssembly);
+                var riderAssembly = new Assembly("Unity.Rider.Editor", "Temp/Bin/Debug", new string[0], new string[0],
+                    new Assembly[0],
+                    new[] {"UnityEditor.dll"}, AssemblyFlags.EditorAssembly);
+
+                var synchronizer = m_Builder
+                    .WithAssemblies(new []{riderAssembly})
+                    .WithOutputPathForAssemblyPath(assembly.outputPath, assembly.name, assembly.name)
+                    .WithAssetFiles(new[] {"file.hlsl"})
+                    .AssignFilesToAssembly(new[] {"file.hlsl"}, assembly)
+                    .Build();
+
+                synchronizer.Sync();
+
+                var csprojContent = m_Builder.ReadProjectFile(assembly);
+                StringAssert.Contains("file.hlsl", csprojContent);
+                StringAssert.Contains("UnityEditor.dll", csprojContent);
+            }
+            
             [Test]
             public void NotContributedAnAssembly_WillNotGetAdded()
             {

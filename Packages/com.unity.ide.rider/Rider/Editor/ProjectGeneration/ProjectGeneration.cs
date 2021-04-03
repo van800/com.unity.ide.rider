@@ -211,11 +211,23 @@ namespace Packages.Rider.Editor.ProjectGeneration
         projectParts.Add(new ProjectPart(assembly.name, assembly, additionalAssetsForProject));
       }
 
+      var riderAssembly = m_AssemblyNameProvider.GetAssemblies(_ => true).FirstOrDefault(a=>a.name == "Unity.Rider.Editor");
       var projectPartsWithoutAssembly = allAssetProjectParts.Where(a => !assemblyNames.Contains(a.Key));
-      projectParts.AddRange(projectPartsWithoutAssembly.Select(allAssetProjectPart => new ProjectPart(allAssetProjectPart.Key, null, allAssetProjectPart.Value)));
+      projectParts.AddRange(projectPartsWithoutAssembly.Select(allAssetProjectPart =>
+      {
+        Assembly assembly = null;
+        if (riderAssembly != null)
+          // We want to add those references, so that Rider would detect Unity path and version and provide rich features for shader files
+          assembly = new Assembly(allAssetProjectPart.Key, riderAssembly.outputPath, new string[0], new string[0],
+            new Assembly[0],
+            riderAssembly.compiledAssemblyReferences.Where(a =>
+              a.EndsWith("UnityEditor.dll") || a.EndsWith("UnityEngine.dll") ||
+              a.EndsWith("UnityEngine.CoreModule.dll")).ToArray(), riderAssembly.flags);
+        return new ProjectPart(allAssetProjectPart.Key, assembly, allAssetProjectPart.Value);
+      }));
 
       SyncSolution(projectParts.ToArray(), types);
-      
+
       foreach (var projectPart in projectParts)
       {
         SyncProject(projectPart, types, GetAllRoslynAnalyzerPaths().ToArray());
