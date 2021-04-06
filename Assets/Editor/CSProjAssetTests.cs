@@ -189,7 +189,7 @@ public class SimpleCSharpScript : MonoBehaviour
 
             yield return new RecompileScripts(true);
             m_ProjectGeneration.Sync();
-
+            
             var dir = Directory.GetParent(Application.dataPath).FullName;
             m_CsProjPath = Path.Combine(dir, "Assembly-CSharp.csproj");
 
