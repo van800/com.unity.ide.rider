@@ -115,11 +115,11 @@ namespace Packages.Rider.Editor.Tests
             }
 
             [Test]
-            public void AfterSync_WillResync_IfExtensionIsInUserSupportedExtension()
+            public void AfterSync_WillResync_IfExtensionIsInProjectSupportedExtension()
             {
                 var synchronizer = m_Builder.Build();
                 synchronizer.Sync();
-                m_Builder.WithUserSupportedExtensions(new[] { "random" });
+                m_Builder.WithProjectSupportedExtensions(new[] { "random" });
                 Assert.IsTrue(synchronizer.SyncIfNeeded(new[] { "reimport.random" }, new string[0]));
             }
 

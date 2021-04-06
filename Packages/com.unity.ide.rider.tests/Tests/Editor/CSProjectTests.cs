@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml;
@@ -92,7 +93,7 @@ namespace Packages.Rider.Editor.Tests
                     "    <DefineConstants></DefineConstants>",
                     "    <ErrorReport>prompt</ErrorReport>",
                     "    <WarningLevel>4</WarningLevel>",
-                    "    <NoWarn></NoWarn>",
+                    $"    <NoWarn>{ProjectGeneration.ProjectGeneration.GenerateNoWarn(new List<string>())}</NoWarn>",
                     "    <AllowUnsafeBlocks>False</AllowUnsafeBlocks>",
                     "    <TreatWarningsAsErrors>False</TreatWarningsAsErrors>",
                     "  </PropertyGroup>",
@@ -239,6 +240,29 @@ namespace Packages.Rider.Editor.Tests
                 StringAssert.Contains("file.hlsl", csprojContent);
             }
             
+            [Test] // RIDER-60508 Don't have support for Shaderlab
+            public void ShaderWithoutCompileScript_WithReference_WillGetAdded()
+            {
+                var assembly = new Assembly("name", "Temp/Bin/Debug", new string[0], new string[0], new Assembly[0],
+                    new string[0], AssemblyFlags.EditorAssembly);
+                var riderAssembly = new Assembly("Unity.Rider.Editor", "Temp/Bin/Debug", new string[0], new string[0],
+                    new Assembly[0],
+                    new[] {"UnityEditor.dll"}, AssemblyFlags.EditorAssembly);
+
+                var synchronizer = m_Builder
+                    .WithAssemblies(new []{riderAssembly})
+                    .WithOutputPathForAssemblyPath(assembly.outputPath, assembly.name, assembly.name)
+                    .WithAssetFiles(new[] {"file.hlsl"})
+                    .AssignFilesToAssembly(new[] {"file.hlsl"}, assembly)
+                    .Build();
+
+                synchronizer.Sync();
+
+                var csprojContent = m_Builder.ReadProjectFile(assembly);
+                StringAssert.Contains("file.hlsl", csprojContent);
+                StringAssert.Contains("UnityEditor.dll", csprojContent);
+            }
+            
             [Test]
             public void NotContributedAnAssembly_WillNotGetAdded()
             {
@@ -362,13 +386,13 @@ namespace Packages.Rider.Editor.Tests
             }
 
             [Test]
-            public void UnsupportedExtension_IsOverWrittenBy_UserSupportedExtensions()
+            public void UnsupportedExtension_IsOverWrittenBy_ProjectSupportedExtensions()
             {
                 var unsupported = new[] { "file.unsupported" };
                 var synchronizer = m_Builder
                     .WithAssetFiles(unsupported)
                     .AssignFilesToAssembly(unsupported, m_Builder.Assembly)
-                    .WithUserSupportedExtensions(new[] { "unsupported" })
+                    .WithProjectSupportedExtensions(new[] { "unsupported" })
                     .Build();
                 synchronizer.Sync();
                 var xmlDocument = XMLUtilities.FromText(m_Builder.ReadProjectFile(m_Builder.Assembly));
@@ -617,11 +641,14 @@ namespace Packages.Rider.Editor.Tests
                 CheckOtherArgument(new string[0], "<WarningLevel>4</WarningLevel>");
             }
 
-            [TestCase(new[] { "-nowarn:10" }, ",10")]
-            [TestCase(new[] { "-nowarn:10,11" }, ",10,11")]
-            [TestCase(new[] { "-nowarn:10,11", "-nowarn:12" }, ",10,11,12")]
+            [TestCase(new[] { "-nowarn:10" }, "10")]
+            [TestCase(new[] { "-nowarn:10,11" }, "10,11")]
+            [TestCase(new[] { "-nowarn:10,11", "-nowarn:12" }, "10,11,12")]
             public void CheckNoWarn(string[] args, string expected)
             {
+                var commonPart = ProjectGeneration.ProjectGeneration.GenerateNoWarn(new List<string>());
+                if (!string.IsNullOrEmpty(commonPart))
+                    expected = $"{expected},{commonPart}";
                 CheckOtherArgument(args, $"<NoWarn>{expected}</NoWarn>");
             }
 
