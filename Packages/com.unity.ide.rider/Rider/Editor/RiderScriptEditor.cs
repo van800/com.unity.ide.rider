@@ -197,10 +197,14 @@ namespace Packages.Rider.Editor
     {
       if (RiderScriptEditorData.instance.shouldLoadEditorPlugin)
       {
-        if (PluginSettings.LinkButton("Manage C# project generation"))
+        GUILayout.BeginHorizontal();
+        EditorGUILayout.LabelField("List of extensions is controlled by `Additional extensions to include` setting in");
+
+        if (PluginSettings.LinkButton("Project Settings | Editor"))
         {
           SettingsService.OpenProjectSettings("Project/Editor"); // how do I focus "Additional extensions to include"?
         }
+        GUILayout.EndHorizontal();
       }
 
       EditorGUILayout.LabelField("Generate .csproj files for:");
