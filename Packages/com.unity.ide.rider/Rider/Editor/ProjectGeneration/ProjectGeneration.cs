@@ -252,7 +252,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
             stringBuilders[assemblyName] = projectBuilder;
           }
 
-          projectBuilder.Append("     <None Include=\"").Append(EscapedRelativePathFor(asset)).Append("\" />")
+          projectBuilder.Append("     <None Include=\"").Append(m_FileIOProvider.EscapedRelativePathFor(asset, ProjectDirectory)).Append("\" />")
             .Append(Environment.NewLine);
         }
       }
@@ -406,10 +406,10 @@ namespace Packages.Rider.Editor.ProjectGeneration
     {
       var responseFilesData = assembly.ParseResponseFileData(m_AssemblyNameProvider, ProjectDirectory).ToList();
       var projectBuilder = new StringBuilder(ProjectHeader(assembly, responseFilesData));
-      
+
       foreach (var file in assembly.SourceFiles)
       {
-        var fullFile = EscapedRelativePathFor(file);
+        var fullFile = m_FileIOProvider.EscapedRelativePathFor(file, ProjectDirectory);
         projectBuilder.Append("     <Compile Include=\"").Append(fullFile).Append("\" />").Append(Environment.NewLine);
       }
 
@@ -735,7 +735,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
       var paths = responseFilesData.SelectMany(x =>
         {
           return x.OtherArguments
-            .Where(a => a.StartsWith("/") || a.StartsWith("-"))
+            .Where(a => a.StartsWith("/", StringComparison.Ordinal) || a.StartsWith("-", StringComparison.Ordinal))
             .Select(b =>
             {
               var index = b.IndexOf(":", StringComparison.Ordinal);
@@ -746,7 +746,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
               }
 
               const string warnaserror = "warnaserror";
-              if (b.Substring(1).StartsWith(warnaserror))
+              if (b.Substring(1).StartsWith(warnaserror, StringComparison.Ordinal))
               {
                 return new KeyValuePair<string, string>(warnaserror, b.Substring(warnaserror.Length + 1));
               }
@@ -840,38 +840,6 @@ namespace Packages.Rider.Editor.ProjectGeneration
       return string.Format(
         m_SolutionProjectConfigurationTemplate,
         projectGuid);
-    }
-
-    private string EscapedRelativePathFor(string file)
-    {
-      var projectDir = ProjectDirectory.Replace('/', '\\');
-      file = file.Replace('/', '\\');
-      var path = SkipPathPrefix(file, projectDir);
-
-      var packageInfo = m_AssemblyNameProvider.FindForAssetPath(path.Replace('\\', '/'));
-      if (packageInfo != null)
-      {
-        // We have to normalize the path, because the PackageManagerRemapper assumes
-        // dir seperators will be os specific.
-        var absolutePath = Path.GetFullPath(NormalizePath(path)).Replace('/', '\\');
-        path = SkipPathPrefix(absolutePath, projectDir);
-      }
-
-      return SecurityElement.Escape(path);
-    }
-
-    private static string SkipPathPrefix(string path, string prefix)
-    {
-      if (path.StartsWith($@"{prefix}\"))
-        return path.Substring(prefix.Length + 1);
-      return path;
-    }
-
-    private static string NormalizePath(string path)
-    {
-      if (Path.DirectorySeparatorChar == '\\')
-        return path.Replace('/', Path.DirectorySeparatorChar);
-      return path.Replace('\\', Path.DirectorySeparatorChar);
     }
 
     private static string ProjectFooter()

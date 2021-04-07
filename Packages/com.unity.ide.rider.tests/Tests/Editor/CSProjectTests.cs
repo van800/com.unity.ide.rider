@@ -12,21 +12,6 @@ namespace Packages.Rider.Editor.Tests
     {
         class Formatting : ProjectGenerationTestBase
         {
-            [TestCase(@"x & y.cs", @"x &amp; y.cs")]
-            [TestCase(@"x ' y.cs", @"x &apos; y.cs")]
-            [TestCase(@"Dimmer&\foo.cs", @"Dimmer&amp;\foo.cs")]
-            [TestCase(@"C:\Dimmer/foo.cs", @"C:\Dimmer\foo.cs")]
-            public void Escape_SpecialCharsInFileName(string illegalFormattedFileName, string expectedFileName)
-            {
-                var synchronizer = m_Builder.WithAssemblyData(files: new[] { illegalFormattedFileName }).Build();
-
-                synchronizer.Sync();
-
-                var csprojContent = m_Builder.ReadProjectFile(m_Builder.Assembly);
-                StringAssert.DoesNotContain(illegalFormattedFileName, csprojContent);
-                StringAssert.Contains(expectedFileName, csprojContent);
-            }
-
             [Test]
             public void AbsoluteSourceFilePaths_WillBeMadeRelativeToProjectDirectory()
             {
@@ -292,7 +277,7 @@ namespace Packages.Rider.Editor.Tests
             [Test]
             public void FullPathAsset_WillBeConvertedToRelativeFromProjectDirectory()
             {
-                var assetPath = "Assets/Asset.cs";
+                var assetPath = Path.Combine("Assets", "Asset.cs");
                 var synchronizer = m_Builder
                     .WithAssemblyData(files: new[] { Path.Combine(SynchronizerBuilder.projectDirectory, assetPath) })
                     .Build();
@@ -316,7 +301,7 @@ namespace Packages.Rider.Editor.Tests
 
                 synchronizer.Sync();
 
-                StringAssert.Contains(assetPath.Replace('/', '\\'), m_Builder.ReadProjectFile(assembly));
+                StringAssert.Contains(assetPath, m_Builder.ReadProjectFile(assembly));
             }
 
             [Test]
