@@ -56,9 +56,8 @@ namespace Packages.Rider.Editor
             var button = GUILayout.Button(new GUIContent("Open log"));
             if (button)
             {
-              //UnityEditorInternal.InternalEditorUtility.OpenFileAtLineExternal(PluginEntryPoint.LogPath, 0);
-              // works much faster than the commented code, when Rider is already started
-              CodeEditor.CurrentEditor.OpenProject(EditorPluginInterop.LogPath, 0, 0);
+              // would use Rider if `log` is on the list of extensions, otherwise would use editor configured in the OS
+              UnityEditorInternal.InternalEditorUtility.OpenFileAtLineExternal(EditorPluginInterop.LogPath, 0);
             }
 
             GUI.enabled = previous;
@@ -74,7 +73,9 @@ namespace Packages.Rider.Editor
 
           EditorGUILayout.HelpBox(loggingMsg, MessageType.None);
 
-          LinkButton("https://github.com/JetBrains/resharper-unity");
+          const string url = "https://github.com/JetBrains/resharper-unity";
+          if (LinkButton(url))
+            Application.OpenURL(url);;
 
           GUILayout.FlexibleSpace();
           GUILayout.BeginHorizontal();
@@ -98,7 +99,7 @@ namespace Packages.Rider.Editor
       return provider;
     }
 
-    private static void LinkButton(string url)
+    public static bool LinkButton(string url)
     {
       var style = EditorStyles.linkLabel;
 
@@ -108,8 +109,7 @@ namespace Packages.Rider.Editor
       rect.width = style.CalcSize(new GUIContent(url)).x;
       EditorGUIUtility.AddCursorRect(rect, MouseCursor.Link);
 
-      if (bClicked)
-        Application.OpenURL(url);
+      return bClicked;
     }
   }
 }

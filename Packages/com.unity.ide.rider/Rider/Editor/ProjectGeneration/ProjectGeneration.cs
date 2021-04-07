@@ -41,6 +41,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
         { "raytrace", ScriptingLanguage.None },
         { "json", ScriptingLanguage.None},
         { "asmdef", ScriptingLanguage.None},
+        { "asmref", ScriptingLanguage.None},
         { "xaml", ScriptingLanguage.None},
         { "tt", ScriptingLanguage.None},
         { "t4", ScriptingLanguage.None},
@@ -176,16 +177,13 @@ namespace Packages.Rider.Editor.ProjectGeneration
       return HasValidExtension(file);
     }
 
-    private bool HasValidExtension(string file)
+    public bool HasValidExtension(string file)
     {
       var extension = Path.GetExtension(file);
 
       // Dll's are not scripts but still need to be included..
       if (extension.Equals(".dll", StringComparison.OrdinalIgnoreCase))
           return true;
-
-      if (extension.Equals(".asmdef", StringComparison.OrdinalIgnoreCase))
-        return true;
 
       return IsSupportedExtension(extension);
     }
