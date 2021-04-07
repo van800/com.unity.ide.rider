@@ -40,6 +40,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
         { "template", ScriptingLanguage.None },
         { "raytrace", ScriptingLanguage.None },
         { "json", ScriptingLanguage.None},
+        { "rsp", ScriptingLanguage.None},
         { "asmdef", ScriptingLanguage.None},
         { "asmref", ScriptingLanguage.None},
         { "xaml", ScriptingLanguage.None},
@@ -56,7 +57,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
       @"        {{{0}}}.Debug|Any CPU.ActiveCfg = Debug|Any CPU",
       @"        {{{0}}}.Debug|Any CPU.Build.0 = Debug|Any CPU").Replace("    ", "\t");
 
-    private static readonly string[] k_ReimportSyncExtensions = { ".dll", ".asmdef" };
+    private static readonly string[] k_ReimportSyncExtensions = { ".dll", ".asmdef", ".asmref" };
 
     /// <summary>
     /// Map ScriptingLanguages to project extensions
