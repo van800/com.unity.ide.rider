@@ -198,7 +198,10 @@ namespace Packages.Rider.Editor
       if (RiderScriptEditorData.instance.shouldLoadEditorPlugin)
       {
         GUILayout.BeginHorizontal();
-        EditorGUILayout.LabelField("List of extensions is controlled by `Additional extensions to include` setting in");
+        
+        var style = GUI.skin.label;
+        var text = "List of extensions is controlled by `Additional extensions to include` setting in";
+        EditorGUILayout.LabelField(text, style, GUILayout.Width(style.CalcSize(new GUIContent(text)).x));
 
         if (PluginSettings.LinkButton("Project Settings | Editor"))
         {

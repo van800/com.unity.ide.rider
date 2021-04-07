@@ -1,4 +1,3 @@
-using Unity.CodeEditor;
 using UnityEditor;
 using UnityEngine;
 
@@ -102,7 +101,7 @@ namespace Packages.Rider.Editor
     public static bool LinkButton(string url)
     {
       var style = EditorStyles.linkLabel;
-
+      style.padding = new RectOffset(0, 0, 1, 1);
       var bClicked = GUILayout.Button(url, style);
 
       var rect = GUILayoutUtility.GetLastRect();
