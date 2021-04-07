@@ -33,6 +33,16 @@ namespace Packages.Rider.Editor.Tests
             fileToContent[fileName] = utf8.GetString(utfBytes, 0, utfBytes.Length);
         }
 
+        public string EscapedRelativePathFor(string file, string projectDirectory)
+        {
+            if (file.StartsWith($"{projectDirectory}/", StringComparison.Ordinal))
+            {
+                return file.Substring(projectDirectory.Length + 1);
+            }
+
+            return file;
+        }
+
         public void DeleteFile(string fileName)
         {
             if (!fileToContent.ContainsKey(fileName))
