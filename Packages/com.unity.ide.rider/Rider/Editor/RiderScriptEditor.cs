@@ -200,10 +200,10 @@ namespace Packages.Rider.Editor
         GUILayout.BeginHorizontal();
         
         var style = GUI.skin.label;
-        var text = "List of extensions is controlled by `Additional extensions to include` setting in";
+        var text = "Customize handled extensions in";
         EditorGUILayout.LabelField(text, style, GUILayout.Width(style.CalcSize(new GUIContent(text)).x));
 
-        if (PluginSettings.LinkButton("Project Settings | Editor"))
+        if (PluginSettings.LinkButton("Project Settings | Editor | Additional extensions to include"))
         {
           SettingsService.OpenProjectSettings("Project/Editor"); // how do I focus "Additional extensions to include"?
         }
