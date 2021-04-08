@@ -182,17 +182,6 @@ namespace Packages.Rider.Editor
       m_ProjectGeneration = projectGeneration;
     }
 
-    private static string[] HandledExtensions
-    {
-      get
-      {
-        return HandledExtensionsString.Split(new[] {';'}, StringSplitOptions.RemoveEmptyEntries).Select(s => s.TrimStart('.', '*'))
-          .ToArray();
-      } 
-    }
-
-    private static string HandledExtensionsString => EditorPrefs.GetString("Rider_UserExtensions", "log");
-
     public void OnGUI()
     {
       if (RiderScriptEditorData.instance.shouldLoadEditorPlugin)
