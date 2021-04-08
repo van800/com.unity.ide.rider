@@ -59,18 +59,6 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
     private static readonly string[] k_ReimportSyncExtensions = { ".dll", ".asmdef", ".asmref" };
 
-    /// <summary>
-    /// Map ScriptingLanguages to project extensions
-    /// </summary>
-    /*static readonly Dictionary<ScriptingLanguage, string> k_ProjectExtensions = new Dictionary<ScriptingLanguage, string>
-    {
-        { ScriptingLanguage.CSharp, ".csproj" },
-        { ScriptingLanguage.None, ".csproj" },
-    };*/
-    private static readonly Regex k_ScriptReferenceExpression = new Regex(
-      @"^Library.ScriptAssemblies.(?<dllname>(?<project>.*)\.dll$)",
-      RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
     private string[] m_ProjectSupportedExtensions = new string[0];
 
     public string ProjectDirectory { get; }
