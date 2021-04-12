@@ -530,22 +530,11 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
     private string GenerateNullable(IEnumerable<string> enumerable)
     {
-      if (!enumerable.Any())
+      var val = enumerable.FirstOrDefault();
+      if (string.IsNullOrWhiteSpace(val)) 
         return string.Empty;
-
-      var returnValue = string.Empty;
-      var val = string.Empty;
-
-      foreach (var s in enumerable)
-      {
-        if (s == "+") val = "enable";
-        else if (s == "-") val = "disable";
-        else val = s;
-      }
-
-      returnValue += $@"    <Nullable>{val}</Nullable>";
-
-      return $"{Environment.NewLine}{returnValue}";
+      
+      return $"{Environment.NewLine}    <Nullable>{val}</Nullable>";
     }
 
     private static string GenerateDocumentationFile(string[] paths)
@@ -745,9 +734,14 @@ namespace Packages.Rider.Editor.ProjectGeneration
                 return new KeyValuePair<string, string>(warnaserror, b.Substring(warnaserror.Length + 1));
               }
               const string nullable = "nullable";
-              if (b.Substring(1).Equals(nullable))
+              if (b.Substring(1).StartsWith(nullable))
               {
-                return new KeyValuePair<string, string>(nullable, "enable");
+                var res = b.Substring(nullable.Length + 1);
+                if (string.IsNullOrWhiteSpace(res) || res.Equals("+"))
+                  res = "enable";
+                else if (res.Equals("-"))
+                  res = "disable";
+                return new KeyValuePair<string, string>(nullable, res);
               }
 
               return default;

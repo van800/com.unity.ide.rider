@@ -669,9 +669,11 @@ namespace Packages.Rider.Editor.Tests
             {
                 CheckOtherArgument(new[] { "-nullable" }, "<Nullable>enable</Nullable>");
                 CheckOtherArgument(new[] { "-nullable:enable" }, "<Nullable>enable</Nullable>");
-                CheckOtherArgument(new[] { "-nullable:+" }, "<Nullable>enable</Nullable>");
+                CheckOtherArgument(new[] { "-nullable+" }, "<Nullable>enable</Nullable>");
                 CheckOtherArgument(new[] { "-nullable:disable" }, "<Nullable>disable</Nullable>");
-                CheckOtherArgument(new[] { "-nullable:-" }, "<Nullable>disable</Nullable>");
+                CheckOtherArgument(new[] { "-nullable-" }, "<Nullable>disable</Nullable>");
+                CheckOtherArgument(new[] { "-nullable:warnings" }, "<Nullable>warnings</Nullable>");
+                CheckOtherArgument(new[] { "-nullable:annotations" }, "<Nullable>annotations</Nullable>");
             }
 
             void CheckOtherArgument(string[] argumentString, params string[] expectedContents)
