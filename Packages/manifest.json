@@ -1,4 +1,6 @@
 {
   "disableProjectUpdate": true,
-  "dependencies": {}
+  "dependencies": {
+    "com.unity.toolchain.linux-x86_64": "0.1.18-preview"
+  }
 }
