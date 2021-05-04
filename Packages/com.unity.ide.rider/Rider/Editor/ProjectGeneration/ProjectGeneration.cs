@@ -511,7 +511,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
         GenerateAnalyserRuleSet(otherResponseFilesData["ruleset"].Distinct().ToArray()),
         #endif
         GenerateWarningLevel(otherResponseFilesData["warn"].Concat(otherResponseFilesData["w"]).Distinct()),
-        GenerateWarningAsError(otherResponseFilesData["warnaserror"]),
+        GenerateWarningAsError(otherResponseFilesData["warnaserror"], otherResponseFilesData["warnaserror-"], otherResponseFilesData["warnaserror+"]),
         GenerateDocumentationFile(otherResponseFilesData["doc"].ToArray()),
         GenerateNullable(otherResponseFilesData["nullable"])
       };
@@ -545,21 +545,23 @@ namespace Packages.Rider.Editor.ProjectGeneration
       return $"{Environment.NewLine}{string.Join(Environment.NewLine, paths.Select(a => $"  <DocumentationFile>{a}</DocumentationFile>"))}";
     }
 
-    private static string GenerateWarningAsError(IEnumerable<string> enumerable)
+    private static string GenerateWarningAsError(IEnumerable<string> args, IEnumerable<string> argsMinus, IEnumerable<string> argsPlus)
     {
       var returnValue = String.Empty;
       var allWarningsAsErrors = false;
       var warningIds = new List<string>();
 
-      foreach (var s in enumerable)
+      foreach (var s in args)
       {
-        if (s == "+") allWarningsAsErrors = true;
+        if (s == "+" || s == string.Empty) allWarningsAsErrors = true;
         else if (s == "-") allWarningsAsErrors = false;
         else
         {
           warningIds.Add(s);
         }
       }
+      
+      warningIds.AddRange(argsPlus);
 
       returnValue += $@"    <TreatWarningsAsErrors>{allWarningsAsErrors}</TreatWarningsAsErrors>";
       if (warningIds.Any())
@@ -567,6 +569,9 @@ namespace Packages.Rider.Editor.ProjectGeneration
         returnValue += $"{Environment.NewLine}    <WarningsAsErrors>{string.Join(";", warningIds)}</WarningsAsErrors>";
       }
 
+      if (argsMinus.Any())
+        returnValue += $"{Environment.NewLine}    <WarningsNotAsErrors>{string.Join(";", argsMinus)}</WarningsNotAsErrors>";
+      
       return $"{Environment.NewLine}{returnValue}";
     }
 
