@@ -590,18 +590,31 @@ namespace Packages.Rider.Editor.Tests
                 CheckOtherArgument(new[] { $"-warnaserror{value}" }, $"<TreatWarningsAsErrors>{state}</TreatWarningsAsErrors>");
                 CheckOtherArgument(new[] { $"/warnaserror{value}" }, $"<TreatWarningsAsErrors>{state}</TreatWarningsAsErrors>");
             }
-
-            [TestCase(true)]
-            [TestCase(false)]
-            public void SetWarnAsErrorCombined(bool state, params string[] errorCodes)
+            
+            [Test]
+            public void SetWarnAsError2()
             {
-                var combined = string.Join(";", errorCodes);
+                CheckOtherArgument(new[] { $"-warnaserror" }, "<TreatWarningsAsErrors>True</TreatWarningsAsErrors>");
+                CheckOtherArgument(new[] { $"-warnaserror+" }, "<TreatWarningsAsErrors>True</TreatWarningsAsErrors>");
+                CheckOtherArgument(new[] { $"-warnaserror-" }, "<TreatWarningsAsErrors>False</TreatWarningsAsErrors>");
+            }
+            
+            [Test]
+            public void SetWarnAsErrorCombined1()
+            {
+                var expectedOutput = "<TreatWarningsAsErrors>True</TreatWarningsAsErrors>";
+                var expectedOutput2 = "<WarningsNotAsErrors>0169;0123</WarningsNotAsErrors>";
 
-                string expectedWarningsAsErrorsOutput = $"<WarningsAsErrors>{string.Join(";", errorCodes)}</WarningsAsErrors>";
-                string expectedTreatWarningsAsErrors = $"<TreatWarningsAsErrors>{state}</TreatWarningsAsErrors>";
-                string value = state ? "+" : "-";
-                CheckOtherArgument(new[] { $"-warnaserror{value}", $"-warnaserror:{combined}" }, expectedTreatWarningsAsErrors, expectedWarningsAsErrorsOutput);
-                CheckOtherArgument(new[] { $"/warnaserror{value}", $"/warnaserror:{combined}" }, expectedTreatWarningsAsErrors, expectedWarningsAsErrorsOutput);
+                CheckOtherArgument(new[] { "-warnaserror+", "-warnaserror-:0169;0123" }, expectedOutput, expectedOutput2);
+            }
+            
+            [Test]
+            public void SetWarnAsErrorCombined2()
+            {
+                var expectedOutput = "<TreatWarningsAsErrors>False</TreatWarningsAsErrors>";
+                var expectedOutput2 = "<WarningsAsErrors>0169;0123</WarningsAsErrors>";
+
+                CheckOtherArgument(new[] { "-warnaserror-", "-warnaserror+:0169;0123" }, expectedOutput, expectedOutput2);
             }
 
             [TestCase(0)]
@@ -669,9 +682,11 @@ namespace Packages.Rider.Editor.Tests
             {
                 CheckOtherArgument(new[] { "-nullable" }, "<Nullable>enable</Nullable>");
                 CheckOtherArgument(new[] { "-nullable:enable" }, "<Nullable>enable</Nullable>");
-                CheckOtherArgument(new[] { "-nullable:+" }, "<Nullable>enable</Nullable>");
+                CheckOtherArgument(new[] { "-nullable+" }, "<Nullable>enable</Nullable>");
                 CheckOtherArgument(new[] { "-nullable:disable" }, "<Nullable>disable</Nullable>");
-                CheckOtherArgument(new[] { "-nullable:-" }, "<Nullable>disable</Nullable>");
+                CheckOtherArgument(new[] { "-nullable-" }, "<Nullable>disable</Nullable>");
+                CheckOtherArgument(new[] { "-nullable:warnings" }, "<Nullable>warnings</Nullable>");
+                CheckOtherArgument(new[] { "-nullable:annotations" }, "<Nullable>annotations</Nullable>");
             }
 
             void CheckOtherArgument(string[] argumentString, params string[] expectedContents)
