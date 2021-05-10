@@ -24,17 +24,17 @@
         },
         {
             "name": "Unity",
-            "expression": "2021.2.0a4",
+            "expression": "2021.2.0a9",
             "define": "ROSLYN_ANALYZER_FIX"
         },
         {
             "name": "Unity",
-            "expression": "2021.1.0b12",
+            "expression": "2021.1.2f1",
             "define": "ROSLYN_ANALYZER_FIX"
         },
         {
             "name": "Unity",
-            "expression": "2020.2.0f2",
+            "expression": "2020.3.6f1",
             "define": "ROSLYN_ANALYZER_FIX"
         }
     ],
