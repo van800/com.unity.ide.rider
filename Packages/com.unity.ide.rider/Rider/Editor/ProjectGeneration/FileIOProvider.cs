@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Security;
 using System.Text;
+using Packages.Rider.Editor.Util;
 
 namespace Packages.Rider.Editor.ProjectGeneration {
   class FileIOProvider : IFileIO
@@ -27,7 +28,7 @@ namespace Packages.Rider.Editor.ProjectGeneration {
 
       // We have to normalize the path, because the PackageManagerRemapper assumes
       // dir seperators will be os specific.
-      var absolutePath = Path.GetFullPath(NormalizePath(file));
+      var absolutePath = Path.GetFullPath(file.NormalizePath());
       var path = SkipPathPrefix(absolutePath, projectDir);
 
       return SecurityElement.Escape(path);
@@ -38,13 +39,6 @@ namespace Packages.Rider.Editor.ProjectGeneration {
       return path.StartsWith($@"{prefix}{Path.DirectorySeparatorChar}", StringComparison.Ordinal)
         ? path.Substring(prefix.Length + 1)
         : path;
-    }
-
-    private static string NormalizePath(string path)
-    {
-      return path.Replace(Path.DirectorySeparatorChar == '\\'
-        ? '/'
-        : '\\', Path.DirectorySeparatorChar);
     }
   }
 }

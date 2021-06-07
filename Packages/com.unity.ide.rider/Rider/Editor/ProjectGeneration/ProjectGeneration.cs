@@ -86,7 +86,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
     public ProjectGeneration(string tempDirectory, IAssemblyNameProvider assemblyNameProvider, IFileIO fileIoProvider, IGUIDGenerator guidGenerator)
     {
-      ProjectDirectory = tempDirectory.Replace('\\', '/');
+      ProjectDirectory = tempDirectory.NormalizePath();
       m_ProjectName = Path.GetFileName(ProjectDirectory);
       m_AssemblyNameProvider = assemblyNameProvider;
       m_FileIOProvider = fileIoProvider;
@@ -448,9 +448,8 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
     private static void AppendReference(string fullReference, StringBuilder projectBuilder)
     {
-      //replace \ with / and \\ with /
       var escapedFullPath = SecurityElement.Escape(fullReference);
-      escapedFullPath = escapedFullPath.Replace("\\\\", "/").Replace("\\", "/");
+      escapedFullPath = escapedFullPath.NormalizePath();
       projectBuilder.Append("     <Reference Include=\"").Append(FileSystemUtil.FileNameWithoutExtension(escapedFullPath))
         .Append("\">").Append(Environment.NewLine);
       projectBuilder.Append("     <HintPath>").Append(escapedFullPath).Append("</HintPath>").Append(Environment.NewLine);
@@ -489,7 +488,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
         GenerateLangVersion(otherResponseFilesData["langversion"], assembly),
         k_BaseDirectory,
         assembly.CompilerOptions.AllowUnsafeCode | responseFilesData.Any(x => x.Unsafe),
-        GenerateNoWarn(otherResponseFilesData["nowarn"].Distinct().ToArray()),
+        GenerateNoWarn(otherResponseFilesData["nowarn"].Distinct().ToList()),
         GenerateAnalyserItemGroup(RetrieveRoslynAnalyzers(assembly, otherResponseFilesData)),
         GenerateAnalyserAdditionalFiles(otherResponseFilesData["additionalfile"].SelectMany(x=>x.Split(';')).Distinct().ToArray()),
         GenerateRoslynAnalyzerRulesetPath(assembly, otherResponseFilesData),
@@ -534,7 +533,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
     static string GenerateRoslynAnalyzerRulesetPath(ProjectPart assembly, ILookup<string, string> otherResponseFilesData)
     {
 #if UNITY_2020_2_OR_NEWER
-      return GenerateAnalyserRuleSet(otherResponseFilesData["ruleset"].Append(assembly.CompilerOptions.RoslynAnalyzerRulesetPath).Where(a=>!string.IsNullOrEmpty(a)).Distinct().ToArray());
+      return GenerateAnalyserRuleSet(otherResponseFilesData["ruleset"].Append(assembly.CompilerOptions.RoslynAnalyzerRulesetPath).Where(a=>!string.IsNullOrEmpty(a)).Distinct().Select(x => x.NormalizePath()).ToArray());
 #else
       return GenerateAnalyserRuleSet(otherResponseFilesData["ruleset"].Distinct().ToArray());
 #endif
@@ -723,7 +722,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
       analyserBuilder.AppendLine("  <ItemGroup>");
       foreach (var path in paths)
       {
-        analyserBuilder.AppendLine($"    <Analyzer Include=\"{path}\" />");
+        analyserBuilder.AppendLine($"    <Analyzer Include=\"{path.NormalizePath()}\" />");
       }
 
       analyserBuilder.AppendLine("  </ItemGroup>");

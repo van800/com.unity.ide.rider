@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Xml;
 using NUnit.Framework;
+using Packages.Rider.Editor.Util;
 using UnityEditor.Compilation;
 
 namespace Packages.Rider.Editor.Tests
@@ -15,7 +17,7 @@ namespace Packages.Rider.Editor.Tests
             [Test]
             public void AbsoluteSourceFilePaths_WillBeMadeRelativeToProjectDirectory()
             {
-                var absoluteFilePath = Path.Combine(SynchronizerBuilder.projectDirectory, "dimmer.cs");
+                var absoluteFilePath = Path.Combine(SynchronizerBuilder.ProjectDirectory, "dimmer.cs");
                 var synchronizer = m_Builder.WithAssemblyData(files: new[] { absoluteFilePath }).Build();
 
                 synchronizer.Sync();
@@ -33,7 +35,7 @@ namespace Packages.Rider.Editor.Tests
 
                 synchronizer.Sync();
 
-                Assert.That(m_Builder.FileExists(Path.Combine(SynchronizerBuilder.projectDirectory, $"{expectedAssemblyName}.csproj")));
+                Assert.That(m_Builder.FileExists(Path.Combine(SynchronizerBuilder.ProjectDirectory.NormalizePath(), $"{expectedAssemblyName}.csproj")));
             }
 
             [Test]
@@ -120,8 +122,8 @@ namespace Packages.Rider.Editor.Tests
 
                 synchronizer.Sync();
 
-                var assemblyACSproject = Path.Combine(SynchronizerBuilder.projectDirectory, $"{assemblyA.name}.csproj");
-                var assemblyBCSproject = Path.Combine(SynchronizerBuilder.projectDirectory, $"{assemblyB.name}.csproj");
+                var assemblyACSproject = SynchronizerBuilder.ProjectFilePath(assemblyA);
+                var assemblyBCSproject = SynchronizerBuilder.ProjectFilePath(assemblyB);
 
                 Assert.That(m_Builder.FileExists(assemblyACSproject));
                 Assert.That(m_Builder.FileExists(assemblyBCSproject));
@@ -154,11 +156,11 @@ namespace Packages.Rider.Editor.Tests
             {
                 var synchronizer = m_Builder.Build();
 
-                Assert.That(!m_Builder.FileExists(m_Builder.ProjectFilePath(m_Builder.Assembly)));
+                Assert.That(!m_Builder.FileExists(SynchronizerBuilder.ProjectFilePath(m_Builder.Assembly)));
 
                 synchronizer.Sync();
 
-                Assert.That(m_Builder.FileExists(m_Builder.ProjectFilePath(m_Builder.Assembly)));
+                Assert.That(m_Builder.FileExists(SynchronizerBuilder.ProjectFilePath(m_Builder.Assembly)));
             }
 
             [Test]
@@ -170,8 +172,8 @@ namespace Packages.Rider.Editor.Tests
 
                 synchronizer.Sync();
 
-                Assert.That(m_Builder.FileExists(m_Builder.ProjectFilePath(assemblyA)));
-                Assert.That(m_Builder.FileExists(m_Builder.ProjectFilePath(assemblyB)));
+                Assert.That(m_Builder.FileExists(SynchronizerBuilder.ProjectFilePath(assemblyA)));
+                Assert.That(m_Builder.FileExists(SynchronizerBuilder.ProjectFilePath(assemblyB)));
             }
 
             [Test]
@@ -279,7 +281,7 @@ namespace Packages.Rider.Editor.Tests
             {
                 var assetPath = Path.Combine("Assets", "Asset.cs");
                 var synchronizer = m_Builder
-                    .WithAssemblyData(files: new[] { Path.Combine(SynchronizerBuilder.projectDirectory, assetPath) })
+                    .WithAssemblyData(files: new[] { Path.Combine(SynchronizerBuilder.ProjectDirectory.NormalizePath(), assetPath) })
                     .Build();
 
                 synchronizer.Sync();
@@ -532,7 +534,7 @@ namespace Packages.Rider.Editor.Tests
             {
                 var combined = string.Join(";", paths);
                 const string additionalFileTemplate = @"    <Analyzer Include=""{0}"" />";
-                var expectedOutput = paths.Select(x => string.Format(additionalFileTemplate, x)).ToArray();
+                var expectedOutput = paths.Select(x => string.Format(additionalFileTemplate, x.NormalizePath())).ToArray();
 
                 CheckOtherArgument(new[] { $"-a:{combined}" }, expectedOutput);
                 CheckOtherArgument(new[] { $"-analyzer:{combined}" }, expectedOutput);
@@ -619,8 +621,8 @@ namespace Packages.Rider.Editor.Tests
             public void SetRuleset(params string[] paths)
             {
                 string rulesetTemplate = "<CodeAnalysisRuleSet>{0}</CodeAnalysisRuleSet>";
-                CheckOtherArgument(paths.Select(x => $"-ruleset:{x}").ToArray(), paths.Select(x => string.Format(rulesetTemplate, x)).ToArray());
-                CheckOtherArgument(paths.Select(x => $"/ruleset:{x}").ToArray(), paths.Select(x => string.Format(rulesetTemplate, x)).ToArray());
+                CheckOtherArgument(paths.Select(x => $"-ruleset:{x}").ToArray(), paths.Select(x => string.Format(rulesetTemplate, x.NormalizePath())).ToArray());
+                CheckOtherArgument(paths.Select(x => $"/ruleset:{x}").ToArray(), paths.Select(x => string.Format(rulesetTemplate, x.NormalizePath())).ToArray());
             }
 
             [TestCase("C:/docs.xml")]
@@ -743,7 +745,7 @@ namespace Packages.Rider.Editor.Tests
 
                 string projectFile = m_Builder.ReadProjectFile(m_Builder.Assembly);
                 XmlDocument projectFileXml = XMLUtilities.FromText(projectFile);
-                XMLUtilities.AssertAnalyzerItemsMatchExactly(projectFileXml, new[] { roslynAnalyzerDllPath });
+                XMLUtilities.AssertAnalyzerItemsMatchExactly(projectFileXml, new[] { roslynAnalyzerDllPath.NormalizePath() });
             }
 
             [Test]
@@ -754,7 +756,7 @@ namespace Packages.Rider.Editor.Tests
                 m_Builder.WithAssemblyData(files: new[] {"file.cs"}).WithRoslynAnalyzerRulesetPath(roslynAnalyzerRuleSetPath).Build().Sync();
                 var csProjectFileContents = m_Builder.ReadProjectFile(m_Builder.Assembly);
                 XmlDocument csProjectXmlFile = XMLUtilities.FromText(csProjectFileContents);
-                XMLUtilities.AssertAnalyzerRuleSetsMatchExactly(csProjectXmlFile, roslynAnalyzerRuleSetPath);
+                XMLUtilities.AssertAnalyzerRuleSetsMatchExactly(csProjectXmlFile, roslynAnalyzerRuleSetPath.NormalizePath());
             }
 #endif
 
@@ -769,7 +771,7 @@ namespace Packages.Rider.Editor.Tests
                 synchronizer.Sync();
 
                 var csprojFileContents = m_Builder.ReadProjectFile(m_Builder.Assembly);
-                Assert.That(csprojFileContents, Does.Match($"<Reference Include=\"Goodbye\">\\W*<HintPath>{SynchronizerBuilder.projectDirectory}/Folder/Path With Space/Goodbye.dll\\W*</HintPath>\\W*</Reference>"));
+                Assert.That(csprojFileContents, Does.Match($"<Reference Include=\"Goodbye\">\\W*<HintPath>{Regex.Escape(Path.Combine(SynchronizerBuilder.ProjectDirectory, "Folder/Path With Space/Goodbye.dll").NormalizePath())}\\W*</HintPath>\\W*</Reference>"));
             }
 
             [Test]
@@ -798,8 +800,8 @@ namespace Packages.Rider.Editor.Tests
 
                 var csprojFileContents = m_Builder.ReadProjectFile(m_Builder.Assembly);
 
-                Assert.That(csprojFileContents, Does.Match($@"<Reference Include=""Hello"">\W*<HintPath>{SynchronizerBuilder.projectDirectory}/Hello\.dll</HintPath>\W*</Reference>"));
-                Assert.That(csprojFileContents, Does.Match($@"<Reference Include=""MyPlugin"">\W*<HintPath>{SynchronizerBuilder.projectDirectory}/MyPlugin\.dll</HintPath>\W*</Reference>"));
+                Assert.That(csprojFileContents, Does.Match($@"<Reference Include=""Hello"">\W*<HintPath>{Regex.Escape(Path.Combine(SynchronizerBuilder.ProjectDirectory, "Hello.dll").NormalizePath())}</HintPath>\W*</Reference>"));
+                Assert.That(csprojFileContents, Does.Match($@"<Reference Include=""MyPlugin"">\W*<HintPath>{Regex.Escape(Path.Combine(SynchronizerBuilder.ProjectDirectory, "MyPlugin.dll").NormalizePath())}</HintPath>\W*</Reference>"));
             }
 
             [Test]
@@ -836,8 +838,8 @@ namespace Packages.Rider.Editor.Tests
                 var csprojFileContents = m_Builder.ReadProjectFile(m_Builder.Assembly);
                 Assert.That(csprojFileContents, Does.Not.Match($@"<ProjectReference Include=""{assemblyReferences[0].name}\.csproj"">[\S\s]*?</ProjectReference>"));
                 Assert.That(csprojFileContents, Does.Not.Match($@"<ProjectReference Include=""{assemblyReferences[1].name}\.csproj"">[\S\s]*?</ProjectReference>"));
-                Assert.That(csprojFileContents, Does.Match($"<Reference Include=\"{assemblyReferences[0].name}\">\\W*<HintPath>{assemblyReferences[0].outputPath}</HintPath>\\W*</Reference>"));
-                Assert.That(csprojFileContents, Does.Match($"<Reference Include=\"{assemblyReferences[1].name}\">\\W*<HintPath>{assemblyReferences[1].outputPath}</HintPath>\\W*</Reference>"));
+                Assert.That(csprojFileContents, Does.Match($"<Reference Include=\"{assemblyReferences[0].name}\">\\W*<HintPath>{Regex.Escape(assemblyReferences[0].outputPath.NormalizePath())}</HintPath>\\W*</Reference>"));
+                Assert.That(csprojFileContents, Does.Match($"<Reference Include=\"{assemblyReferences[1].name}\">\\W*<HintPath>{Regex.Escape(assemblyReferences[1].outputPath.NormalizePath())}</HintPath>\\W*</Reference>"));
             }
 
             [Test]
@@ -853,8 +855,8 @@ namespace Packages.Rider.Editor.Tests
                 synchronizer.Sync();
 
                 var csprojFileContents = m_Builder.ReadProjectFile(m_Builder.Assembly);
-                Assert.That(csprojFileContents, Does.Match("<Reference Include=\"Hello\">\\W*<HintPath>/some/other/path/Hello.dll</HintPath>\\W*</Reference>"));
-                Assert.That(csprojFileContents, Does.Match("<Reference Include=\"MyPlugin\">\\W*<HintPath>/some/path/MyPlugin.dll</HintPath>\\W*</Reference>"));
+                Assert.That(csprojFileContents, Does.Match($"<Reference Include=\"Hello\">\\W*<HintPath>{Regex.Escape("/some/other/path/Hello.dll".NormalizePath())}</HintPath>\\W*</Reference>"));
+                Assert.That(csprojFileContents, Does.Match($"<Reference Include=\"MyPlugin\">\\W*<HintPath>{Regex.Escape("/some/path/MyPlugin.dll".NormalizePath())}</HintPath>\\W*</Reference>"));
             }
 
             [Test]
