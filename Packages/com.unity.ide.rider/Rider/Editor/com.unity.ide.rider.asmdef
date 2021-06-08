@@ -29,12 +29,12 @@
         },
         {
             "name": "Unity",
-            "expression": "2021.1.2f1",
+            "expression": "[2021.1.2f1,2021.2.0a1]",
             "define": "ROSLYN_ANALYZER_FIX"
         },
         {
             "name": "Unity",
-            "expression": "2020.3.6f1",
+            "expression": "[2020.3.6f1,2021.0]",
             "define": "ROSLYN_ANALYZER_FIX"
         }
     ],
