@@ -1,9 +1,8 @@
+using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using Packages.Rider.Editor.ProjectGeneration;
-using UnityEditor;
 using UnityEditor.Compilation;
-using UnityEngine;
 
 namespace Packages.Rider.Editor.Tests
 {
@@ -45,13 +44,22 @@ namespace Packages.Rider.Editor.Tests
         [Test]
         public void AllEditorAssemblies_AreCollected()
         {
+            if (m_AssemblyNameProvider.ProjectGenerationFlag.HasFlag(ProjectGenerationFlag.PlayerAssemblies))
+            {
+                m_AssemblyNameProvider.ToggleProjectGeneration(ProjectGenerationFlag.None);
+            }
             var editorAssemblies = CompilationPipeline.GetAssemblies(AssembliesType.Editor);
-
             var collectedAssemblies = m_AssemblyNameProvider.GetAssemblies(s => true).ToList();
 
+            var names = collectedAssemblies.Select(assembly => assembly.name);
+
+            foreach (var assembly in collectedAssemblies)
+            {
+                Assert.That(assembly.outputPath, Is.EqualTo(@"Temp\Bin\Debug\"), $"{assembly.name}: had wrong output path: {assembly.outputPath}");
+            }
             foreach (Assembly editorAssembly in editorAssemblies)
             {
-                Assert.IsTrue(collectedAssemblies.Any(assembly => assembly.name == editorAssembly.name && assembly.outputPath == @"Temp\Bin\Debug\"), $"{editorAssembly.name}: was not found in collection.");
+                CollectionAssert.Contains(names, editorAssembly.name);
             }
         }
 

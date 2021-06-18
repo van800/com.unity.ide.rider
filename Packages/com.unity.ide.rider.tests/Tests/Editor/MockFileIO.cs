@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using NUnit.Framework;
 using Packages.Rider.Editor.ProjectGeneration;
+using Packages.Rider.Editor.Util;
 
 namespace Packages.Rider.Editor.Tests
 {
@@ -31,6 +33,13 @@ namespace Packages.Rider.Editor.Tests
             var utf8 = Encoding.UTF8;
             byte[] utfBytes = utf8.GetBytes(content);
             fileToContent[fileName] = utf8.GetString(utfBytes, 0, utfBytes.Length);
+        }
+
+        public string EscapedRelativePathFor(string file, string projectDirectory)
+        {
+            return file.NormalizePath().StartsWith($"{projectDirectory}{Path.DirectorySeparatorChar}", StringComparison.Ordinal)
+                ? file.Substring(projectDirectory.Length + 1)
+                : file;
         }
 
         public void DeleteFile(string fileName)
