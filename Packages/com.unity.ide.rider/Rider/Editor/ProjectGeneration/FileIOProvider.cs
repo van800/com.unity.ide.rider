@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Security;
 using System.Text;
+using Packages.Rider.Editor.ProjectFiles;
 using Packages.Rider.Editor.Util;
 
 namespace Packages.Rider.Editor.ProjectGeneration {
@@ -19,7 +20,15 @@ namespace Packages.Rider.Editor.ProjectGeneration {
 
     public void WriteAllText(string fileName, string content)
     {
-      File.WriteAllText(fileName, content, Encoding.UTF8);
+      if (EditorPluginInterop.HasProjectFilesSyncType())
+      {
+        ProjectFilesSyncData.instance.events.Add(new Data(fileName, content));
+        ProjectFilesSyncData.instance.RaiseChangedEvent();
+      }
+      else
+      {
+        File.WriteAllText(fileName, content, Encoding.UTF8); // todo: should happen with some delay, in case of no connection
+      }
     }
 
     public string EscapedRelativePathFor(string file, string projectDirectory)

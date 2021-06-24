@@ -400,15 +400,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
         Debug.LogException(exception);
       }
 
-      if (EditorPluginInterop.HasProjectFilesSyncType())
-      {
-        ProjectFilesSyncData.instance.events.Add(new Data(filename, newContents));
-        ProjectFilesSyncData.instance.RaiseChangedEvent();
-      }
-      else
-      {
-        m_FileIOProvider.WriteAllText(filename, newContents); // todo: should happen with some delay, in case of no connection
-      }
+      m_FileIOProvider.WriteAllText(filename, newContents);
     }
 
     private string ProjectText(ProjectPart assembly)
