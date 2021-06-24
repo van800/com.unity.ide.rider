@@ -19,7 +19,7 @@ namespace Packages.Rider.Editor.ProjectFiles
       Changed(null, EventArgs.Empty);
     }
     
-    [SerializeField] internal List<Data> events = new List<Data>();
+    [SerializeField] public List<Data> events = new List<Data>();
 
     /// <summary>
     /// Is used by Rider Unity plugin by reflection
