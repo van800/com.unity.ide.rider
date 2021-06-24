@@ -4,8 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Security;
 using System.Text;
-using System.Text.RegularExpressions;
-using Packages.Rider.Editor.ProjectFiles;
 using Packages.Rider.Editor.Util;
 using UnityEditor;
 using UnityEditor.Compilation;
@@ -22,7 +20,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
       CSharp
     }
 
-    public static readonly string MSBuildNamespaceUri = "http://schemas.microsoft.com/developer/msbuild/2003";
+    private static readonly string MSBuildNamespaceUri = "http://schemas.microsoft.com/developer/msbuild/2003";
 
     /// <summary>
     /// Map source extensions to ScriptingLanguages
