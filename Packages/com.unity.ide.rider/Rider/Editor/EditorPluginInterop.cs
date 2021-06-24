@@ -13,6 +13,7 @@ namespace Packages.Rider.Editor
     public static readonly string EditorPluginAssemblyName = $"{EditorPluginAssemblyNamePrefix}Net46.Repacked";
     public static readonly string EditorPluginAssemblyNameFallback = $"{EditorPluginAssemblyNamePrefix}Full.Repacked";
     private static string ourEntryPointTypeName = "JetBrains.Rider.Unity.Editor.PluginEntryPoint";
+    private static string ourProjectFilesSyncType = "JetBrains.Rider.Unity.Editor.ProjectFilesSync";
 
     private static Assembly ourEditorPluginAssembly;
 
@@ -38,6 +39,14 @@ namespace Packages.Rider.Editor
         });
         return ourEditorPluginAssembly;
       }
+    }
+
+    internal static bool HasProjectFilesSyncType()
+    {
+      var assembly = EditorPluginAssembly;
+      if (assembly == null) return false;
+      var type = assembly.GetType(ourProjectFilesSyncType);
+      return type != null;
     }
 
     private static void DisableSyncSolutionOnceCallBack()
