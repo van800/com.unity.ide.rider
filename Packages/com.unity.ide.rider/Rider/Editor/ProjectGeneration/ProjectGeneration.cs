@@ -187,19 +187,20 @@ namespace Packages.Rider.Editor.ProjectGeneration
     {
       // Only synchronize islands that have associated source files and ones that we actually want in the project.
       // This also filters out DLLs coming from .asmdef files in packages.
-      var assemblies = m_AssemblyNameProvider.GetAssemblies(ShouldFileBePartOfSolution).ToArray();
-      var assemblyNames = new HashSet<string>(assemblies.Select(a => a.name));
+      var allAssemblies = m_AssemblyNameProvider.GetAssemblies().ToArray();
+      var solutionAssemblies = allAssemblies.Where(a => a.sourceFiles.Any(ShouldFileBePartOfSolution));
+      var solutionAssemblyNames = new HashSet<string>(solutionAssemblies.Select(a => a.name));
       var allAssetProjectParts = GenerateAllAssetProjectParts();
 
       var projectParts = new List<ProjectPart>();
-      foreach (var assembly in assemblies)
+      foreach (var assembly in solutionAssemblies)
       {
         allAssetProjectParts.TryGetValue(assembly.name, out var additionalAssetsForProject);
         projectParts.Add(new ProjectPart(assembly.name, assembly, additionalAssetsForProject));
       }
 
-      var riderAssembly = m_AssemblyNameProvider.GetAssemblies(_ => true).FirstOrDefault(a=>a.name == "Unity.Rider.Editor");
-      var projectPartsWithoutAssembly = allAssetProjectParts.Where(a => !assemblyNames.Contains(a.Key));
+      var riderAssembly = allAssemblies.FirstOrDefault(a=> a.name == "Unity.Rider.Editor");
+      var projectPartsWithoutAssembly = allAssetProjectParts.Where(a => !solutionAssemblyNames.Contains(a.Key));
       projectParts.AddRange(projectPartsWithoutAssembly.Select(allAssetProjectPart =>
       {
         Assembly assembly = null;
@@ -208,8 +209,8 @@ namespace Packages.Rider.Editor.ProjectGeneration
           assembly = new Assembly(allAssetProjectPart.Key, riderAssembly.outputPath, new string[0], new string[0],
             new Assembly[0],
             riderAssembly.compiledAssemblyReferences.Where(a =>
-              a.EndsWith("UnityEditor.dll") || a.EndsWith("UnityEngine.dll") ||
-              a.EndsWith("UnityEngine.CoreModule.dll")).ToArray(), riderAssembly.flags);
+              a.EndsWith("UnityEditor.dll", StringComparison.Ordinal) || a.EndsWith("UnityEngine.dll", StringComparison.Ordinal) ||
+              a.EndsWith("UnityEngine.CoreModule.dll", StringComparison.Ordinal)).ToArray(), riderAssembly.flags);
         return new ProjectPart(allAssetProjectPart.Key, assembly, allAssetProjectPart.Value);
       }));
 
@@ -850,7 +851,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
     private static string SkipPathPrefix(string path, string prefix)
     {
-      if (path.StartsWith($@"{prefix}\"))
+      if (path.StartsWith($@"{prefix}\", StringComparison.Ordinal))
         return path.Substring(prefix.Length + 1);
       return path;
     }

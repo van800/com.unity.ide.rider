@@ -32,20 +32,20 @@ namespace Packages.Rider.Editor.ProjectGeneration
       return CompilationPipeline.GetAssemblyNameFromScriptPath(path);
     }
 
-    public IEnumerable<Assembly> GetAssemblies(Func<string, bool> shouldFileBePartOfSolution)
+    public IEnumerable<Assembly> GetAssemblies()
     {
-      var assemblies = GetAssembliesByType(AssembliesType.Editor, shouldFileBePartOfSolution, "Temp\\Bin\\Debug\\");
+      var assemblies = GetAssembliesByType(AssembliesType.Editor, "Temp\\Bin\\Debug\\");
 
       if (ProjectGenerationFlag.HasFlag(ProjectGenerationFlag.PlayerAssemblies))
       {
-        var playerAssemblies = GetAssembliesByType(AssembliesType.Player, shouldFileBePartOfSolution, "Temp\\Bin\\Debug\\Player\\");
+        var playerAssemblies = GetAssembliesByType(AssembliesType.Player, "Temp\\Bin\\Debug\\Player\\");
         assemblies = assemblies.Concat(playerAssemblies);
       }
 
       return assemblies;
     }
 
-    private IEnumerable<Assembly> GetAssembliesByType(AssembliesType type, Func<string, bool> shouldFileBePartOfSolution, string outputPath)
+    private IEnumerable<Assembly> GetAssembliesByType(AssembliesType type, string outputPath)
     {
       foreach (var assembly in CompilationPipeline.GetAssemblies(type))
       {
@@ -56,7 +56,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
           ApiCompatibilityLevel = assembly.compilerOptions.ApiCompatibilityLevel
         };
 
-        if (assembly.sourceFiles.Any(shouldFileBePartOfSolution))
+        if (assembly.sourceFiles.Any())
         {
           yield return new Assembly(assembly.name
             , outputPath, assembly.sourceFiles, assembly.defines
