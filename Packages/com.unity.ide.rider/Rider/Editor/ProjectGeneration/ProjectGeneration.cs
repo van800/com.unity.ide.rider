@@ -535,7 +535,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
 #if UNITY_2020_2_OR_NEWER
       return GenerateAnalyserRuleSet(otherResponseFilesData["ruleset"].Append(assembly.CompilerOptions.RoslynAnalyzerRulesetPath).Where(a=>!string.IsNullOrEmpty(a)).Distinct().Select(x => x.NormalizePath()).ToArray());
 #else
-      return GenerateAnalyserRuleSet(otherResponseFilesData["ruleset"].Distinct().ToArray());
+      return GenerateAnalyserRuleSet(otherResponseFilesData["ruleset"].Distinct().Select(x => x.NormalizePath()).ToArray());
 #endif
     }
 
