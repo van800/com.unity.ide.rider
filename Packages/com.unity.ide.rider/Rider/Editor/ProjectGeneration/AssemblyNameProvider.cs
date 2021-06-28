@@ -36,31 +36,22 @@ namespace Packages.Rider.Editor.ProjectGeneration
     {
       var assemblies = GetAssembliesByType(AssembliesType.Editor, "Temp\\Bin\\Debug\\");
 
-      if (ProjectGenerationFlag.HasFlag(ProjectGenerationFlag.PlayerAssemblies))
+      if (!ProjectGenerationFlag.HasFlag(ProjectGenerationFlag.PlayerAssemblies))
       {
-        var playerAssemblies = GetAssembliesByType(AssembliesType.Player, "Temp\\Bin\\Debug\\Player\\");
-        assemblies = assemblies.Concat(playerAssemblies);
+        return assemblies;
       }
-
-      return assemblies;
+      var playerAssemblies = GetAssembliesByType(AssembliesType.Player, @"Temp\Bin\Debug\Player\");
+      return assemblies.Concat(playerAssemblies);
     }
 
-    private IEnumerable<Assembly> GetAssembliesByType(AssembliesType type, string outputPath)
+    private static IEnumerable<Assembly> GetAssembliesByType(AssembliesType type, string outputPath)
     {
       foreach (var assembly in CompilationPipeline.GetAssemblies(type))
       {
-        var options = new ScriptCompilerOptions()
-        {
-          ResponseFiles = assembly.compilerOptions.ResponseFiles,
-          AllowUnsafeCode = assembly.compilerOptions.AllowUnsafeCode,
-          ApiCompatibilityLevel = assembly.compilerOptions.ApiCompatibilityLevel
-        };
-
         if (assembly.sourceFiles.Any())
         {
-          yield return new Assembly(assembly.name
-            , outputPath, assembly.sourceFiles, assembly.defines
-            , assembly.assemblyReferences, assembly.compiledAssemblyReferences, assembly.flags, options
+          yield return new Assembly(assembly.name, outputPath, assembly.sourceFiles, assembly.defines,
+            assembly.assemblyReferences, assembly.compiledAssemblyReferences, assembly.flags, assembly.compilerOptions
 #if UNITY_2020_2_OR_NEWER
             , assembly.rootNamespace
 #endif

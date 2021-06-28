@@ -86,7 +86,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
     public ProjectGeneration(string tempDirectory, IAssemblyNameProvider assemblyNameProvider, IFileIO fileIoProvider, IGUIDGenerator guidGenerator)
     {
-      ProjectDirectory = tempDirectory.Replace('\\', '/');
+      ProjectDirectory = tempDirectory.NormalizePath();
       m_ProjectName = Path.GetFileName(ProjectDirectory);
       m_AssemblyNameProvider = assemblyNameProvider;
       m_FileIOProvider = fileIoProvider;
@@ -218,13 +218,8 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
       foreach (var projectPart in projectParts)
       {
-        SyncProject(projectPart, types, GetAllRoslynAnalyzerPaths().ToArray());
+        SyncProject(projectPart, types);
       }
-    }
-
-    private IEnumerable<string> GetAllRoslynAnalyzerPaths()
-    {
-      return m_AssemblyNameProvider.GetRoslynAnalyzerPaths();
     }
 
     private Dictionary<string, string> GenerateAllAssetProjectParts()
@@ -258,7 +253,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
             stringBuilders[assemblyName] = projectBuilder;
           }
 
-          projectBuilder.Append("     <None Include=\"").Append(EscapedRelativePathFor(asset)).Append("\" />")
+          projectBuilder.Append("     <None Include=\"").Append(m_FileIOProvider.EscapedRelativePathFor(asset, ProjectDirectory)).Append("\" />")
             .Append(Environment.NewLine);
         }
       }
@@ -273,12 +268,11 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
     private void SyncProject(
       ProjectPart island,
-      Type[] types,
-      string[] roslynAnalyzerDllPaths)
+      Type[] types)
     {
       SyncProjectFileIfNotChanged(
         ProjectFile(island),
-        ProjectText(island, roslynAnalyzerDllPaths),
+        ProjectText(island),
         types);
     }
 
@@ -409,15 +403,14 @@ namespace Packages.Rider.Editor.ProjectGeneration
       m_FileIOProvider.WriteAllText(filename, newContents);
     }
 
-    private string ProjectText(ProjectPart assembly,
-      string[] roslynAnalyzerDllPaths)
+    private string ProjectText(ProjectPart assembly)
     {
       var responseFilesData = assembly.ParseResponseFileData(m_AssemblyNameProvider, ProjectDirectory).ToList();
-      var projectBuilder = new StringBuilder(ProjectHeader(assembly, responseFilesData, roslynAnalyzerDllPaths));
-      
+      var projectBuilder = new StringBuilder(ProjectHeader(assembly, responseFilesData));
+
       foreach (var file in assembly.SourceFiles)
       {
-        var fullFile = EscapedRelativePathFor(file);
+        var fullFile = m_FileIOProvider.EscapedRelativePathFor(file, ProjectDirectory);
         projectBuilder.Append("     <Compile Include=\"").Append(fullFile).Append("\" />").Append(Environment.NewLine);
       }
 
@@ -456,9 +449,8 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
     private static void AppendReference(string fullReference, StringBuilder projectBuilder)
     {
-      //replace \ with / and \\ with /
       var escapedFullPath = SecurityElement.Escape(fullReference);
-      escapedFullPath = escapedFullPath.Replace("\\\\", "/").Replace("\\", "/");
+      escapedFullPath = escapedFullPath.NormalizePath();
       projectBuilder.Append("     <Reference Include=\"").Append(FileSystemUtil.FileNameWithoutExtension(escapedFullPath))
         .Append("\">").Append(Environment.NewLine);
       projectBuilder.Append("     <HintPath>").Append(escapedFullPath).Append("</HintPath>").Append(Environment.NewLine);
@@ -477,8 +469,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
     private string ProjectHeader(
       ProjectPart assembly,
-      List<ResponseFileData> responseFilesData,
-      string[] roslynAnalyzerDllPaths
+      List<ResponseFileData> responseFilesData
     )
     {
       var otherResponseFilesData = GetOtherArgumentsFromResponseFilesData(responseFilesData);
@@ -498,19 +489,10 @@ namespace Packages.Rider.Editor.ProjectGeneration
         GenerateLangVersion(otherResponseFilesData["langversion"], assembly),
         k_BaseDirectory,
         assembly.CompilerOptions.AllowUnsafeCode | responseFilesData.Any(x => x.Unsafe),
-        GenerateNoWarn(otherResponseFilesData["nowarn"].ToList()),
-        GenerateAnalyserItemGroup(
-          otherResponseFilesData["analyzer"].Concat(otherResponseFilesData["a"])
-                                                  .SelectMany(x=>x.Split(';'))
-                                                  .Concat(roslynAnalyzerDllPaths)
-                                                  .Distinct()
-                                                  .ToArray()),
+        GenerateNoWarn(otherResponseFilesData["nowarn"].Distinct().ToList()),
+        GenerateAnalyserItemGroup(RetrieveRoslynAnalyzers(assembly, otherResponseFilesData)),
         GenerateAnalyserAdditionalFiles(otherResponseFilesData["additionalfile"].SelectMany(x=>x.Split(';')).Distinct().ToArray()),
-        #if UNITY_2020_2_OR_NEWER
-        GenerateAnalyserRuleSet(otherResponseFilesData["ruleset"].Append(assembly.CompilerOptions.RoslynAnalyzerRulesetPath).Where(a=>!string.IsNullOrEmpty(a)).Distinct().ToArray()),
-        #else
-        GenerateAnalyserRuleSet(otherResponseFilesData["ruleset"].Distinct().ToArray()),
-        #endif
+        GenerateRoslynAnalyzerRulesetPath(assembly, otherResponseFilesData),
         GenerateWarningLevel(otherResponseFilesData["warn"].Concat(otherResponseFilesData["w"]).Distinct()),
         GenerateWarningAsError(otherResponseFilesData["warnaserror"], otherResponseFilesData["warnaserror-"], otherResponseFilesData["warnaserror+"]),
         GenerateDocumentationFile(otherResponseFilesData["doc"].ToArray()),
@@ -527,6 +509,35 @@ namespace Packages.Rider.Editor.ProjectGeneration
           "Failed creating c# project because the c# project header did not have the correct amount of arguments, which is " +
           arguments.Length);
       }
+    }
+
+    string[] RetrieveRoslynAnalyzers(ProjectPart assembly, ILookup<string, string> otherResponseFilesData)
+    {
+#if UNITY_2020_2_OR_NEWER
+      return otherResponseFilesData["analyzer"].Concat(otherResponseFilesData["a"])
+        .SelectMany(x=>x.Split(';'))
+#if !ROSLYN_ANALYZER_FIX
+        .Concat(m_AssemblyNameProvider.GetRoslynAnalyzerPaths())
+#else
+        .Concat(assembly.CompilerOptions.RoslynAnalyzerDllPaths)
+#endif
+        .Distinct()
+        .ToArray();
+#else
+      return otherResponseFilesData["analyzer"].Concat(otherResponseFilesData["a"])
+        .SelectMany(x=>x.Split(';'))
+        .Distinct()
+        .ToArray();
+#endif
+    }
+
+    static string GenerateRoslynAnalyzerRulesetPath(ProjectPart assembly, ILookup<string, string> otherResponseFilesData)
+    {
+#if UNITY_2020_2_OR_NEWER
+      return GenerateAnalyserRuleSet(otherResponseFilesData["ruleset"].Append(assembly.CompilerOptions.RoslynAnalyzerRulesetPath).Where(a=>!string.IsNullOrEmpty(a)).Distinct().Select(x => x.NormalizePath()).ToArray());
+#else
+      return GenerateAnalyserRuleSet(otherResponseFilesData["ruleset"].Distinct().Select(x => x.NormalizePath()).ToArray());
+#endif
     }
 
     private string GenerateNullable(IEnumerable<string> enumerable)
@@ -712,7 +723,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
       analyserBuilder.AppendLine("  <ItemGroup>");
       foreach (var path in paths)
       {
-        analyserBuilder.AppendLine($"    <Analyzer Include=\"{path}\" />");
+        analyserBuilder.AppendLine($"    <Analyzer Include=\"{path.NormalizePath()}\" />");
       }
 
       analyserBuilder.AppendLine("  </ItemGroup>");
@@ -724,7 +735,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
       var paths = responseFilesData.SelectMany(x =>
         {
           return x.OtherArguments
-            .Where(a => a.StartsWith("/") || a.StartsWith("-"))
+            .Where(a => a.StartsWith("/", StringComparison.Ordinal) || a.StartsWith("-", StringComparison.Ordinal))
             .Select(b =>
             {
               var index = b.IndexOf(":", StringComparison.Ordinal);
@@ -735,7 +746,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
               }
 
               const string warnaserror = "warnaserror";
-              if (b.Substring(1).StartsWith(warnaserror))
+              if (b.Substring(1).StartsWith(warnaserror, StringComparison.Ordinal))
               {
                 return new KeyValuePair<string, string>(warnaserror, b.Substring(warnaserror.Length + 1));
               }
@@ -829,38 +840,6 @@ namespace Packages.Rider.Editor.ProjectGeneration
       return string.Format(
         m_SolutionProjectConfigurationTemplate,
         projectGuid);
-    }
-
-    private string EscapedRelativePathFor(string file)
-    {
-      var projectDir = ProjectDirectory.Replace('/', '\\');
-      file = file.Replace('/', '\\');
-      var path = SkipPathPrefix(file, projectDir);
-
-      var packageInfo = m_AssemblyNameProvider.FindForAssetPath(path.Replace('\\', '/'));
-      if (packageInfo != null)
-      {
-        // We have to normalize the path, because the PackageManagerRemapper assumes
-        // dir seperators will be os specific.
-        var absolutePath = Path.GetFullPath(NormalizePath(path)).Replace('/', '\\');
-        path = SkipPathPrefix(absolutePath, projectDir);
-      }
-
-      return SecurityElement.Escape(path);
-    }
-
-    private static string SkipPathPrefix(string path, string prefix)
-    {
-      if (path.StartsWith($@"{prefix}\", StringComparison.Ordinal))
-        return path.Substring(prefix.Length + 1);
-      return path;
-    }
-
-    private static string NormalizePath(string path)
-    {
-      if (Path.DirectorySeparatorChar == '\\')
-        return path.Replace('/', Path.DirectorySeparatorChar);
-      return path.Replace('\\', Path.DirectorySeparatorChar);
     }
 
     private static string ProjectFooter()
