@@ -17,8 +17,7 @@ namespace Packages.Rider.Editor.Tests
             [Test]
             public void AbsoluteSourceFilePaths_WillBeMadeRelativeToProjectDirectory()
             {
-                var absoluteFilePath = Path.Combine(SynchronizerBuilder.ProjectDirectory, "dimmer.cs");
-                var synchronizer = m_Builder.WithAssemblyData(files: new[] { absoluteFilePath }).Build();
+                var synchronizer = m_Builder.WithAssemblyData(files: new[] { MakeAbsolutePath("dimmer.cs") }).Build();
 
                 synchronizer.Sync();
 
@@ -35,7 +34,7 @@ namespace Packages.Rider.Editor.Tests
 
                 synchronizer.Sync();
 
-                Assert.That(m_Builder.FileExists(Path.Combine(SynchronizerBuilder.ProjectDirectory.NormalizePath(), $"{expectedAssemblyName}.csproj")));
+                Assert.That(m_Builder.FileExists(MakeAbsolutePath($"{expectedAssemblyName}.csproj").NormalizePath()));
             }
 
             [Test]
@@ -281,7 +280,7 @@ namespace Packages.Rider.Editor.Tests
             {
                 var assetPath = Path.Combine("Assets", "Asset.cs");
                 var synchronizer = m_Builder
-                    .WithAssemblyData(files: new[] { Path.Combine(SynchronizerBuilder.ProjectDirectory.NormalizePath(), assetPath) })
+                    .WithAssemblyData(files: new[] { MakeAbsolutePath(assetPath).NormalizePath() })
                     .Build();
 
                 synchronizer.Sync();
@@ -534,7 +533,7 @@ namespace Packages.Rider.Editor.Tests
             {
                 var combined = string.Join(";", paths);
                 const string additionalFileTemplate = @"    <Analyzer Include=""{0}"" />";
-                var expectedOutput = paths.Select(x => string.Format(additionalFileTemplate, x.NormalizePath())).ToArray();
+                var expectedOutput = paths.Select(x => string.Format(additionalFileTemplate, MakeAbsolutePath(x).NormalizePath())).ToArray();
 
                 CheckOtherArgument(new[] { $"-a:{combined}" }, expectedOutput);
                 CheckOtherArgument(new[] { $"-analyzer:{combined}" }, expectedOutput);
@@ -621,8 +620,8 @@ namespace Packages.Rider.Editor.Tests
             public void SetRuleset(params string[] paths)
             {
                 string rulesetTemplate = "<CodeAnalysisRuleSet>{0}</CodeAnalysisRuleSet>";
-                CheckOtherArgument(paths.Select(x => $"-ruleset:{x}").ToArray(), paths.Select(x => string.Format(rulesetTemplate, x.NormalizePath())).ToArray());
-                CheckOtherArgument(paths.Select(x => $"/ruleset:{x}").ToArray(), paths.Select(x => string.Format(rulesetTemplate, x.NormalizePath())).ToArray());
+                CheckOtherArgument(paths.Select(x => $"-ruleset:{x}").ToArray(), paths.Select(x => string.Format(rulesetTemplate, MakeAbsolutePath(x).NormalizePath())).ToArray());
+                CheckOtherArgument(paths.Select(x => $"/ruleset:{x}").ToArray(), paths.Select(x => string.Format(rulesetTemplate, MakeAbsolutePath(x).NormalizePath())).ToArray());
             }
 
             [TestCase("C:/docs.xml")]
@@ -745,7 +744,7 @@ namespace Packages.Rider.Editor.Tests
 
                 string projectFile = m_Builder.ReadProjectFile(m_Builder.Assembly);
                 XmlDocument projectFileXml = XMLUtilities.FromText(projectFile);
-                XMLUtilities.AssertAnalyzerItemsMatchExactly(projectFileXml, new[] { roslynAnalyzerDllPath.NormalizePath() });
+                XMLUtilities.AssertAnalyzerItemsMatchExactly(projectFileXml, new[] { MakeAbsolutePath(roslynAnalyzerDllPath).NormalizePath() });
             }
 
             [Test]
@@ -756,7 +755,7 @@ namespace Packages.Rider.Editor.Tests
                 m_Builder.WithAssemblyData(files: new[] {"file.cs"}).WithRoslynAnalyzerRulesetPath(roslynAnalyzerRuleSetPath).Build().Sync();
                 var csProjectFileContents = m_Builder.ReadProjectFile(m_Builder.Assembly);
                 XmlDocument csProjectXmlFile = XMLUtilities.FromText(csProjectFileContents);
-                XMLUtilities.AssertAnalyzerRuleSetsMatchExactly(csProjectXmlFile, roslynAnalyzerRuleSetPath.NormalizePath());
+                XMLUtilities.AssertAnalyzerRuleSetsMatchExactly(csProjectXmlFile, MakeAbsolutePath(roslynAnalyzerRuleSetPath).NormalizePath());
             }
 #endif
 
@@ -771,7 +770,7 @@ namespace Packages.Rider.Editor.Tests
                 synchronizer.Sync();
 
                 var csprojFileContents = m_Builder.ReadProjectFile(m_Builder.Assembly);
-                Assert.That(csprojFileContents, Does.Match($"<Reference Include=\"Goodbye\">\\W*<HintPath>{Regex.Escape(Path.Combine(SynchronizerBuilder.ProjectDirectory, "Folder/Path With Space/Goodbye.dll").NormalizePath())}\\W*</HintPath>\\W*</Reference>"));
+                Assert.That(csprojFileContents, Does.Match($"<Reference Include=\"Goodbye\">\\W*<HintPath>{Regex.Escape(MakeAbsolutePath("Folder/Path With Space/Goodbye.dll").NormalizePath())}\\W*</HintPath>\\W*</Reference>"));
             }
 
             [Test]
@@ -800,8 +799,8 @@ namespace Packages.Rider.Editor.Tests
 
                 var csprojFileContents = m_Builder.ReadProjectFile(m_Builder.Assembly);
 
-                Assert.That(csprojFileContents, Does.Match($@"<Reference Include=""Hello"">\W*<HintPath>{Regex.Escape(Path.Combine(SynchronizerBuilder.ProjectDirectory, "Hello.dll").NormalizePath())}</HintPath>\W*</Reference>"));
-                Assert.That(csprojFileContents, Does.Match($@"<Reference Include=""MyPlugin"">\W*<HintPath>{Regex.Escape(Path.Combine(SynchronizerBuilder.ProjectDirectory, "MyPlugin.dll").NormalizePath())}</HintPath>\W*</Reference>"));
+                Assert.That(csprojFileContents, Does.Match($@"<Reference Include=""Hello"">\W*<HintPath>{Regex.Escape(MakeAbsolutePath("Hello.dll").NormalizePath())}</HintPath>\W*</Reference>"));
+                Assert.That(csprojFileContents, Does.Match($@"<Reference Include=""MyPlugin"">\W*<HintPath>{Regex.Escape(MakeAbsolutePath("MyPlugin.dll").NormalizePath())}</HintPath>\W*</Reference>"));
             }
 
             [Test]

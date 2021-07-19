@@ -521,22 +521,29 @@ namespace Packages.Rider.Editor.ProjectGeneration
 #else
         .Concat(assembly.CompilerOptions.RoslynAnalyzerDllPaths)
 #endif
+        .Select(path => MakeAbsolutePath(path, ProjectDirectory))
         .Distinct()
         .ToArray();
 #else
       return otherResponseFilesData["analyzer"].Concat(otherResponseFilesData["a"])
         .SelectMany(x=>x.Split(';'))
         .Distinct()
+        .Select(path => MakeAbsolutePath(path, ProjectDirectory))
         .ToArray();
 #endif
     }
 
-    static string GenerateRoslynAnalyzerRulesetPath(ProjectPart assembly, ILookup<string, string> otherResponseFilesData)
+    private static string MakeAbsolutePath(string path, string projectDirectory)
+    {
+      return Path.IsPathRooted(path) ? path : Path.Combine(projectDirectory, path);
+    }
+
+    private string GenerateRoslynAnalyzerRulesetPath(ProjectPart assembly, ILookup<string, string> otherResponseFilesData)
     {
 #if UNITY_2020_2_OR_NEWER
-      return GenerateAnalyserRuleSet(otherResponseFilesData["ruleset"].Append(assembly.CompilerOptions.RoslynAnalyzerRulesetPath).Where(a=>!string.IsNullOrEmpty(a)).Distinct().Select(x => x.NormalizePath()).ToArray());
+      return GenerateAnalyserRuleSet(otherResponseFilesData["ruleset"].Append(assembly.CompilerOptions.RoslynAnalyzerRulesetPath).Where(a=>!string.IsNullOrEmpty(a)).Distinct().Select(x => MakeAbsolutePath(x, ProjectDirectory).NormalizePath()).ToArray());
 #else
-      return GenerateAnalyserRuleSet(otherResponseFilesData["ruleset"].Distinct().Select(x => x.NormalizePath()).ToArray());
+      return GenerateAnalyserRuleSet(otherResponseFilesData["ruleset"].Distinct().Select(x => MakeAbsolutePath(x, ProjectDirectory).NormalizePath()).ToArray());
 #endif
     }
 
