@@ -34,7 +34,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
     public IEnumerable<Assembly> GetAssemblies()
     {
-      var assemblies = GetAssembliesByType(AssembliesType.Editor, "Temp\\Bin\\Debug\\");
+      var assemblies = GetAssembliesByType(AssembliesType.Editor, @"Temp\Bin\Debug\");
 
       if (!ProjectGenerationFlag.HasFlag(ProjectGenerationFlag.PlayerAssemblies))
       {
