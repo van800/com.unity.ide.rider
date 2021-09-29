@@ -530,31 +530,42 @@ namespace Packages.Rider.Editor
 
       public RiderInfo(string path, bool isToolbox)
       {
-        if (path == RiderScriptEditor.CurrentEditor)
+        if (!FileSystemUtil.EditorPathExists(path))
         {
-          RiderScriptEditorData.instance.Init();
-          BuildNumber = RiderScriptEditorData.instance.editorBuildNumber.ToVersion();
-          ProductInfo = RiderScriptEditorData.instance.productInfo;
+          Presentation = "Rider (not present on disk)";
+          IsToolbox = false;
+          Path = path;
+          BuildNumber = null;
+          ProductInfo = null;
         }
         else
         {
-          BuildNumber = GetBuildNumber(path);
-          ProductInfo = GetBuildVersion(path);
+          if (path == RiderScriptEditor.CurrentEditor)
+          {
+            RiderScriptEditorData.instance.Init();
+            BuildNumber = RiderScriptEditorData.instance.editorBuildNumber.ToVersion();
+            ProductInfo = RiderScriptEditorData.instance.productInfo;
+          }
+          else
+          {
+            BuildNumber = GetBuildNumber(path);
+            ProductInfo = GetBuildVersion(path);
+          }
+          Path = new FileInfo(path).FullName; // normalize separators
+          var presentation = $"Rider {BuildNumber}";
+
+          if (ProductInfo != null && !string.IsNullOrEmpty(ProductInfo.version))
+          {
+            var suffix = string.IsNullOrEmpty(ProductInfo.versionSuffix) ? "" : $" {ProductInfo.versionSuffix}";
+            presentation = $"Rider {ProductInfo.version}{suffix}";
+          }
+
+          if (isToolbox)
+            presentation += " (JetBrains Toolbox)";
+
+          Presentation = presentation;
+          IsToolbox = isToolbox;  
         }
-        Path = new FileInfo(path).FullName; // normalize separators
-        var presentation = $"Rider {BuildNumber}";
-
-        if (ProductInfo != null && !string.IsNullOrEmpty(ProductInfo.version))
-        {
-          var suffix = string.IsNullOrEmpty(ProductInfo.versionSuffix) ? "" : $" {ProductInfo.versionSuffix}";
-          presentation = $"Rider {ProductInfo.version}{suffix}";
-        }
-
-        if (isToolbox)
-          presentation += " (JetBrains Toolbox)";
-
-        Presentation = presentation;
-        IsToolbox = isToolbox;
       }
     }
 

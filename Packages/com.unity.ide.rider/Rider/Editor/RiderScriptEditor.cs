@@ -378,7 +378,7 @@ namespace Packages.Rider.Editor
 
     public bool TryGetInstallationForPath(string editorPath, out CodeEditor.Installation installation)
     {
-      if (FileSystemUtil.EditorPathExists(editorPath) && IsRiderInstallation(editorPath))
+      if (IsRiderInstallation(editorPath))
       {
         var info = new RiderPathLocator.RiderInfo(editorPath, false);
         installation = new CodeEditor.Installation
