@@ -22,6 +22,7 @@ publish:{{ test.name }}:
     {% for v in template_environment_variables %}
     {{ v[0] }}: {{ v[1]}}
     {% endfor %}
+    UPMCI_ENABLE_PACKAGE_SIGNING: 1
   commands:
     - npm install upm-ci-utils@stable --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm -g
     - >
