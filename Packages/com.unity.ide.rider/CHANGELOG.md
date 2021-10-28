@@ -1,5 +1,7 @@
 # Code Editor Package for Rider
 
+- Fix bug with generated project paths to analyzers in packages
+
 ## [3.0.6] - 2021-04-06
 
 - Fix bug: For Unity 2021.1+ Switching external editor from VS => Rider won't create the connection between Unity and Rider.
