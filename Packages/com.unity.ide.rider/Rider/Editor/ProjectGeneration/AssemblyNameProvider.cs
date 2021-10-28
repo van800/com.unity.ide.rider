@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
@@ -167,11 +168,14 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
     public IEnumerable<string> GetRoslynAnalyzerPaths()
     {
+      string FixAnalyzerPath(string path) => Path.IsPathRooted(path) ? path : Path.GetFullPath(path);
+      
       return PluginImporter.GetAllImporters()
-        .Where(i => !i.isNativePlugin && AssetDatabase.GetLabels(i).SingleOrDefault(l => l == "RoslynAnalyzer") != null)
-        .Select(i => i.assetPath);
+        .Where(i => !i.isNativePlugin && AssetDatabase.GetLabels(i).Any(l => l == "RoslynAnalyzer"))
+        .Distinct()
+        .Select(plugin => FixAnalyzerPath(plugin.assetPath));
     }
-
+    
     public void ToggleProjectGeneration(ProjectGenerationFlag preference)
     {
       if (ProjectGenerationFlag.HasFlag(preference))
