@@ -28,9 +28,14 @@ namespace Packages.Rider.Editor.Tests
             m_Builder = new SynchronizerBuilder();
         }
             
-        protected static string MakeAbsolutePath(string path)
+        protected static string MakeAbsolutePathTestImplementation(string path)
         {
             return Path.IsPathRooted(path) ? path : Path.Combine(SynchronizerBuilder.ProjectDirectory, path);
+        }
+        
+        protected static string MakeAbsolutePath(string path)
+        {
+            return Path.IsPathRooted(path) ? path : Path.GetFullPath(path);
         }
     }
 }
