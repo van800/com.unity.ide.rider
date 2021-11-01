@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Security;
 using System.Text;
-using System.Text.RegularExpressions;
 using Packages.Rider.Editor.Util;
 using UnityEditor;
 using UnityEditor.Compilation;
@@ -520,29 +519,29 @@ namespace Packages.Rider.Editor.ProjectGeneration
 #else
         .Concat(assembly.CompilerOptions.RoslynAnalyzerDllPaths)
 #endif
-        .Select(path => MakeAbsolutePath(path, ProjectDirectory))
+        .Select(MakeAbsolutePath)
         .Distinct()
         .ToArray();
 #else
       return otherResponseFilesData["analyzer"].Concat(otherResponseFilesData["a"])
         .SelectMany(x=>x.Split(';'))
         .Distinct()
-        .Select(path => MakeAbsolutePath(path, ProjectDirectory))
+        .Select(MakeAbsolutePath)
         .ToArray();
 #endif
     }
 
-    private static string MakeAbsolutePath(string path, string projectDirectory)
+    private static string MakeAbsolutePath(string path)
     {
-      return Path.IsPathRooted(path) ? path : Path.Combine(projectDirectory, path);
+      return Path.IsPathRooted(path) ? path : Path.GetFullPath(path);
     }
 
     private string GenerateRoslynAnalyzerRulesetPath(ProjectPart assembly, ILookup<string, string> otherResponseFilesData)
     {
 #if UNITY_2020_2_OR_NEWER
-      return GenerateAnalyserRuleSet(otherResponseFilesData["ruleset"].Append(assembly.CompilerOptions.RoslynAnalyzerRulesetPath).Where(a=>!string.IsNullOrEmpty(a)).Distinct().Select(x => MakeAbsolutePath(x, ProjectDirectory).NormalizePath()).ToArray());
+      return GenerateAnalyserRuleSet(otherResponseFilesData["ruleset"].Append(assembly.CompilerOptions.RoslynAnalyzerRulesetPath).Where(a=>!string.IsNullOrEmpty(a)).Distinct().Select(x => MakeAbsolutePath(x).NormalizePath()).ToArray());
 #else
-      return GenerateAnalyserRuleSet(otherResponseFilesData["ruleset"].Distinct().Select(x => MakeAbsolutePath(x, ProjectDirectory).NormalizePath()).ToArray());
+      return GenerateAnalyserRuleSet(otherResponseFilesData["ruleset"].Distinct().Select(x => MakeAbsolutePath(x).NormalizePath()).ToArray());
 #endif
     }
 
