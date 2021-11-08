@@ -24,8 +24,7 @@ namespace Editor
             for (int i = 0; i < assemblyCount; ++i)
             {
                 var assemblyName = $"Assembly{i}";
-                var dirPath = Path.Combine(k_TestFolderPath, assemblyName);;
-                var asmdefReferencesString = string.Join("\", \"", asmdefReferences.ToArray());
+                var dirPath = Path.Combine(k_TestFolderPath, assemblyName);
                 var asmdefContents = $@"{{ ""name"" : ""{assemblyName}"" }}";
 
                 asmdefReferences.Add(assemblyName);
