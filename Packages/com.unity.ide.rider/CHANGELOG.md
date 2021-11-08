@@ -1,9 +1,5 @@
 # Code Editor Package for Rider
 
-## [3.0.8] - 2021-11-08
-
-- Fix path for Roslyn analyser supplied with a package
-
 
 ## [3.0.7] - 2021-05-07
 
