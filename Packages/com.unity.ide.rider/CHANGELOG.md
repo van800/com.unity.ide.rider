@@ -2,7 +2,7 @@
 
 ## [3.0.8] - 2021-11-08
 
-Re-do 3.0.8 PR
+- Fix path for Roslyn analyser supplied with a package
 
 
 ## [3.0.7] - 2021-05-07
