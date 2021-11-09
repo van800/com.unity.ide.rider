@@ -1,5 +1,15 @@
 # Code Editor Package for Rider
 
+## [3.0.9] - 2021-11-09
+
+Fix path for Roslyn analyser supplied with a package
+
+
+## [3.0.8] - 2021-11-08
+
+- Technical release
+
+
 ## [3.0.7] - 2021-05-07
 
 - RIDER-60815 Simplify extensions lists for Rider package
