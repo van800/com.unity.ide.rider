@@ -759,6 +759,22 @@ namespace Packages.Rider.Editor.Tests
                 XMLUtilities.AssertAnalyzerRuleSetsMatchExactly(csProjectXmlFile, MakeAbsolutePath(roslynAnalyzerRuleSetPath).NormalizePath());
             }
 #endif
+#if UNITY_2021_2_OR_NEWER
+            [Test]
+            public void RoslynAdditionalFiles_WillBeIncluded()
+            {
+                var roslynAdditionalFiles = new[]{
+                    "Assets\\MyAnalyzerFiles\\RoslynExtraFile1.ext1",
+                    "Assets\\MyAnalyzerFiles\\RoslynExtraFile2.ext2",
+                };
+
+                m_Builder.WithAssemblyData(files: new[] {"file.cs"}).WithRoslynAdditionalFiles(roslynAdditionalFiles).Build().Sync();
+                var csProjectFileContents = m_Builder.ReadProjectFile(m_Builder.Assembly);
+                XmlDocument csProjectXmlFile = XMLUtilities.FromText(csProjectFileContents);
+                XMLUtilities.AssertAnalyzerAdditionalFilesMatchExactly(csProjectXmlFile, roslynAdditionalFiles);
+            }
+#endif
+
 
             [Test]
             public void Containing_PathWithSpaces_IsParsedCorrectly()

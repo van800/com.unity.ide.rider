@@ -26,6 +26,14 @@ namespace Packages.Rider.Editor.Tests
                 projectXml.SelectInnerText("/msb:Project/msb:PropertyGroup/msb:CodeAnalysisRuleSet",
                     GetModifiedXmlNamespaceManager(projectXml)).ToArray(), expectedRuleSetFile);
         }
+
+        public static void AssertAnalyzerAdditionalFilesMatchExactly(XmlDocument projectXml, IEnumerable<string> expectedAdditionalFiles)
+        {
+            var additionalFiles = projectXml.SelectAttributeValues("/msb:Project/msb:ItemGroup/msb:AdditionalFiles/@Include",GetModifiedXmlNamespaceManager(projectXml)).ToArray();
+            CollectionAssert.AreEquivalent(RelativeAssetPathsFor(expectedAdditionalFiles), additionalFiles);
+
+        }
+
         public static void AssertNonCompileItemsMatchExactly(XmlDocument projectXml, IEnumerable<string> expectedNoncompileItems)
         {
             var nonCompileItems = projectXml.SelectAttributeValues("/msb:Project/msb:ItemGroup/msb:None/@Include", GetModifiedXmlNamespaceManager(projectXml)).ToArray();

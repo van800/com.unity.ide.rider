@@ -489,7 +489,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
         assembly.CompilerOptions.AllowUnsafeCode | responseFilesData.Any(x => x.Unsafe),
         GenerateNoWarn(otherResponseFilesData["nowarn"].Distinct().ToList()),
         GenerateAnalyserItemGroup(RetrieveRoslynAnalyzers(assembly, otherResponseFilesData)),
-        GenerateAnalyserAdditionalFiles(otherResponseFilesData["additionalfile"].SelectMany(x=>x.Split(';')).Distinct().ToArray()),
+        GenerateAnalyserAdditionalFiles(RetrieveRoslynAdditionalFiles(assembly, otherResponseFilesData)),
         GenerateRoslynAnalyzerRulesetPath(assembly, otherResponseFilesData),
         GenerateWarningLevel(otherResponseFilesData["warn"].Concat(otherResponseFilesData["w"]).Distinct()),
         GenerateWarningAsError(otherResponseFilesData["warnaserror"], otherResponseFilesData["warnaserror-"], otherResponseFilesData["warnaserror+"]),
@@ -545,6 +545,14 @@ namespace Packages.Rider.Editor.ProjectGeneration
 #endif
     }
 
+	private string RetrieveRoslynAdditionalFiles(ProjectPart assembly, ILookup<string, string> otherResponseFilesData)
+    {
+        #if UNITY_2021_2_OR_NEWER
+        return otherResponseFilesData["additionalfile"].SelectMany(x=>x.Split(';')).Concat(assembly.CompilerOptions.RoslynAdditionalFilePaths).Distinct().ToArray()),
+        #else
+        return otherResponseFilesData["additionalfile"].SelectMany(x=>x.Split(';')).Distinct().ToArray()),
+        #endif
+    }    
     private string GenerateNullable(IEnumerable<string> enumerable)
     {
       var val = enumerable.FirstOrDefault();

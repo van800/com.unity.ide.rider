@@ -155,6 +155,15 @@ namespace Packages.Rider.Editor.Tests
             return this;
         }
 #endif
+#if UNITY_2021_2_OR_NEWER
+        public SynchronizerBuilder WithRoslynAnalyzerRulesetPath(string roslynAnalyzerRuleSetPath)
+        {
+            foreach (var assembly in m_Assemblies)
+            {
+                assembly.compilerOptions.RoslynAdditionalFilePaths = roslynAdditionalFilesPaths ?? Array.Empty<string>();
+            }
+        }
+#endif
 
         public SynchronizerBuilder AssignFilesToAssembly(string[] files, Assembly assembly)
         {
