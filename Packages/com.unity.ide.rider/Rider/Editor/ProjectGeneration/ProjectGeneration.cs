@@ -184,9 +184,10 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
     public void GenerateAndWriteSolutionAndProjects(Type[] types)
     {
+      var allAssemblies = m_AssemblyNameProvider.GetAssemblies(_ => true).ToArray();
       // Only synchronize islands that have associated source files and ones that we actually want in the project.
       // This also filters out DLLs coming from .asmdef files in packages.
-      var assemblies = m_AssemblyNameProvider.GetAssemblies(ShouldFileBePartOfSolution).ToArray();
+      var assemblies = allAssemblies.Where(assembly => assembly.sourceFiles.Any(ShouldFileBePartOfSolution)).ToArray();
       var assemblyNames = new HashSet<string>(assemblies.Select(a => a.name));
       var allAssetProjectParts = GenerateAllAssetProjectParts();
 
@@ -197,7 +198,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
         projectParts.Add(new ProjectPart(assembly.name, assembly, additionalAssetsForProject));
       }
 
-      var riderAssembly = m_AssemblyNameProvider.GetAssemblies(_ => true).FirstOrDefault(a=>a.name == "Unity.Rider.Editor");
+      var riderAssembly = allAssemblies.FirstOrDefault(a=>a.name == "Unity.Rider.Editor");
       var projectPartsWithoutAssembly = allAssetProjectParts.Where(a => !assemblyNames.Contains(a.Key));
       projectParts.AddRange(projectPartsWithoutAssembly.Select(allAssetProjectPart =>
       {
