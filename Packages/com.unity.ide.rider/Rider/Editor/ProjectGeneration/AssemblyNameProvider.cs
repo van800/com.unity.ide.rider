@@ -60,9 +60,9 @@ namespace Packages.Rider.Editor.ProjectGeneration
       }
     }
 
-    public string GetProjectName(string assemblyOutputPath, string assemblyName)
+    public string GetProjectName(string name, string[] defines)
     {
-      return assemblyOutputPath.EndsWith("\\Player\\", StringComparison.Ordinal) ? assemblyName + ".Player" : assemblyName;
+      return !defines.Contains("UNITY_EDITOR") ? name + ".Player" : name;
     }
 
     public IEnumerable<string> GetAllAssetPaths()
