@@ -31,15 +31,17 @@ namespace Packages.Rider.Editor.Tests
             m_AssemblyNameProvider.ResetProjectGenerationFlag();
         }
 
-        // [TestCase(@"Temp\Bin\Debug\", "AssemblyName", "AssemblyName")]
-        // [TestCase(@"Temp\Bin\Debug\", "My.Player.AssemblyName", "My.Player.AssemblyName")]
-        // [TestCase(@"Temp\Bin\Debug\", "AssemblyName.Player", "AssemblyName.Player")]
-        // [TestCase(@"Temp\Bin\Debug\Player\", "AssemblyName", "AssemblyName.Player")]
-        // [TestCase(@"Temp\Bin\Debug\Player\", "AssemblyName.Player", "AssemblyName.Player.Player")]
-        // public void GetOutputPath_ReturnsPlayerAndeditorOutputPath(string assemblyOutputPath, string assemblyName, string expectedAssemblyName)
-        // {
-        //     Assert.AreEqual(expectedAssemblyName, m_AssemblyNameProvider.GetProjectName(assemblyOutputPath, assemblyName));
-        // }
+        [Test]
+        public void PerojectNameForDefines1()
+        {
+            Assert.AreEqual("name", m_AssemblyNameProvider.GetProjectName("name", new []{"UNITY_EDITOR"}));
+        }
+        
+        [Test]
+        public void PerojectNameForDefines2()
+        {
+            Assert.AreEqual("name.Player", m_AssemblyNameProvider.GetProjectName("name", new []{""}));
+        }
 
         [Test]
         public void AllEditorAssemblies_AreCollected()
