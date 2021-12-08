@@ -4,8 +4,8 @@
   "displayName": "JetBrains Rider Editor Tests",
   "description": "Code editor integration for supporting JetBrains Rider as code editor for unity. Adds support for generating csproj files for intellisense purposes, auto discovery of installations, etc.",
   "version": "3.0.9",
-  "unity": "2019.2",
-  "unityRelease": "6f1",
+  "unity": "2019.4",
+  "unityRelease": "0",
   "dependencies": {
     "com.unity.test-framework": "1.1.1",
     "nuget.moq": "1.0.0"
