@@ -38,7 +38,7 @@ namespace Packages.Rider.Editor.Tests
         }
         
         [Test]
-        public void PerojectNameForDefines2()
+        public void ProjectNameForDefines2()
         {
             Assert.AreEqual("name.Player", m_AssemblyNameProvider.GetProjectName("name", new []{""}));
         }
