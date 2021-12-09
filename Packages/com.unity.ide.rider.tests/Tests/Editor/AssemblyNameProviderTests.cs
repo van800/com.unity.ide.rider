@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
@@ -35,12 +36,6 @@ namespace Packages.Rider.Editor.Tests
         public void ProjectNameForDefines1()
         {
             Assert.AreEqual("name", m_AssemblyNameProvider.GetProjectName("name", new []{"UNITY_EDITOR"}));
-        }
-        
-        [Test]
-        public void ProjectNameForDefines2()
-        {
-            Assert.AreEqual("name.Player", m_AssemblyNameProvider.GetProjectName("name", new []{""}));
         }
 
         [Test]

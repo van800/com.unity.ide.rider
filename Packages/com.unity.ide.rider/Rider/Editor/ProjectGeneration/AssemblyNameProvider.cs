@@ -62,6 +62,8 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
     public string GetProjectName(string name, string[] defines)
     {
+      if (!ProjectGenerationFlag.HasFlag(ProjectGenerationFlag.PlayerAssemblies))
+        return name;
       return !defines.Contains("UNITY_EDITOR") ? name + ".Player" : name;
     }
 
