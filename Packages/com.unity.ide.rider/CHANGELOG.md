@@ -1,5 +1,11 @@
 # Code Editor Package for Rider
 
+## [3.1.0] - 2021-12-09
+
+- Fix presentation of the TargetFramework in the csproj
+- Fix: Auto-generated solution doesn't compile when code overrides virtual functions in other assemblies
+
+
 ## [3.0.9] - 2021-11-09
 
 Fix path for Roslyn analyser supplied with a package
