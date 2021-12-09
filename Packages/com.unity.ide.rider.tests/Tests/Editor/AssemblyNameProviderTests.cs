@@ -32,7 +32,7 @@ namespace Packages.Rider.Editor.Tests
         }
 
         [Test]
-        public void PerojectNameForDefines1()
+        public void ProjectNameForDefines1()
         {
             Assert.AreEqual("name", m_AssemblyNameProvider.GetProjectName("name", new []{"UNITY_EDITOR"}));
         }
