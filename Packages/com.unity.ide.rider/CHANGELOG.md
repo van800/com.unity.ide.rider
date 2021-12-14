@@ -8,7 +8,8 @@
 
 ## [3.0.9] - 2021-11-09
 
-Fix path for Roslyn analyser supplied with a package
+- Fix path for Roslyn analyser supplied with a package
+- Minimal requirement for roslyn analyzer scope is Unity 2020.3.6f1 and above 
 
 
 ## [3.0.8] - 2021-11-08
