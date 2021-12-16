@@ -52,7 +52,7 @@ namespace Packages.Rider.Editor.Tests
 
             foreach (var assembly in collectedAssemblies)
             {
-                Assert.That(assembly.outputPath, Is.EqualTo(@"Temp\Bin\Debug\"), $"{assembly.name}: had wrong output path: {assembly.outputPath}");
+                Assert.That(assembly.outputPath, Is.EqualTo($@"Temp\Bin\Debug\{assembly.name}\"), $"{assembly.name}: had wrong output path: {assembly.outputPath}");
             }
             foreach (Assembly editorAssembly in editorAssemblies)
             {
@@ -111,7 +111,7 @@ namespace Packages.Rider.Editor.Tests
 
             foreach (Assembly playerAssembly in playerAssemblies)
             {
-                Assert.IsTrue(collectedAssemblies.Any(assembly => assembly.name == playerAssembly.name && assembly.outputPath == @"Temp\Bin\Debug\Player\"), $"{playerAssembly.name}: was not found in collection.");
+                Assert.IsTrue(collectedAssemblies.Any(assembly => assembly.name == playerAssembly.name && assembly.outputPath == $@"Temp\Bin\Debug\{playerAssembly.name}\Player\"), $"{playerAssembly.name}: was not found in collection.");
             }
         }
     }

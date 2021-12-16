@@ -34,22 +34,23 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
     public IEnumerable<Assembly> GetAssemblies(Func<string, bool> shouldFileBePartOfSolution)
     {
-      var assemblies = GetAssembliesByType(AssembliesType.Editor, shouldFileBePartOfSolution, @"Temp\Bin\Debug\");
+      var assemblies = GetAssembliesByType(AssembliesType.Editor, shouldFileBePartOfSolution);
 
       if (!ProjectGenerationFlag.HasFlag(ProjectGenerationFlag.PlayerAssemblies))
       {
         return assemblies;
       }
-      var playerAssemblies = GetAssembliesByType(AssembliesType.Player, shouldFileBePartOfSolution, @"Temp\Bin\Debug\Player\");
+      var playerAssemblies = GetAssembliesByType(AssembliesType.Player, shouldFileBePartOfSolution);
       return assemblies.Concat(playerAssemblies);
     }
 
-    private static IEnumerable<Assembly> GetAssembliesByType(AssembliesType type, Func<string, bool> shouldFileBePartOfSolution, string outputPath)
+    private static IEnumerable<Assembly> GetAssembliesByType(AssembliesType type, Func<string, bool> shouldFileBePartOfSolution)
     {
       foreach (var assembly in CompilationPipeline.GetAssemblies(type))
       {
         if (assembly.sourceFiles.Any(shouldFileBePartOfSolution))
         {
+          string outputPath = type == AssembliesType.Editor ? $@"Temp\Bin\Debug\{assembly.name}\" : $@"Temp\Bin\Debug\{assembly.name}\Player\";    
           yield return new Assembly(assembly.name, outputPath, assembly.sourceFiles, assembly.defines,
             assembly.assemblyReferences, assembly.compiledAssemblyReferences, assembly.flags, assembly.compilerOptions
 #if UNITY_2020_2_OR_NEWER
