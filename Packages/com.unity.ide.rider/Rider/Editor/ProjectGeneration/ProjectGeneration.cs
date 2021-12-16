@@ -56,8 +56,6 @@ namespace Packages.Rider.Editor.ProjectGeneration
       @"        {{{0}}}.Debug|Any CPU.ActiveCfg = Debug|Any CPU",
       @"        {{{0}}}.Debug|Any CPU.Build.0 = Debug|Any CPU").Replace("    ", "\t");
 
-    private static readonly string[] k_ReimportSyncExtensions = { ".dll", ".asmdef", ".asmref" };
-
     private string[] m_ProjectSupportedExtensions = new string[0];
 
     public string ProjectDirectory { get; }
@@ -125,7 +123,8 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
     private static bool ShouldSyncOnReimportedAsset(string asset)
     {
-      return k_ReimportSyncExtensions.Contains(Path.GetExtension(asset)) || Path.GetFileName(asset) == "csc.rsp";
+      var extension = Path.GetExtension(asset);
+      return extension == ".asmdef" || extension == ".asmref" || Path.GetFileName(asset) == "csc.rsp";
     }
 
     public void Sync()
