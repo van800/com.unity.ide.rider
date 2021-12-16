@@ -81,7 +81,7 @@ namespace Packages.Rider.Editor.Tests
                 Assert.AreNotEqual(solutionText, m_Builder.ReadFile(synchronizer.SolutionFile()), "Should rewrite solution text");
             }
 
-            [TestCase("dll")]
+            [TestCase("asmref")]
             [TestCase("asmdef")]
             public void AfterSync_WillResync_WhenReimportWithSpecialFileExtensions(string reimportedFile)
             {
