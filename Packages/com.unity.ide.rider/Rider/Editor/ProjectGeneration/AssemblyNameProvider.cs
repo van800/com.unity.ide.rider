@@ -17,6 +17,10 @@ namespace Packages.Rider.Editor.ProjectGeneration
     
     public string ProjectGenerationRootNamespace => EditorSettings.projectGenerationRootNamespace;
 
+    private Assembly[] m_AllEditorAssemblies;
+    
+    private Assembly[] m_AllPlayerAssemblies;
+
     public ProjectGenerationFlag ProjectGenerationFlag
     {
       get => m_ProjectGenerationFlag;
@@ -34,30 +38,32 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
     public IEnumerable<Assembly> GetAssemblies(Func<string, bool> shouldFileBePartOfSolution)
     {
-      var assemblies = GetAssembliesByType(AssembliesType.Editor, shouldFileBePartOfSolution);
+      if (m_AllEditorAssemblies == null)
+        m_AllEditorAssemblies = GetAssembliesByType(AssembliesType.Editor).ToArray();
 
-      if (!ProjectGenerationFlag.HasFlag(ProjectGenerationFlag.PlayerAssemblies))
+      if (ProjectGenerationFlag.HasFlag(ProjectGenerationFlag.PlayerAssemblies))
       {
-        return assemblies;
+        if (m_AllPlayerAssemblies == null)
+          m_AllPlayerAssemblies = GetAssembliesByType(AssembliesType.Player).ToArray();
       }
-      var playerAssemblies = GetAssembliesByType(AssembliesType.Player, shouldFileBePartOfSolution);
-      return assemblies.Concat(playerAssemblies);
+      
+      if (!ProjectGenerationFlag.HasFlag(ProjectGenerationFlag.PlayerAssemblies))
+        return m_AllEditorAssemblies.Where(a => a.sourceFiles.Any(shouldFileBePartOfSolution));
+      
+      return m_AllEditorAssemblies.Concat(m_AllPlayerAssemblies).Where(a => a.sourceFiles.Any(shouldFileBePartOfSolution));
     }
 
-    private static IEnumerable<Assembly> GetAssembliesByType(AssembliesType type, Func<string, bool> shouldFileBePartOfSolution)
+    private static IEnumerable<Assembly> GetAssembliesByType(AssembliesType type)
     {
       foreach (var assembly in CompilationPipeline.GetAssemblies(type))
       {
-        if (assembly.sourceFiles.Any(shouldFileBePartOfSolution))
-        {
-          string outputPath = type == AssembliesType.Editor ? $@"Temp\Bin\Debug\{assembly.name}\" : $@"Temp\Bin\Debug\{assembly.name}\Player\";    
-          yield return new Assembly(assembly.name, outputPath, assembly.sourceFiles, assembly.defines,
-            assembly.assemblyReferences, assembly.compiledAssemblyReferences, assembly.flags, assembly.compilerOptions
+        var outputPath = type == AssembliesType.Editor ? $@"Temp\Bin\Debug\{assembly.name}\" : $@"Temp\Bin\Debug\{assembly.name}\Player\";
+        yield return new Assembly(assembly.name, outputPath, assembly.sourceFiles, assembly.defines,
+          assembly.assemblyReferences, assembly.compiledAssemblyReferences, assembly.flags, assembly.compilerOptions
 #if UNITY_2020_2_OR_NEWER
-            , assembly.rootNamespace
+          , assembly.rootNamespace
 #endif
-          );
-        }
+        );
       }
     }
 
