@@ -4,6 +4,9 @@
 
 - Fix presentation of the TargetFramework in the csproj
 - Fix: Auto-generated solution doesn't compile when code overrides virtual functions in other assemblies
+- Fix RIDER-72234 Avoid full project generation, when only content of assembly was changed
+- Fix RIDER-71985 Building large Unity projects randomly fails
+- Fix RIDER-72174 Looking for Rider installed by dotUltimate installer
 
 
 ## [3.0.9] - 2021-11-09
