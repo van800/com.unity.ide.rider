@@ -27,13 +27,13 @@ namespace Packages.Rider.Editor.Tests
             }
 
             [Test]
-            public void ProjectGeneration_UseAssemblyNameProvider_ForOutputPath()
+            public void ProjectGeneration_UseAssemblyNameProvider_ForDefines()
             {
                 var expectedAssemblyName = "my.AssemblyName";
-                var synchronizer = m_Builder.WithOutputPathForAssemblyPath(m_Builder.Assembly.outputPath, m_Builder.Assembly.name, expectedAssemblyName).Build();
-
+                var synchronizer = m_Builder.WithNameForDefines(m_Builder.Assembly.defines, m_Builder.Assembly.name, expectedAssemblyName).Build();
+            
                 synchronizer.Sync();
-
+            
                 var filePath = MakeAbsolutePathTestImplementation($"{expectedAssemblyName}.csproj").NormalizePath();
                 Assert.That(m_Builder.FileExists(filePath), $"{filePath} doesn't exist");
             }
@@ -68,7 +68,7 @@ namespace Packages.Rider.Editor.Tests
                     "    <OutputType>Library</OutputType>",
                     "    <AppDesignerFolder>Properties</AppDesignerFolder>",
                     $"    <AssemblyName>{m_Builder.Assembly.name}</AssemblyName>",
-                    "    <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>",
+                    $"    <TargetFramework>{m_Builder.Assembly.compilerOptions.ApiCompatibilityLevel}</TargetFramework>",
                     "    <FileAlignment>512</FileAlignment>",
                     "    <BaseDirectory>.</BaseDirectory>",
                     "  </PropertyGroup>",
@@ -216,7 +216,7 @@ namespace Packages.Rider.Editor.Tests
                     new string[0], AssemblyFlags.EditorAssembly);
 
                 var synchronizer = m_Builder
-                    .WithOutputPathForAssemblyPath(assembly.outputPath, assembly.name, assembly.name)
+                    .WithAssembly(assembly)
                     .WithAssetFiles(new[] {"file.hlsl"})
                     .AssignFilesToAssembly(new[] {"file.hlsl"}, assembly)
                     .Build();
@@ -238,7 +238,7 @@ namespace Packages.Rider.Editor.Tests
 
                 var synchronizer = m_Builder
                     .WithAssemblies(new []{riderAssembly})
-                    .WithOutputPathForAssemblyPath(assembly.outputPath, assembly.name, assembly.name)
+                    .WithNameForDefines(assembly.defines, assembly.name, assembly.name)
                     .WithAssetFiles(new[] {"file.hlsl"})
                     .AssignFilesToAssembly(new[] {"file.hlsl"}, assembly)
                     .Build();
@@ -777,7 +777,7 @@ namespace Packages.Rider.Editor.Tests
             [Test]
             public void Containing_PathWithDotCS_IsParsedCorrectly()
             {
-                var assembly = new Assembly("name", "/path/with.cs/assembly.dll", new[] { "file.cs" }, new string[0], new Assembly[0], new string[0], AssemblyFlags.None);
+                var assembly = new Assembly("name", "/path/with.cs/assembly.dll", new[] { "file.cs" }, new string[]{}, new Assembly[0], new string[0], AssemblyFlags.None);
                 var synchronizer = m_Builder
                     .WithAssemblyData(assemblyReferences: new[] { assembly })
                     .Build();

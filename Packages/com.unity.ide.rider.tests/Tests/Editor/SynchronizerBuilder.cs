@@ -69,7 +69,7 @@ namespace Packages.Rider.Editor.Tests
 
         public SynchronizerBuilder WithProjectGuid(string projectGuid, Assembly assembly)
         {
-            m_GUIDGenerator.Setup(x => x.ProjectGuid(Path.GetFileName(ProjectDirectory), assembly.name)).Returns(projectGuid);
+            m_GUIDGenerator.Setup(x => x.ProjectGuid(Path.GetFileName(ProjectDirectory) + assembly.name)).Returns(projectGuid);
             return this;
         }
 
@@ -79,7 +79,7 @@ namespace Packages.Rider.Editor.Tests
             m_AssemblyProvider.Setup(x => x.GetAssemblies(It.IsAny<Func<string, bool>>())).Returns(m_Assemblies);
             foreach (var assembly in assemblies)
             {
-                m_AssemblyProvider.Setup(x => x.GetProjectName(assembly.outputPath, assembly.name)).Returns(assembly.name);
+                m_AssemblyProvider.Setup(x => x.GetProjectName(assembly.name, assembly.defines)).Returns(assembly.name);
             }
             return this;
         }
@@ -106,7 +106,13 @@ namespace Packages.Rider.Editor.Tests
                 rootNamespace
             );
 
-            return WithAssembly(assembly);
+            var builder = WithAssembly(assembly);
+            foreach (var assemblyReference in assembly.assemblyReferences)
+            {   
+                builder.WithNameForDefines(assemblyReference.defines, assemblyReference.name, assemblyReference.name);
+            }
+
+            return builder;
         }
 
 #if UNITY_2020_2_OR_NEWER
@@ -194,9 +200,9 @@ namespace Packages.Rider.Editor.Tests
             return this;
         }
 
-        public SynchronizerBuilder WithOutputPathForAssemblyPath(string outputPath, string assemblyName, string resAssemblyName)
+        public SynchronizerBuilder WithNameForDefines(string[] defines, string assemblyName, string resAssemblyName)
         {
-            m_AssemblyProvider.Setup(x => x.GetProjectName(outputPath, assemblyName)).Returns(resAssemblyName);
+            m_AssemblyProvider.Setup(x => x.GetProjectName(assemblyName, defines)).Returns(resAssemblyName);
             return this;
         }
     }
