@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
@@ -31,14 +32,10 @@ namespace Packages.Rider.Editor.Tests
             m_AssemblyNameProvider.ResetProjectGenerationFlag();
         }
 
-        [TestCase(@"Temp\Bin\Debug\", "AssemblyName", "AssemblyName")]
-        [TestCase(@"Temp\Bin\Debug\", "My.Player.AssemblyName", "My.Player.AssemblyName")]
-        [TestCase(@"Temp\Bin\Debug\", "AssemblyName.Player", "AssemblyName.Player")]
-        [TestCase(@"Temp\Bin\Debug\Player\", "AssemblyName", "AssemblyName.Player")]
-        [TestCase(@"Temp\Bin\Debug\Player\", "AssemblyName.Player", "AssemblyName.Player.Player")]
-        public void GetOutputPath_ReturnsPlayerAndeditorOutputPath(string assemblyOutputPath, string assemblyName, string expectedAssemblyName)
+        [Test]
+        public void ProjectNameForDefines1()
         {
-            Assert.AreEqual(expectedAssemblyName, m_AssemblyNameProvider.GetProjectName(assemblyOutputPath, assemblyName));
+            Assert.AreEqual("name", m_AssemblyNameProvider.GetProjectName("name", new []{"UNITY_EDITOR"}));
         }
 
         [Test]
@@ -55,7 +52,7 @@ namespace Packages.Rider.Editor.Tests
 
             foreach (var assembly in collectedAssemblies)
             {
-                Assert.That(assembly.outputPath, Is.EqualTo(@"Temp\Bin\Debug\"), $"{assembly.name}: had wrong output path: {assembly.outputPath}");
+                Assert.That(assembly.outputPath, Is.EqualTo($@"Temp\Bin\Debug\{assembly.name}\"), $"{assembly.name}: had wrong output path: {assembly.outputPath}");
             }
             foreach (Assembly editorAssembly in editorAssemblies)
             {
@@ -114,7 +111,7 @@ namespace Packages.Rider.Editor.Tests
 
             foreach (Assembly playerAssembly in playerAssemblies)
             {
-                Assert.IsTrue(collectedAssemblies.Any(assembly => assembly.name == playerAssembly.name && assembly.outputPath == @"Temp\Bin\Debug\Player\"), $"{playerAssembly.name}: was not found in collection.");
+                Assert.IsTrue(collectedAssemblies.Any(assembly => assembly.name == playerAssembly.name && assembly.outputPath == $@"Temp\Bin\Debug\{playerAssembly.name}\Player\"), $"{playerAssembly.name}: was not found in collection.");
             }
         }
     }
