@@ -68,6 +68,7 @@ namespace Packages.Rider.Editor.Tests
                     "    <OutputType>Library</OutputType>",
                     "    <AppDesignerFolder>Properties</AppDesignerFolder>",
                     $"    <AssemblyName>{m_Builder.Assembly.name}</AssemblyName>",
+                    @"    <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>",
                     "    <FileAlignment>512</FileAlignment>",
                     "    <BaseDirectory>.</BaseDirectory>",
                     "  </PropertyGroup>",
