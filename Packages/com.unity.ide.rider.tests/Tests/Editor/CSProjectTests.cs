@@ -68,7 +68,6 @@ namespace Packages.Rider.Editor.Tests
                     "    <OutputType>Library</OutputType>",
                     "    <AppDesignerFolder>Properties</AppDesignerFolder>",
                     $"    <AssemblyName>{m_Builder.Assembly.name}</AssemblyName>",
-                    "    <RestorePackages>false</RestorePackages>",
                     "    <FileAlignment>512</FileAlignment>",
                     "    <BaseDirectory>.</BaseDirectory>",
                     "  </PropertyGroup>",
