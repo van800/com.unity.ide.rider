@@ -660,7 +660,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
         @"    <OutputType>Library</OutputType>",
         @"    <AppDesignerFolder>Properties</AppDesignerFolder>",
         @"    <AssemblyName>{7}</AssemblyName>",
-        @"    <TargetFramework>{10}</TargetFramework>",
+        @"    <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>",
         @"    <FileAlignment>512</FileAlignment>",
         @"    <BaseDirectory>{12}</BaseDirectory>",
         @"  </PropertyGroup>",
