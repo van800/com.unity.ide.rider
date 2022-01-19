@@ -1,5 +1,10 @@
 # Code Editor Package for Rider
 
+## [3.0.11] - 2022-01-19
+
+Fix regression of 3.0.10 - solution load with dotnet 3.1. https://github.com/JetBrains/resharper-unity/issues/2245
+
+
 ## [3.0.10] - 2021-12-09
 
 - Fix presentation of the TargetFramework in the csproj
