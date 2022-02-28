@@ -105,7 +105,9 @@ namespace Packages.Rider.Editor.ProjectGeneration
     {
       SetupSupportedExtensions();
 
-      if (HasFilesBeenModified(affectedFiles, reimportedFiles) || RiderScriptEditorData.instance.hasChanges || RiderScriptEditorData.instance.HasChangesInCompilationDefines())
+      if (HasFilesBeenModified(affectedFiles, reimportedFiles) || RiderScriptEditorData.instance.hasChanges 
+                                                               || RiderScriptEditorData.instance.HasChangesInCompilationDefines()
+                                                               || LastWriteTracker.HasLastWriteTimeChanged())
       {
         Sync();
         RiderScriptEditorData.instance.hasChanges = false;
@@ -383,11 +385,11 @@ namespace Packages.Rider.Editor.ProjectGeneration
       return content;
     }
 
-    private void SyncFileIfNotChanged(string filename, string newContents)
+    private void SyncFileIfNotChanged(string path, string newContents)
     {
       try
       {
-        if (m_FileIOProvider.Exists(filename) && newContents == m_FileIOProvider.ReadAllText(filename))
+        if (m_FileIOProvider.Exists(path) && newContents == m_FileIOProvider.ReadAllText(path))
         {
           return;
         }
@@ -397,7 +399,8 @@ namespace Packages.Rider.Editor.ProjectGeneration
         Debug.LogException(exception);
       }
 
-      m_FileIOProvider.WriteAllText(filename, newContents);
+      m_FileIOProvider.WriteAllText(path, newContents);
+      LastWriteTracker.UpdateLastWriteIfNeeded(path);
     }
 
     private string ProjectText(ProjectPart assembly)
