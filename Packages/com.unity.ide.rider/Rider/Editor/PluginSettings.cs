@@ -5,10 +5,10 @@ namespace Packages.Rider.Editor
 {
   internal static class PluginSettings
   {
-    public static bool DisableTrackingProjectFileChanges
+    public static bool TrackProjectFileChanges
     {
-      get => EditorPrefs.GetBool("Rider_DisableTrackingProjectFileChanges", false);
-      private set => EditorPrefs.SetBool("Rider_DisableTrackingProjectFileChanges", value);
+      get => EditorPrefs.GetBool("Rider_TrackProjectFileChanges", true);
+      private set => EditorPrefs.SetBool("Rider_TrackProjectFileChanges", value);
     }
 
     public static LoggingLevel SelectedLoggingLevel
@@ -53,11 +53,10 @@ namespace Packages.Rider.Editor
           
           GUILayout.BeginVertical();
           var val =
-            EditorGUILayout.Toggle(new GUIContent("Disable FileSystemWatcher on csproj/sln files:"), DisableTrackingProjectFileChanges);
-          if (val != DisableTrackingProjectFileChanges)
+            EditorGUILayout.Toggle(new GUIContent("Update project files on external modification:"), TrackProjectFileChanges);
+          if (val != TrackProjectFileChanges)
             EditorUtility.RequestScriptReload();
-          DisableTrackingProjectFileChanges = val;
-          EditorGUILayout.HelpBox("Try this setting, if you experience hangs on AppDomain unload similar to RIDER-71503", MessageType.None);
+          TrackProjectFileChanges = val;
           GUILayout.EndVertical();
           
           GUILayout.Label("");

@@ -10,7 +10,7 @@ namespace Packages.Rider.Editor
     public static void InitWatcher(string watchDirectory,
       string filter, FileSystemEventHandler onChanged)
     {
-      if (PluginSettings.DisableTrackingProjectFileChanges)
+      if (!PluginSettings.TrackProjectFileChanges)
       {
         if (PluginSettings.SelectedLoggingLevel >= LoggingLevel.VERBOSE)
           Debug.Log("Project files tracking is disabled.");
