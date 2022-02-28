@@ -97,10 +97,6 @@ namespace Packages.Rider.Editor
             {
               RiderScriptEditorData.instance.hasChanges = true;
             });
-          
-          RiderFileSystemWatcher.InitWatcher(
-            Path.Combine(Directory.GetCurrentDirectory(), "Packages"),
-            "manifest.json", (sender, args) => { RiderScriptEditorData.instance.hasChanges = true; });
 
           // can't switch to non-deprecated api, because UnityEditor.Build.BuildPipelineInterfaces.processors is internal
 #pragma warning disable 618
