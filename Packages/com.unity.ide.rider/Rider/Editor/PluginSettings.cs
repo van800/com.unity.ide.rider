@@ -55,7 +55,13 @@ namespace Packages.Rider.Editor
           var val =
             EditorGUILayout.Toggle(new GUIContent("Update project files on external modification:"), TrackProjectFileChanges);
           if (val != TrackProjectFileChanges)
+          {
+            #if UNITY_2019_3_OR_NEWER
             EditorUtility.RequestScriptReload();
+            #else
+            UnityEditorInternal.InternalEditorUtility.RequestScriptReload();
+            #endif
+          }
           TrackProjectFileChanges = val;
           GUILayout.EndVertical();
           
