@@ -5,12 +5,6 @@ namespace Packages.Rider.Editor
 {
   internal static class PluginSettings
   {
-    public static bool TrackProjectFileChanges
-    {
-      get => EditorPrefs.GetBool("Rider_TrackProjectFileChanges", true);
-      private set => EditorPrefs.SetBool("Rider_TrackProjectFileChanges", value);
-    }
-
     public static LoggingLevel SelectedLoggingLevel
     {
       get => (LoggingLevel) EditorPrefs.GetInt("Rider_SelectedLoggingLevel", 0);
@@ -49,20 +43,6 @@ namespace Packages.Rider.Editor
           LogEventsCollectorEnabled =
             EditorGUILayout.Toggle(new GUIContent("Pass Console to Rider:"), LogEventsCollectorEnabled);
 
-          GUILayout.EndVertical();
-          
-          GUILayout.BeginVertical();
-          var val =
-            EditorGUILayout.Toggle(new GUIContent("Update project files on external modification:"), TrackProjectFileChanges);
-          if (val != TrackProjectFileChanges)
-          {
-            #if UNITY_2019_3_OR_NEWER
-            EditorUtility.RequestScriptReload();
-            #else
-            UnityEditorInternal.InternalEditorUtility.RequestScriptReload();
-            #endif
-          }
-          TrackProjectFileChanges = val;
           GUILayout.EndVertical();
           
           GUILayout.Label("");
