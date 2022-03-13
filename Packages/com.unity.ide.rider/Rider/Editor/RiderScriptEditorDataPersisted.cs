@@ -16,10 +16,7 @@ namespace Packages.Rider.Editor
             {
                 if (!value.HasValue) return;
                 lastWriteTicks = value.Value.ToBinary();
-                EditorApplication.delayCall += () =>
-                {
-                    Save(true);
-                };
+                Save(true);
             }
         }
     }
