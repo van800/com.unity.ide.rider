@@ -30,6 +30,9 @@ namespace Packages.Rider.Editor.ProjectGeneration
         
         internal static void UpdateLastWriteIfNeeded(string path)
         {
+            if (!PluginSettings.TrackProjectFileChanges)
+                return;
+
             var fileInfo = new FileInfo(path);
             if (fileInfo.Directory == null)
                 return;
