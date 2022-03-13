@@ -36,7 +36,7 @@ namespace Packages.Rider.Editor
         keywords = new[] { "Rider" },
         guiHandler = (searchContext) =>
         {
-          EditorGUIUtility.labelWidth = 400f;
+          EditorGUIUtility.labelWidth = 200f;
           EditorGUILayout.BeginVertical();
 
           GUILayout.BeginVertical();
@@ -44,7 +44,6 @@ namespace Packages.Rider.Editor
             EditorGUILayout.Toggle(new GUIContent("Pass Console to Rider:"), LogEventsCollectorEnabled);
 
           GUILayout.EndVertical();
-          
           GUILayout.Label("");
 
           if (!string.IsNullOrEmpty(EditorPluginInterop.LogPath))
