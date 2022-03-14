@@ -403,7 +403,6 @@ namespace Packages.Rider.Editor.ProjectGeneration
       }
 
       m_FileIOProvider.WriteAllText(path, newContents);
-      LastWriteTracker.UpdateLastWriteIfNeeded(path);
     }
 
     private string ProjectText(ProjectPart assembly)
