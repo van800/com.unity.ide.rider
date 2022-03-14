@@ -225,7 +225,7 @@ namespace Packages.Rider.Editor
       m_ProjectGeneration.SyncIfNeeded(addedFiles.Union(deletedFiles).Union(movedFiles).Union(movedFromFiles),
         importedFiles);
     }
-
+    
     public void SyncAll()
     {
       AssetDatabase.Refresh();
@@ -236,6 +236,13 @@ namespace Packages.Rider.Editor
     public static void SyncSolution() // generate-the-sln-file-via-script-or-command-line
     {
       m_ProjectGeneration.Sync();
+    }
+    
+    [UsedImplicitly] // called from Rider EditorPlugin with reflection
+    public static void SyncIfNeeded(bool checkProjectFiles)
+    {
+      AssetDatabase.Refresh();
+      m_ProjectGeneration.SyncIfNeeded(new string[] { }, new string[] { }, checkProjectFiles);
     }
     
     [UsedImplicitly]

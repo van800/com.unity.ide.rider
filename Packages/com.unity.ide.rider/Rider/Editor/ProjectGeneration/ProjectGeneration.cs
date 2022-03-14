@@ -101,13 +101,16 @@ namespace Packages.Rider.Editor.ProjectGeneration
     /// <param name="reimportedFiles">
     /// A set of files that got reimported
     /// </param>
-    public bool SyncIfNeeded(IEnumerable<string> affectedFiles, IEnumerable<string> reimportedFiles)
+    /// <param name="checkProjectFiles">
+    /// Check if project files were changed externally
+    /// </param>
+    public bool SyncIfNeeded(IEnumerable<string> affectedFiles, IEnumerable<string> reimportedFiles, bool checkProjectFiles = false)
     {
       SetupSupportedExtensions();
 
       if (HasFilesBeenModified(affectedFiles, reimportedFiles) || RiderScriptEditorData.instance.hasChanges 
                                                                || RiderScriptEditorData.instance.HasChangesInCompilationDefines()
-                                                               || (EditorPluginCookie.instance.checkProjectFiles && LastWriteTracker.HasLastWriteTimeChanged()))
+                                                               || (checkProjectFiles && LastWriteTracker.HasLastWriteTimeChanged()))
       {
         Sync();
         RiderScriptEditorData.instance.hasChanges = false;
