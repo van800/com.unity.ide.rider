@@ -107,7 +107,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
       if (HasFilesBeenModified(affectedFiles, reimportedFiles) || RiderScriptEditorData.instance.hasChanges 
                                                                || RiderScriptEditorData.instance.HasChangesInCompilationDefines()
-                                                               || (EditorPluginCookie.instance.syncIfNeededCalledFromRider && LastWriteTracker.HasLastWriteTimeChanged()))
+                                                               || (EditorPluginCookie.instance.checkProjectFiles && LastWriteTracker.HasLastWriteTimeChanged()))
       {
         Sync();
         RiderScriptEditorData.instance.hasChanges = false;
