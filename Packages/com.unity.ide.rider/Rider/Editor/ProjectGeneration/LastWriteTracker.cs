@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using UnityEngine;
 
 namespace Packages.Rider.Editor.ProjectGeneration
 {
@@ -10,9 +9,8 @@ namespace Packages.Rider.Editor.ProjectGeneration
   {
     internal static bool HasLastWriteTimeChanged()
     {
-#if !UNITY_2020_1_OR_NEWER
-      return false;
-#else
+      if (!IsUnityCompatible()) return false;
+
       // any external changes of sln/csproj or manifest.json should cause their regeneration
       // Directory.GetCurrentDirectory(), "*.csproj", "*.sln"
       var files = new List<FileInfo>();
@@ -22,14 +20,12 @@ namespace Packages.Rider.Editor.ProjectGeneration
       files.Add(new FileInfo(Path.Combine(directoryInfo.FullName, directoryInfo.Name + ".sln")));
 
       return files.Any(a => a.LastWriteTime > RiderScriptEditorPersistedState.instance.LastWrite);
-#endif
     }
 
     internal static void UpdateLastWriteIfNeeded(string path)
     {
-#if !UNITY_2020_1_OR_NEWER
-      return;
-#else
+      if (!IsUnityCompatible()) return;
+
       var fileInfo = new FileInfo(path);
       if (fileInfo.Directory == null)
         return;
@@ -40,6 +36,14 @@ namespace Packages.Rider.Editor.ProjectGeneration
       {
         RiderScriptEditorPersistedState.instance.LastWrite = fileInfo.LastWriteTime;
       }
+    }
+
+    private static bool IsUnityCompatible()
+    {
+#if UNITY_2020_1_OR_NEWER
+      return true;
+#else
+      return false;
 #endif
     }
   }
