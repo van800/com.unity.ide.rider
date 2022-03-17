@@ -27,12 +27,12 @@ namespace Packages.Rider.Editor.Tests
             return fileToContent[fileName];
         }
 
-        public void WriteAllText(string fileName, string content)
+        public void WriteAllText(string path, string content)
         {
             ++WriteTimes;
             var utf8 = Encoding.UTF8;
             byte[] utfBytes = utf8.GetBytes(content);
-            fileToContent[fileName] = utf8.GetString(utfBytes, 0, utfBytes.Length);
+            fileToContent[path] = utf8.GetString(utfBytes, 0, utfBytes.Length);
         }
 
         public string EscapedRelativePathFor(string file, string projectDirectory)
