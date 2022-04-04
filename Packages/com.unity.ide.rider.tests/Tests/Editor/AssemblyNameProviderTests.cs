@@ -82,8 +82,8 @@ namespace Packages.Rider.Editor.Tests
 
             foreach (Assembly editorAssembly in editorAssemblies)
             {
-                Assert.IsTrue(editorAssembly.allReferences.Any(reference => reference.EndsWith("UnityEngine.dll")));
-                Assert.IsTrue(editorAssembly.allReferences.Any(reference => reference.EndsWith("UnityEditor.dll")));
+                Assert.IsTrue(editorAssembly.allReferences.Any(reference => reference.EndsWith("UnityEngine.dll")), $"UnityEngine.dll not found among {editorAssembly.allReferences.Length} references");
+                Assert.IsTrue(editorAssembly.allReferences.Any(reference => reference.EndsWith("UnityEditor.dll")), $"UnityEditor.dll not found among {editorAssembly.allReferences.Length} references");
             }
         }
 
