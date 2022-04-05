@@ -76,18 +76,6 @@ namespace Packages.Rider.Editor.Tests
 #endif
 
         [Test]
-        public void AllEditorAssemblies_HaveAReferenceToUnityEditorAndUnityEngine()
-        {
-            var editorAssemblies = CompilationPipeline.GetAssemblies(AssembliesType.Editor);
-
-            foreach (Assembly editorAssembly in editorAssemblies)
-            {
-                Assert.IsTrue(editorAssembly.allReferences.Any(reference => reference.EndsWith("UnityEngine.dll")), $"Assembly \"{editorAssembly.name}\" doesn't have reference to UnityEngine.dll among {editorAssembly.allReferences.Length} references");
-                Assert.IsTrue(editorAssembly.allReferences.Any(reference => reference.EndsWith("UnityEditor.dll")), $"Assembly \"{editorAssembly.name}\" doesn't have reference to UnityEngine.dll among {editorAssembly.allReferences.Length} references");
-            }
-        }
-
-        [Test]
         public void PlayerAssemblies_AreNotCollected_BeforeToggling()
         {
             var playerAssemblies = CompilationPipeline.GetAssemblies(AssembliesType.Player);
