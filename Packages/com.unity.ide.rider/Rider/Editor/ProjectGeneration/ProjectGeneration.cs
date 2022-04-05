@@ -134,8 +134,6 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
     public void Sync()
     {
-      m_AssemblyNameProvider.ResetPackageInfoCache();
-      m_AssemblyNameProvider.ResetAssembliesCache();
       SetupSupportedExtensions();
       var types = GetAssetPostprocessorTypes();
       isRiderProjectGeneration = true;
@@ -147,6 +145,8 @@ namespace Packages.Rider.Editor.ProjectGeneration
       }
 
       OnGeneratedCSProjectFiles(types);
+      m_AssemblyNameProvider.ResetPackageInfoCache();
+      m_AssemblyNameProvider.ResetAssembliesCache();
     }
 
     public bool HasSolutionBeenGenerated()
