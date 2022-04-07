@@ -1,5 +1,11 @@
 # Code Editor Package for Rider
 
+## [3.0.14] - 2022-04-07
+
+- Move Rider package persisted state to Library, to avoid vcs collisions or adding it specifically to gitignore
+
+
+
 ## [3.0.10] - 2021-12-09
 
 - Fix presentation of the TargetFramework in the csproj
