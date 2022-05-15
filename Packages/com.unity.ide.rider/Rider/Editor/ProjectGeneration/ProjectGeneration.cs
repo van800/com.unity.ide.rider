@@ -230,8 +230,8 @@ namespace Packages.Rider.Editor.ProjectGeneration
           Array.Empty<string>(),
           Array.Empty<Assembly>(),
           riderAssembly.compiledAssemblyReferences.Where(a =>
-            a.EndsWith("UnityEditor.dll") || a.EndsWith("UnityEngine.dll") ||
-            a.EndsWith("UnityEngine.CoreModule.dll")).ToArray(), riderAssembly.flags);
+            a.EndsWith("UnityEditor.dll", StringComparison.Ordinal) || a.EndsWith("UnityEngine.dll", StringComparison.Ordinal) ||
+            a.EndsWith("UnityEngine.CoreModule.dll", StringComparison.Ordinal)).ToArray(), riderAssembly.flags);
       return new ProjectPart(assemblyName, assembly, assetProjectPart);
     }
 
@@ -772,7 +772,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
                 return new KeyValuePair<string, string>(warnaserror, b.Substring(warnaserror.Length + 1));
               }
               const string nullable = "nullable";
-              if (b.Substring(1).StartsWith(nullable))
+              if (b.Substring(1).StartsWith(nullable, StringComparison.Ordinal))
               {
                 var res = b.Substring(nullable.Length + 1);
                 if (string.IsNullOrWhiteSpace(res) || res.Equals("+"))
