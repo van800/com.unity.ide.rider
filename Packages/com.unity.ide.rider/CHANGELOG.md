@@ -1,5 +1,13 @@
 # Code Editor Package for Rider
 
+## [3.0.15] - 2022-05-24
+
+- Cleanup cache after project generation to reduce memory consumption
+- Performance optimization
+- RIDER-76126 Rider package should generate an empty csproj for empty Unity project
+- RIDER-77206 Unity 2020.1.3 'PlayerSettings' does not contain a definition for 'suppressCommonWarnings
+
+
 ## [3.0.10] - 2021-12-09
 
 - Fix presentation of the TargetFramework in the csproj
