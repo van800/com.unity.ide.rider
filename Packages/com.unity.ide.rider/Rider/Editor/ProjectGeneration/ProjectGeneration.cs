@@ -205,12 +205,12 @@ namespace Packages.Rider.Editor.ProjectGeneration
       var riderAssembly = m_AssemblyNameProvider.GetAssemblies(_ => true).FirstOrDefault(a=>a.name == executingAssemblyName);
       var projectPartsWithoutAssembly = allAssetProjectParts.Where(a => !assemblyNames.Contains(a.Key));
       projectParts.AddRange(projectPartsWithoutAssembly.Select(allAssetProjectPart => 
-        AddProjectPart(allAssetProjectPart.Key, riderAssembly, allAssetProjectPart.Value)));
+        AddProjectPart(allAssetProjectPart.Key, riderAssembly, allAssetProjectPart.Value, Array.Empty<string>())));
 
       if (!projectParts.Any()) // just an empty project, when there are no files at all
       {
         var assetProjectPart = $"     <Folder Include=\"Assets\"/>{Environment.NewLine}";
-        projectParts.Add(AddProjectPart("Assembly-CSharp", riderAssembly, assetProjectPart));
+        projectParts.Add(AddProjectPart("Assembly-CSharp", riderAssembly, assetProjectPart, new []{"UNITY_EDITOR"}));
       }
 
       SyncSolution(projectParts.ToArray(), types);
@@ -221,13 +221,13 @@ namespace Packages.Rider.Editor.ProjectGeneration
       }
     }
 
-    private static ProjectPart AddProjectPart(string assemblyName, Assembly riderAssembly, string assetProjectPart)
+    private static ProjectPart AddProjectPart(string assemblyName, Assembly riderAssembly, string assetProjectPart, string[] defines)
     {
       Assembly assembly = null;
       if (riderAssembly != null)
         // We want to add those references, so that Rider would detect Unity path and version and provide rich features for shader files
         assembly = new Assembly(assemblyName, riderAssembly.outputPath, Array.Empty<string>(),
-          Array.Empty<string>(),
+          defines,
           Array.Empty<Assembly>(),
           riderAssembly.compiledAssemblyReferences.Where(a =>
             a.EndsWith("UnityEditor.dll", StringComparison.Ordinal) || a.EndsWith("UnityEngine.dll", StringComparison.Ordinal) ||
