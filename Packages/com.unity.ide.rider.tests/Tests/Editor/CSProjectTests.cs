@@ -230,7 +230,7 @@ namespace Packages.Rider.Editor.Tests
             [Test] // RIDER-60508 Don't have support for Shaderlab
             public void ShaderWithoutCompileScript_WithReference_WillGetAdded()
             {
-                var assembly = new Assembly("name", "Temp/Bin/Debug", new string[0], new string[0], new Assembly[0],
+                var assembly = new Assembly("name", string.Empty, Array.Empty<string>(), new []{"UNITY_EDITOR"}, new Assembly[0],
                     new string[0], AssemblyFlags.EditorAssembly);
                 var riderAssembly = new Assembly("Unity.Rider.Editor", "Temp/Bin/Debug", new string[0], new string[0],
                     new Assembly[0],
