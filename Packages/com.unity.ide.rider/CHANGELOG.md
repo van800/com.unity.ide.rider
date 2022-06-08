@@ -8,6 +8,23 @@
 - RIDER-77206 Unity 2020.1.3 'PlayerSettings' does not contain a definition for 'suppressCommonWarnings
 
 
+## [3.0.14] - 2022-04-21
+
+- Move Rider package persisted state to Library, to avoid vcs collisions or adding it specifically to gitignore
+
+
+## [3.0.13] - 2022-03-24
+
+- fix RIDER-69927 "Test not run" status is shown for the test suite when running unit tests for Unity project
+- fix RIDER-74676 Unity plugin "JetBrainseRider Editor" completely breaks <= 2019.1.9
+- fix RIDER-71503 Unity Hang on "Domain Unload", caused by dispose of FileSystemWatcher
+
+
+## [3.0.12] - 2022-01-28
+
+- Fix bug, which was introduced in 3.0.10: New script was not added to the csproj, because cached list of assemblies was used.
+
+
 ## [3.0.10] - 2021-12-09
 
 - Fix presentation of the TargetFramework in the csproj
