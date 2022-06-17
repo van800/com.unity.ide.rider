@@ -453,7 +453,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
       foreach (var reference in allReferences)
       {
-        var fullReference = Path.IsPathRooted(reference) ? reference : Path.Combine(ProjectDirectory, reference);
+        var fullReference = Path.IsPathRooted(reference) ? reference : Path.GetFullPath(reference);
         AppendReference(fullReference, projectBuilder);
       }
 
