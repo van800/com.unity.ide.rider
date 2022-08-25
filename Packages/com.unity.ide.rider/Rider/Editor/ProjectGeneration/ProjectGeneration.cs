@@ -245,7 +245,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
         var extension = Path.GetExtension(asset);
         if (Directory.Exists(asset))
         {
-          var assemblyName = m_AssemblyNameProvider.GetAssemblyNameFromScriptPath($"{asset}/{asset}.cs");
+          var assemblyName = m_AssemblyNameProvider.GetAssemblyNameFromScriptPath($"{asset}/asset.cs");
 
           if (string.IsNullOrEmpty(assemblyName))
           {
