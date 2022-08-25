@@ -241,6 +241,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
           continue;
         }
 
+        var fallbackAssemblyName = "Assembly-CSharp";
         var extension = Path.GetExtension(asset);
         if (Directory.Exists(asset))
         {
@@ -248,7 +249,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
           if (string.IsNullOrEmpty(assemblyName))
           {
-            continue;
+            assemblyName = fallbackAssemblyName;
           }
 
           assemblyName = FileSystemUtil.FileNameWithoutExtension(assemblyName);
@@ -269,7 +270,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
           if (string.IsNullOrEmpty(assemblyName))
           {
-            continue;
+            assemblyName = fallbackAssemblyName;
           }
 
           assemblyName = FileSystemUtil.FileNameWithoutExtension(assemblyName);
