@@ -16,8 +16,7 @@ namespace Packages.Rider.Editor.Tests
 
                 synchronizer.Sync();
 
-                var text = m_Builder.ReadFile(synchronizer.SolutionFile());
-                Assert.AreEqual(1, Regex.Matches(text, "Project\\(\"{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}\"\\)").Count);
+                Assert.False(m_Builder.ReadFile(synchronizer.SolutionFile()).Contains("Project(\"{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}\")"), "Should not create project entry with no assemblies.");
             }
 
             [Test]

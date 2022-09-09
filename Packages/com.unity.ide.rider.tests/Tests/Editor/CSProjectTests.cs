@@ -771,7 +771,7 @@ namespace Packages.Rider.Editor.Tests
                 synchronizer.Sync();
 
                 var csprojFileContents = m_Builder.ReadProjectFile(m_Builder.Assembly);
-                Assert.That(csprojFileContents, Does.Match($"<Reference Include=\"Goodbye\">\\W*<HintPath>{Regex.Escape(MakeAbsolutePathTestImplementation("Folder/Path With Space/Goodbye.dll").NormalizePath())}\\W*</HintPath>\\W*</Reference>"));
+                Assert.That(csprojFileContents, Does.Match($"<Reference Include=\"Goodbye\">\\W*<HintPath>{Regex.Escape(MakeAbsolutePath("Folder/Path With Space/Goodbye.dll").NormalizePath())}\\W*</HintPath>\\W*</Reference>"));
             }
 
             [Test]
@@ -800,8 +800,8 @@ namespace Packages.Rider.Editor.Tests
 
                 var csprojFileContents = m_Builder.ReadProjectFile(m_Builder.Assembly);
 
-                Assert.That(csprojFileContents, Does.Match($@"<Reference Include=""Hello"">\W*<HintPath>{Regex.Escape(MakeAbsolutePathTestImplementation("Hello.dll").NormalizePath())}</HintPath>\W*</Reference>"));
-                Assert.That(csprojFileContents, Does.Match($@"<Reference Include=""MyPlugin"">\W*<HintPath>{Regex.Escape(MakeAbsolutePathTestImplementation("MyPlugin.dll").NormalizePath())}</HintPath>\W*</Reference>"));
+                Assert.That(csprojFileContents, Does.Match($@"<Reference Include=""Hello"">\W*<HintPath>{Regex.Escape(MakeAbsolutePath("Hello.dll").NormalizePath())}</HintPath>\W*</Reference>"));
+                Assert.That(csprojFileContents, Does.Match($@"<Reference Include=""MyPlugin"">\W*<HintPath>{Regex.Escape(MakeAbsolutePath("MyPlugin.dll").NormalizePath())}</HintPath>\W*</Reference>"));
             }
 
             [Test]
