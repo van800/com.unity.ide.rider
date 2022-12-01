@@ -1,5 +1,21 @@
 # Code Editor Package for Rider
 
+## [3.0.17] - 2022-12-01
+
+ - Avoid adding asset project parts to both editor and player projects, fixes the following issues:
+ - [RIDER-75500](https://youtrack.jetbrains.com/issue/RIDER-75500) Local package references completions shows duplicate entries if player projects are generated
+ - [RIDER-73795](https://youtrack.jetbrains.com/issue/RIDER-73795) Conversion to guid is not offered for assemblies with generated player projects
+ - [RIDER-71238](https://youtrack.jetbrains.com/issue/RIDER-71238) No usages can be found for the assembly if player projects are generated
+
+
+## [3.0.16] - 2022-09-09
+
+- Update the changelog
+- Add folders to the generated csproj files
+- Avoid extra RequestScriptReload call on the first start
+- Fix shader support for folders in packages, but outside asmdef
+
+
 ## [3.0.15] - 2022-05-24
 
 - Cleanup cache after project generation to reduce memory consumption
