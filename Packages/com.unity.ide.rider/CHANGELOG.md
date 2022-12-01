@@ -1,5 +1,13 @@
 # Code Editor Package for Rider
 
+## [3.0.16] - 2022-09-09
+
+- Update the changelog
+- Add folders to the generated csproj files
+- Avoid extra RequestScriptReload call on the first start
+- Fix shader support for folders in packages, but outside asmdef
+
+
 ## [3.0.15] - 2022-05-24
 
 - Cleanup cache after project generation to reduce memory consumption
