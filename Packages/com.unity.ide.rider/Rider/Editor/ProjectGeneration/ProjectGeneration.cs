@@ -249,7 +249,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
         var fallbackAssemblyName = "Assembly-CSharp";
         var extension = Path.GetExtension(asset);
-        if (Directory.Exists(asset))
+        if (AssetDatabase.IsValidFolder(asset))
         {
           var assemblyName = m_AssemblyNameProvider.GetAssemblyNameFromScriptPath($"{asset}/asset.cs");
 
