@@ -44,6 +44,8 @@ namespace Editor
             if (Directory.Exists(k_TestFolderPath))
             {
                 Directory.Delete(k_TestFolderPath, true);
+                if (File.Exists(k_TestFolderPath+".meta"))
+                    File.Delete(k_TestFolderPath+".meta");
             }
         }
         
