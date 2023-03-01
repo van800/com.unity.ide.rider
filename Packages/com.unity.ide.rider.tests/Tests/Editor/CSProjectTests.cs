@@ -503,7 +503,38 @@ namespace Packages.Rider.Editor.Tests
                 XMLUtilities.AssertCompileItemsMatchExactly(scriptProject, m_Builder.Assembly.sourceFiles);
                 XMLUtilities.AssertNonCompileItemsMatchExactly(scriptProject, nonCompileItem);
             }
+            
+#if UNITY_2021_3 || UNITY_2022_2_OR_NEWER
+            [Test]
+            public void RoslynAdditionalFilePaths_WillBeAdded()
+            {
+                var options = new ScriptCompilerOptions();
+                typeof(ScriptCompilerOptions).GetProperty("RoslynAdditionalFilePaths")?.SetValue(options, new []{"Filename.AnalyzerName.additionalfile"}, null);
+                var synchronizer = m_Builder
+                    .WithAssemblyData(options: options)
+                    .Build();
 
+                synchronizer.Sync();
+
+                var csprojFileContents = m_Builder.ReadProjectFile(m_Builder.Assembly);
+                StringAssert.Contains($"<AdditionalFiles Include=\"Filename.AnalyzerName.additionalfile\" />", csprojFileContents);
+            }
+
+            [Test]
+            public void DefaultGlobalConfig_WillBeAdded()
+            {
+                var options = new ScriptCompilerOptions();
+                typeof(ScriptCompilerOptions).GetProperty("AnalyzerConfigPath")?.SetValue(options, "Default.globalconfig", null);
+                var synchronizer = m_Builder
+                    .WithAssemblyData(options: options)
+                    .Build();
+
+                synchronizer.Sync();
+
+                var csprojFileContents = m_Builder.ReadProjectFile(m_Builder.Assembly);
+                StringAssert.Contains($"<GlobalAnalyzerConfigFiles Include=\"Default.globalconfig\" />", csprojFileContents);
+            }
+#endif
             static string[] s_BuiltinSupportedExtensionsForAssets =
             {
                 "uxml", "uss", "shader", "compute", "cginc", "hlsl", "glslinc", "template", "raytrace"
