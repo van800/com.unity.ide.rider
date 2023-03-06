@@ -29,7 +29,7 @@ namespace Packages.Rider.Editor
         CodeEditor.Register(editor);
         var path = GetEditorRealPath(CurrentEditor);
 
-        if (IsRiderInstallation(path))
+        if (IsRiderOrFleetInstallation(path))
         {
           RiderPathLocator.RiderInfo[] installations = null;
 
@@ -371,9 +371,9 @@ namespace Packages.Rider.Editor
 
     public bool TryGetInstallationForPath(string editorPath, out CodeEditor.Installation installation)
     {
-      if (FileSystemUtil.EditorPathExists(editorPath) && IsRiderInstallation(editorPath))
+      if (FileSystemUtil.EditorPathExists(editorPath) && IsRiderOrFleetInstallation(editorPath))
       {
-        var info = new RiderPathLocator.RiderInfo(editorPath, false);
+        var info = new RiderPathLocator.RiderInfo(editorPath, RiderPathLocator.GetIsToolbox(editorPath));
         installation = new CodeEditor.Installation
         {
           Name = info.Presentation,
@@ -386,7 +386,7 @@ namespace Packages.Rider.Editor
       return false;
     }
 
-    public static bool IsRiderInstallation(string path)
+    public static bool IsRiderOrFleetInstallation(string path)
     {
       if (IsAssetImportWorkerProcess())
         return false;
@@ -406,8 +406,18 @@ namespace Packages.Rider.Editor
         return false;
 
       var fileInfo = new FileInfo(path);
-      var filename = fileInfo.Name.ToLowerInvariant();
-      return filename.StartsWith("rider", StringComparison.Ordinal);
+      var filename = fileInfo.Name;
+      return filename.StartsWith("rider", StringComparison.OrdinalIgnoreCase) || filename.StartsWith("fleet", StringComparison.OrdinalIgnoreCase);
+    }
+
+    public static string GetProductNameForPresentation(FileInfo path)
+    {
+      var filename = path.Name;
+      if (filename.StartsWith("rider", StringComparison.OrdinalIgnoreCase))
+        return "Rider";
+      if (filename.StartsWith("fleet", StringComparison.OrdinalIgnoreCase))
+        return "Fleet";
+      return filename;
     }
 
     private static bool IsAssetImportWorkerProcess()
