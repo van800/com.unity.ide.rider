@@ -288,12 +288,14 @@ namespace Packages.Rider.Editor
           return true;
       }
 
+      var solution = GetSolutionFile(path); // TODO: If solution file doesn't exist resync.
+      if (ExecutableStartsWith(CodeEditor.CurrentEditorInstallation, "fleet")) // I hope fleet would provide a way to specify the sln
+        solution = new FileInfo(solution).Directory.FullName;
       if (SystemInfo.operatingSystemFamily == OperatingSystemFamily.MacOSX)
       {
-        return OpenOSXApp(path, line, column);
+        return OpenOSXApp(solution, path, line, column);
       }
 
-      var solution = GetSolutionFile(path); // TODO: If solution file doesn't exist resync.
       solution = solution == "" ? "" : $"\"{solution}\"";
       var process = new Process
       {
@@ -310,9 +312,8 @@ namespace Packages.Rider.Editor
       return true;
     }
 
-    private bool OpenOSXApp(string path, int line, int column)
+    private bool OpenOSXApp(string solution, string path, int line, int column)
     {
-      var solution = GetSolutionFile(path);
       solution = solution == "" ? "" : $"\"{solution}\"";
       var pathArguments = path == "" ? "" : $"-l {line} \"{path}\"";
       var process = new Process
@@ -405,9 +406,14 @@ namespace Packages.Rider.Editor
       if (string.IsNullOrEmpty(path))
         return false;
 
+      return ExecutableStartsWith(path, "rider") || ExecutableStartsWith(path, "fleet");
+    }
+
+    public static bool ExecutableStartsWith(string path, string input)
+    {
       var fileInfo = new FileInfo(path);
       var filename = fileInfo.Name;
-      return filename.StartsWith("rider", StringComparison.OrdinalIgnoreCase) || filename.StartsWith("fleet", StringComparison.OrdinalIgnoreCase);
+      return filename.StartsWith(input, StringComparison.OrdinalIgnoreCase);
     }
 
     public static string GetProductNameForPresentation(FileInfo path)
