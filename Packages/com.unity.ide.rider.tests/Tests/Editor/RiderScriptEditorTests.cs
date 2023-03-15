@@ -20,9 +20,7 @@ namespace Packages.Rider.Editor.Tests
         [TestCase(@"C:\Program Files\Rider\bin\rider.exe")]
         [TestCase(@"C:\Program Files\Rider\bin\rider32.exe")]
         [TestCase(@"C:\Program Files\Rider\bin\rider64.exe")]
-        [TestCase(@"C:\Program Files\Fleet\bin\Fleet.exe")]
-        [TestCase(@"C:\Program Files\Fleet\bin\Fleet32.exe")]
-        [TestCase(@"C:\Program Files\Fleet\bin\Fleet64.exe")]
+        [TestCase(@"C:\Users\user name\AppData\Local\JetBrains\Toolbox\apps\Fleet\ch-2\1.6.54\Fleet.exe")]
         [UnityPlatform(RuntimePlatform.WindowsEditor)]
         public void WindowsIsRiderInstallationTest(string path)
         {

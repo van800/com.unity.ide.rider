@@ -162,7 +162,7 @@ namespace Packages.Rider.Editor
         .Select(a => new RiderInfo(a, true)).ToList());
       
       var fleetRootPath = Path.Combine(appsPath, "Fleet");
-      installInfos.AddRange(CollectPathsFromToolbox(fleetRootPath, "bin", "fleet64.exe", false).ToList()
+      installInfos.AddRange(CollectPathsFromToolbox(fleetRootPath, string.Empty, "Fleet.exe", false).ToList()
         .Select(a => new RiderInfo(a, true)).ToList());
       
       var installPaths = new List<string>();
