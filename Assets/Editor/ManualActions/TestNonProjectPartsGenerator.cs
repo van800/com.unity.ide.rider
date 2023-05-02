@@ -38,7 +38,7 @@ namespace Editor
             }
         }
 
-        [MenuItem("Tests/Delete GeneratedScriptsAndAsmDefs")]
+        [MenuItem("Tests/Delete TestNonProjectPartsGenerator.GeneratedScriptsAndAsmDefs")]
         static void DeleteGeneratedScriptsAndAsmDefs()
         {
             if (Directory.Exists(k_TestFolderPath))
