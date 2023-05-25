@@ -97,8 +97,7 @@ namespace Packages.Rider.Editor.UnitTesting
           _sessionGuid = api.Execute(settings);
 
           api.UnregisterCallbacks(Callback); // avoid multiple registrations
-          api.RegisterCallbacks(
-            Callback); // This can be used to receive information about when the test suite and individual tests starts and stops. Provide this with a scriptable object implementing ICallbacks
+          api.RegisterCallbacks(Callback); // receive information about when the test suite and individual tests starts and stops.
         }
         else
         {
@@ -114,7 +113,7 @@ namespace Packages.Rider.Editor.UnitTesting
     }
 
     [UsedImplicitly]
-    public static void CancelTestRun()
+    internal static void CancelTestRun()
     {
 #if !TEST_FRAMEWORK
       Debug.LogError("Update Test Framework package to v.1.1.1+ to run tests from Rider.");
