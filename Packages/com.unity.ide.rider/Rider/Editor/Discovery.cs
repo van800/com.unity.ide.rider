@@ -89,6 +89,9 @@ namespace Packages.Rider.Editor
       var installInfos = new List<RiderInfo>();
       var appsPath = GetAppsRootPathInToolbox();
       
+      installInfos.AddRange(CollectToolbox20Linux(appsPath, "*rider*", "bin/rider.sh"));
+      installInfos.AddRange(CollectToolbox20Linux(appsPath, "*fleet*", "bin/Fleet"));
+
       var riderRootPath = Path.Combine(appsPath, "Rider");
       installInfos.AddRange(CollectPathsFromToolbox(riderRootPath, "bin", "rider.sh", false)
         .Select(a => new RiderInfo(a, true)).ToList());
@@ -127,6 +130,17 @@ namespace Packages.Rider.Editor
         installInfos.Add(new RiderInfo(snapInstallPath, false));
       
       return installInfos.ToArray();
+    }
+
+    private static IEnumerable<RiderInfo> CollectToolbox20Linux(string appsPath, string pattern, string relPath)
+    {
+      var result = new List<RiderInfo>();
+      if (string.IsNullOrEmpty(appsPath) || !Directory.Exists(appsPath))
+        return result;
+      
+      CollectToolbox20(appsPath, pattern, relPath, result);
+      
+      return result;
     }
 
     private static RiderInfo[] CollectRiderInfosMac()
@@ -178,8 +192,8 @@ namespace Packages.Rider.Editor
     {
       var installInfos = new List<RiderInfo>();
 
-      installInfos.AddRange(CollectToolbox20("*Rider*", "bin", "rider64.exe"));
-      installInfos.AddRange(CollectToolbox20("*Fleet*", "", "Fleet.exe"));
+      installInfos.AddRange(CollectToolbox20Windows("*Rider*", "bin/rider64.exe"));
+      installInfos.AddRange(CollectToolbox20Windows("*Fleet*", "Fleet.exe"));
 
       var appsPath = GetAppsRootPathInToolbox();
       var riderRootPath = Path.Combine(appsPath, "Rider");
@@ -201,33 +215,33 @@ namespace Packages.Rider.Editor
       return installInfos.ToArray();
     }
 
-    private static IEnumerable<RiderInfo> CollectToolbox20(string pattern, string binFolder, string exeName)
+    private static IEnumerable<RiderInfo> CollectToolbox20Windows(string pattern, string relPath)
     {
       var result = new List<RiderInfo>();
       var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
       if (!string.IsNullOrEmpty(localAppData))
       {
-        var folder = new DirectoryInfo(Path.Combine(localAppData, "Programs"));
-        foreach (var riderDirectory in folder.GetDirectories(pattern))
-        {
-          string executable;
-          if (string.IsNullOrEmpty(binFolder))
-          {
-            executable = Path.Combine(riderDirectory.FullName, exeName);
-          }
-          else
-          {
-            executable = Path.Combine(riderDirectory.FullName, binFolder, exeName);
-          }
-          
-          if (File.Exists(executable))
-          {
-            result.Add(new RiderInfo(executable, false));
-          }
-        }
+        CollectToolbox20(Path.Combine(localAppData, "Programs"), pattern, relPath, result);
       }
 
       return result;
+    }
+
+    private static void CollectToolbox20(string dir, string pattern, string relPath, List<RiderInfo> result)
+    {
+      var directoryInfo = new DirectoryInfo(dir);
+      if (!directoryInfo.Exists)
+        return;
+      
+      foreach (var riderDirectory in directoryInfo.GetDirectories(pattern))
+      {
+        var executable = Path.Combine(riderDirectory.FullName, relPath);
+       
+        if (File.Exists(executable))
+        {
+          result.Add(new RiderInfo(executable, true));
+        }
+      }
     }
 
     private static string GetAppsRootPathInToolbox()
