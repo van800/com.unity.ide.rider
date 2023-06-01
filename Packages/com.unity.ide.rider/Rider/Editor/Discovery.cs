@@ -132,14 +132,9 @@ namespace Packages.Rider.Editor
     private static RiderInfo[] CollectRiderInfosMac()
     {
       var installInfos = new List<RiderInfo>();
-      // "/Applications/*Rider*.app"
-      var folder = new DirectoryInfo("/Applications");
-      if (folder.Exists)
-      {
-        installInfos.AddRange(folder.GetDirectories("*Rider*.app")
-          .Select(a => new RiderInfo(a.FullName, false))
-          .ToList());
-      }
+
+      installInfos.AddRange(CollectFromApplications("*Rider*.app"));
+      installInfos.AddRange(CollectFromApplications("*Fleet*.app"));
 
       var appsPath = GetAppsRootPathInToolbox();
       var riderRootPath = Path.Combine(appsPath, "Rider");
@@ -151,6 +146,32 @@ namespace Packages.Rider.Editor
         .Select(a => new RiderInfo(a, true)));
 
       return installInfos.ToArray();
+    }
+
+    private static RiderInfo[] CollectFromApplications(string productMask)
+    {
+      var result = new List<RiderInfo>();
+      var folder = new DirectoryInfo("/Applications");
+      if (folder.Exists)
+      {
+        result.AddRange(folder.GetDirectories(productMask)
+          .Select(a => new RiderInfo(a.FullName, false))
+          .ToList());
+      }
+
+      var home = Environment.GetEnvironmentVariable("HOME");
+      if (!string.IsNullOrEmpty(home))
+      {
+        var userFolder = new DirectoryInfo(Path.Combine(home, "Applications"));
+        if (userFolder.Exists)
+        {
+          result.AddRange(userFolder.GetDirectories(productMask)
+            .Select(a => new RiderInfo(a.FullName, false))
+            .ToList());
+        }
+      }
+      
+      return result.ToArray();
     }
 
     private static RiderInfo[] CollectRiderInfosWindows()
