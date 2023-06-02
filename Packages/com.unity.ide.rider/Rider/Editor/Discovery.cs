@@ -239,7 +239,7 @@ namespace Packages.Rider.Editor
        
         if (File.Exists(executable))
         {
-          result.Add(new RiderInfo(executable, true));
+          result.Add(new RiderInfo(executable, false)); // false, because we can't check if it is Toolbox or not anyway
         }
       }
     }
@@ -382,14 +382,26 @@ namespace Packages.Rider.Editor
           if (folder.Length == 0) continue;
           var displayName = subkey.GetValue("DisplayName");
           if (displayName == null) continue;
-          if (!displayName.ToString().Contains("Rider")) continue;
-          try // possible "illegal characters in path"
+          if (displayName.ToString().Contains("Rider"))
           {
-            var possiblePath = Path.Combine(folder, @"bin\rider64.exe"); 
-            if (File.Exists(possiblePath))
-              installPaths.Add(possiblePath);
+            try // possible "illegal characters in path"
+            {
+              var possiblePath = Path.Combine(folder, @"bin\rider64.exe"); 
+              if (File.Exists(possiblePath))
+                installPaths.Add(possiblePath);
+            }
+            catch (ArgumentException) { }  
           }
-          catch (ArgumentException) { }
+          else if (displayName.ToString().Contains("Fleet"))
+          {
+            try // possible "illegal characters in path"
+            {
+              var possiblePath = Path.Combine(folder, @"Fleet.exe"); 
+              if (File.Exists(possiblePath))
+                installPaths.Add(possiblePath);
+            }
+            catch (ArgumentException) { }  
+          }
         }
       }
     }
