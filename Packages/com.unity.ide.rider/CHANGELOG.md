@@ -1,5 +1,11 @@
 # Code Editor Package for Rider
 
+## [3.0.23] - 2023-06-05
+
+ - fix [RIDER-91705](https://youtrack.jetbrains.com/issue/RIDER-91705). Improve UnitTesting support
+ - support JetBrains Toolbox App 2.0
+
+
 ## [3.0.21] - 2023-04-18
 
 [RIDER-92424](https://youtrack.jetbrains.com/issue/RIDER-92424) JetBrains Rider Editor 3.0.20 package Update for Unity, Cause's Rider to Slows to a Crawl after updating
