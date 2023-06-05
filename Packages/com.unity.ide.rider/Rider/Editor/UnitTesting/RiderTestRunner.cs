@@ -42,8 +42,8 @@ namespace Packages.Rider.Editor.UnitTesting
       string callbacksHandlerCodeBase, string callbacksHandlerTypeName, string[] callbacksHandlerDependencies)
     {
 #if !TEST_FRAMEWORK
-      Debug.LogError("Update Test Framework package to v.1.1.1+ to run tests from Rider.");
-      throw new NotSupportedException("Incompatible `Test Framework` package in Unity. Update to v.1.1.1+");
+      Debug.LogError("Update Test Framework package to v.1.1.8+ to run tests from Rider.");
+      throw new NotSupportedException("Incompatible `Test Framework` package in Unity. Update to v.1.1.8+");
 #else
       SyncTestRunEventsHandler.instance.InitRun(sessionId, callbacksHandlerCodeBase, callbacksHandlerTypeName, callbacksHandlerDependencies);
       RunTests(testMode, assemblyNames, testNames, categoryNames, groupNames, buildTarget);
@@ -63,8 +63,8 @@ namespace Packages.Rider.Editor.UnitTesting
     public static void RunTests(int testMode, string[] assemblyNames, string[] testNames, string[] categoryNames, string[] groupNames, int? buildTarget)
     {
 #if !TEST_FRAMEWORK
-      Debug.LogError("Update Test Framework package to v.1.1.1+ to run tests from Rider.");
-      throw new NotSupportedException("Incompatible `Test Framework` package in Unity. Update to v.1.1.1+");
+      Debug.LogError("Update Test Framework package to v.1.1.8+ to run tests from Rider.");
+      throw new NotSupportedException("Incompatible `Test Framework` package in Unity. Update to v.1.1.8+");
 #else
       CallbackData.instance.isRider = true;
             
@@ -116,8 +116,8 @@ namespace Packages.Rider.Editor.UnitTesting
     internal static void CancelTestRun()
     {
 #if !TEST_FRAMEWORK
-      Debug.LogError("Update Test Framework package to v.1.1.1+ to run tests from Rider.");
-      throw new NotSupportedException("Incompatible `Test Framework` package in Unity. Update to v.1.1.1+");
+      Debug.LogError("Update Test Framework package to v.1.1.8+ to run tests from Rider.");
+      throw new NotSupportedException("Incompatible `Test Framework` package in Unity. Update to v.1.1.8+");
 #else
       var methodInfo = typeof(TestRunnerApi).GetMethod("CancelTestRun");
       if (methodInfo == null)
