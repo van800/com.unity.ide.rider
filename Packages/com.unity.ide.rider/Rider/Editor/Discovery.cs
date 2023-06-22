@@ -48,29 +48,49 @@ namespace Packages.Rider.Editor
   }
 
   /// <summary>
-  /// This code is a modified version of the JetBrains resharper-unity plugin listed here:
+  /// This code is a modified version of the JetBrains resharper-unity plugin listed under Apache License 2.0 license:
   /// https://github.com/JetBrains/resharper-unity/blob/master/unity/JetBrains.Rider.Unity.Editor/EditorPlugin/RiderPathLocator.cs
   /// </summary>
   internal static class RiderPathLocator
   {
 #if !(UNITY_4_7 || UNITY_5_5)
+    [UsedImplicitly] // Used in com.unity.ide.rider
     public static RiderInfo[] GetAllRiderPaths()
     {
       try
       {
-        switch (SystemInfo.operatingSystemFamily)
+        if (IsWindows())
+          return CollectRiderInfosWindows();
+        if (IsMac())
+          return CollectRiderInfosMac();
+        if (IsLinux()) return CollectAllRiderPathsLinux();
+      }
+      catch (Exception e)
+      {
+        Debug.LogException(e);
+      }
+
+      return new RiderInfo[0];
+    }
+#endif
+
+
+#if RIDER_EDITOR_PLUGIN
+internal static RiderInfo[] GetAllFoundInfos(OperatingSystemFamilyRider operatingSystemFamily)
+    {
+      try
+      {
+        switch (operatingSystemFamily)
         {
-          case OperatingSystemFamily.Windows:
+          case OperatingSystemFamilyRider.Windows:
           {
             return CollectRiderInfosWindows();
           }
-
-          case OperatingSystemFamily.MacOSX:
+          case OperatingSystemFamilyRider.MacOSX:
           {
             return CollectRiderInfosMac();
           }
-
-          case OperatingSystemFamily.Linux:
+          case OperatingSystemFamilyRider.Linux:
           {
             return CollectAllRiderPathsLinux();
           }
@@ -81,27 +101,63 @@ namespace Packages.Rider.Editor
         Debug.LogException(e);
       }
 
-      return Array.Empty<RiderInfo>();
+      return new RiderInfo[0];
+    }
+
+    internal static string[] GetAllFoundPaths(OperatingSystemFamilyRider operatingSystemFamily)
+    {
+      return GetAllFoundInfos(operatingSystemFamily).Select(a=>a.Path).ToArray();
+    }
+
+    private static bool IsLinux()
+    {
+      return PluginSettings.SystemInfoRiderPlugin.operatingSystemFamily is OperatingSystemFamilyRider.Linux;
+    }
+
+    private static bool IsMac()
+    {
+      return PluginSettings.SystemInfoRiderPlugin.operatingSystemFamily is OperatingSystemFamilyRider.MacOSX;
+    }
+
+    private static bool IsWindows()
+    {
+      return PluginSettings.SystemInfoRiderPlugin.operatingSystemFamily is OperatingSystemFamilyRider.Windows;
+    }
+#else
+    private static bool IsLinux()
+    {
+      return SystemInfo.operatingSystemFamily is OperatingSystemFamily.Linux;
+    }
+
+    private static bool IsMac()
+    {
+      return SystemInfo.operatingSystemFamily is OperatingSystemFamily.MacOSX;
+    }
+
+    private static bool IsWindows()
+    {
+      return SystemInfo.operatingSystemFamily is OperatingSystemFamily.Windows;
     }
 #endif
+
     private static RiderInfo[] CollectAllRiderPathsLinux()
     {
       var installInfos = new List<RiderInfo>();
       var appsPath = GetAppsRootPathInToolbox();
-      
+
       installInfos.AddRange(CollectToolbox20Linux(appsPath, "*rider*", "bin/rider.sh"));
       installInfos.AddRange(CollectToolbox20Linux(appsPath, "*fleet*", "bin/Fleet"));
 
       var riderRootPath = Path.Combine(appsPath, "Rider");
       installInfos.AddRange(CollectPathsFromToolbox(riderRootPath, "bin", "rider.sh", false)
         .Select(a => new RiderInfo(a, true)).ToList());
-      
+
       var fleetRootPath = Path.Combine(appsPath, "Fleet");
       installInfos.AddRange(CollectPathsFromToolbox(fleetRootPath, "bin", "Fleet", false)
         .Select(a => new RiderInfo(a, true)).ToList());
-      
-      var home = Environment.GetEnvironmentVariable("HOME"); 
-      if (!string.IsNullOrEmpty(home)) 
+
+      var home = Environment.GetEnvironmentVariable("HOME");
+      if (!string.IsNullOrEmpty(home))
       {
         //$Home/.local/share/applications/jetbrains-rider.desktop
         var shortcut = new FileInfo(Path.Combine(home, @".local/share/applications/jetbrains-rider.desktop"));
@@ -128,7 +184,7 @@ namespace Packages.Rider.Editor
       var snapInstallPath = "/snap/rider/current/bin/rider.sh";
       if (new FileInfo(snapInstallPath).Exists)
         installInfos.Add(new RiderInfo(snapInstallPath, false));
-      
+
       return installInfos.ToArray();
     }
 
@@ -137,9 +193,9 @@ namespace Packages.Rider.Editor
       var result = new List<RiderInfo>();
       if (string.IsNullOrEmpty(appsPath) || !Directory.Exists(appsPath))
         return result;
-      
+
       CollectToolbox20(appsPath, pattern, relPath, result);
-      
+
       return result;
     }
 
@@ -154,7 +210,7 @@ namespace Packages.Rider.Editor
       var riderRootPath = Path.Combine(appsPath, "Rider");
       installInfos.AddRange(CollectPathsFromToolbox(riderRootPath, "", "Rider*.app", true)
         .Select(a => new RiderInfo(a, true)));
-      
+
       var fleetRootPath = Path.Combine(appsPath, "Fleet");
       installInfos.AddRange(CollectPathsFromToolbox(fleetRootPath, "", "Fleet*.app", true)
         .Select(a => new RiderInfo(a, true)));
@@ -184,7 +240,7 @@ namespace Packages.Rider.Editor
             .ToList());
         }
       }
-      
+
       return result.ToArray();
     }
 
@@ -199,17 +255,17 @@ namespace Packages.Rider.Editor
       var riderRootPath = Path.Combine(appsPath, "Rider");
       installInfos.AddRange(CollectPathsFromToolbox(riderRootPath, "bin", "rider64.exe", false).ToList()
         .Select(a => new RiderInfo(a, true)).ToList());
-      
+
       var fleetRootPath = Path.Combine(appsPath, "Fleet");
       installInfos.AddRange(CollectPathsFromToolbox(fleetRootPath, string.Empty, "Fleet.exe", false).ToList()
         .Select(a => new RiderInfo(a, true)).ToList());
-      
+
       var installPaths = new List<string>();
       const string registryKey = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall";
       CollectPathsFromRegistry(registryKey, installPaths);
       const string wowRegistryKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall";
       CollectPathsFromRegistry(wowRegistryKey, installPaths);
-      
+
       installInfos.AddRange(installPaths.Select(a => new RiderInfo(a, false)).ToList());
 
       return installInfos.ToArray();
@@ -232,11 +288,11 @@ namespace Packages.Rider.Editor
       var directoryInfo = new DirectoryInfo(dir);
       if (!directoryInfo.Exists)
         return;
-      
+
       foreach (var riderDirectory in directoryInfo.GetDirectories(pattern))
       {
         var executable = Path.Combine(riderDirectory.FullName, relPath);
-       
+
         if (File.Exists(executable))
         {
           result.Add(new RiderInfo(executable, false)); // false, because we can't check if it is Toolbox or not anyway
@@ -247,37 +303,25 @@ namespace Packages.Rider.Editor
     private static string GetAppsRootPathInToolbox()
     {
       string localAppData = string.Empty;
-      switch (SystemInfo.operatingSystemFamily)
+      if (IsWindows())
       {
-        case OperatingSystemFamily.Windows:
-        {
-          localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-          break;
-        }
-
-        case OperatingSystemFamily.MacOSX:
-        {
-          var home = Environment.GetEnvironmentVariable("HOME");
-          if (!string.IsNullOrEmpty(home))
-          {
-            localAppData = Path.Combine(home, @"Library/Application Support");
-          }
-          break;
-        }
-
-        case OperatingSystemFamily.Linux:
-        {
-          var home = Environment.GetEnvironmentVariable("HOME");
-          if (!string.IsNullOrEmpty(home))
-          {
-            localAppData = Path.Combine(home, @".local/share");
-          }
-          break;
-        }
-        default:
-          throw new Exception("Unknown OS");
+        localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
       }
-      
+      else if (IsMac())
+      {
+        var home = Environment.GetEnvironmentVariable("HOME");
+        if (!string.IsNullOrEmpty(home)) localAppData = Path.Combine(home, @"Library/Application Support");
+      }
+      else if (IsLinux())
+      {
+        var home = Environment.GetEnvironmentVariable("HOME");
+        if (!string.IsNullOrEmpty(home)) localAppData = Path.Combine(home, @".local/share");
+      }
+      else
+      {
+        throw new Exception("Unknown OS");
+      }
+
       var toolboxPath = Path.Combine(localAppData, @"JetBrains/Toolbox");
       var settingsJson = Path.Combine(toolboxPath, ".settings.json");
 
@@ -298,33 +342,33 @@ namespace Packages.Rider.Editor
       if (!Directory.Exists(dir))
         return null;
       var buildVersionFile = new FileInfo(Path.Combine(dir, "product-info.json"));
-      if (!buildVersionFile.Exists) 
+      if (!buildVersionFile.Exists)
         return null;
       var json = File.ReadAllText(buildVersionFile.FullName);
       return ProductInfo.GetProductInfo(json);
     }
-    
+
     internal static Version GetBuildNumber(string path)
     {
       var buildTxtFileInfo = new FileInfo(Path.Combine(path, GetRelativePathToBuildTxt()));
-      return GetBuildNumberWithBuildTxt(buildTxtFileInfo) ?? GetBuildNumberFromPath(path);
+      return GetBuildNumberWithBuildTxt(buildTxtFileInfo) ?? GetBuildNumberFromInput(path);
     }
-    
+
     private static Version GetBuildNumberWithBuildTxt(FileInfo file)
     {
-      if (!file.Exists) 
+      if (!file.Exists)
         return null;
       var text = File.ReadAllText(file.FullName);
       var index = text.IndexOf("-", StringComparison.Ordinal) + 1; // RD-191.7141.355
-      if (index <= 0) 
+      if (index <= 0)
         return null;
-      
+
       var versionText = text.Substring(index);
-      return Version.TryParse(versionText, out var v) ? v : null;
+      return GetBuildNumberFromInput(versionText);
     }
 
     [CanBeNull]
-    private static Version GetBuildNumberFromPath(string input)
+    private static Version GetBuildNumberFromInput(string input)
     {
       if (string.IsNullOrEmpty(input))
         return null;
@@ -334,7 +378,7 @@ namespace Packages.Rider.Editor
       Version version = null;
       if (match.Success)
       {
-        version = Version.Parse($"{groups["major"].Value}.{groups["minor"].Value}.{groups["build"].Value}");
+        version = new Version($"{groups["major"].Value}.{groups["minor"].Value}.{groups["build"].Value}");
       }
 
       return version;
@@ -347,22 +391,21 @@ namespace Packages.Rider.Editor
 
     private static string GetRelativePathToBuildTxt()
     {
-      switch (SystemInfo.operatingSystemFamily)
-      {
-        case OperatingSystemFamily.Windows: 
-        case OperatingSystemFamily.Linux:
-          return "../../build.txt";
-        case OperatingSystemFamily.MacOSX:
-          return "Contents/Resources/build.txt";
-      }
+      if (IsWindows() || IsLinux())
+        return "../../build.txt";
+      if (IsMac())
+        return "Contents/Resources/build.txt";
+
       throw new Exception("Unknown OS");
     }
+
     private static void CollectPathsFromRegistry(string registryKey, List<string> installPaths)
     {
       using (var key = Registry.CurrentUser.OpenSubKey(registryKey))
       {
         CollectPathsFromRegistry(installPaths, key);
       }
+
       using (var key = Registry.LocalMachine.OpenSubKey(registryKey))
       {
         CollectPathsFromRegistry(installPaths, key);
@@ -386,27 +429,32 @@ namespace Packages.Rider.Editor
           {
             try // possible "illegal characters in path"
             {
-              var possiblePath = Path.Combine(folder, @"bin\rider64.exe"); 
+              var possiblePath = Path.Combine(folder, @"bin\rider64.exe");
               if (File.Exists(possiblePath))
                 installPaths.Add(possiblePath);
             }
-            catch (ArgumentException) { }  
+            catch (ArgumentException)
+            {
+            }
           }
           else if (displayName.ToString().Contains("Fleet"))
           {
             try // possible "illegal characters in path"
             {
-              var possiblePath = Path.Combine(folder, @"Fleet.exe"); 
+              var possiblePath = Path.Combine(folder, @"Fleet.exe");
               if (File.Exists(possiblePath))
                 installPaths.Add(possiblePath);
             }
-            catch (ArgumentException) { }  
+            catch (ArgumentException)
+            {
+            }
           }
         }
       }
     }
 
-    private static string[] CollectPathsFromToolbox(string productRootPathInToolbox, string dirName, string searchPattern,
+    private static string[] CollectPathsFromToolbox(string productRootPathInToolbox, string dirName,
+      string searchPattern,
       bool isMac)
     {
       if (!Directory.Exists(productRootPathInToolbox))
@@ -470,7 +518,7 @@ namespace Packages.Rider.Editor
         return new string[0];
 
       if (!isMac)
-        return new[] {Path.Combine(folder.FullName, searchPattern)}.Where(File.Exists).ToArray();
+        return new[] { Path.Combine(folder.FullName, searchPattern) }.Where(File.Exists).ToArray();
       return folder.GetDirectories(searchPattern).Select(f => f.FullName)
         .Where(Directory.Exists).ToArray();
     }
@@ -478,19 +526,19 @@ namespace Packages.Rider.Editor
     // Disable the "field is never assigned" compiler warning. We never assign it, but Unity does.
     // Note that Unity disable this warning in the generated C# projects
 #pragma warning disable 0649
-    
+
     [Serializable]
     class SettingsJson
     {
       // ReSharper disable once InconsistentNaming
       public string install_location;
-      
+
       [CanBeNull]
       public static string GetInstallLocationFromJson(string json)
       {
         try
         {
-#if UNITY_4_7 || UNITY_5_5
+#if UNITY_4_7
           return JsonConvert.DeserializeObject<SettingsJson>(json).install_location;
 #else
           return JsonUtility.FromJson<SettingsJson>(json).install_location;
@@ -515,7 +563,7 @@ namespace Packages.Rider.Editor
       {
         try
         {
-#if UNITY_4_7 || UNITY_5_5
+#if UNITY_4_7
           return JsonConvert.DeserializeObject<ToolboxHistory>(json).history.LastOrDefault()?.item.build;
 #else
           return JsonUtility.FromJson<ToolboxHistory>(json).history.LastOrDefault()?.item.build;
@@ -553,8 +601,11 @@ namespace Packages.Rider.Editor
       {
         try
         {
-          var productInfo = JsonUtility.FromJson<ProductInfo>(json);
-          return productInfo;
+#if UNITY_4_7
+          return JsonConvert.DeserializeObject<ProductInfo>(json);
+#else
+          return JsonUtility.FromJson<ProductInfo>(json);
+#endif
         }
         catch (Exception)
         {
@@ -577,7 +628,7 @@ namespace Packages.Rider.Editor
       {
         try
         {
-#if UNITY_4_7 || UNITY_5_5
+#if UNITY_4_7
           var toolbox = JsonConvert.DeserializeObject<ToolboxInstallData>(json);
 #else
           var toolbox = JsonUtility.FromJson<ToolboxInstallData>(json);
@@ -627,7 +678,7 @@ namespace Packages.Rider.Editor
         }
 
         var fileInfo = new FileInfo(path);
-        var productName = RiderScriptEditor.GetProductNameForPresentation(fileInfo);  
+        var productName = GetProductNameForPresentation(fileInfo);
         Path = fileInfo.FullName; // normalize separators
         var presentation = $"{productName} {BuildNumber}";
 
@@ -642,6 +693,16 @@ namespace Packages.Rider.Editor
 
         Presentation = presentation;
         IsToolbox = isToolbox;
+      }
+
+      private static string GetProductNameForPresentation(FileInfo path)
+      {
+        var filename = path.Name;
+        if (filename.StartsWith("rider", StringComparison.OrdinalIgnoreCase))
+          return "Rider";
+        if (filename.StartsWith("fleet", StringComparison.OrdinalIgnoreCase))
+          return "Fleet";
+        return filename;
       }
     }
 

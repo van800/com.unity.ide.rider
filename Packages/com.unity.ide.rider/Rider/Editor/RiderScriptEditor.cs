@@ -430,16 +430,6 @@ namespace Packages.Rider.Editor
       return filename.StartsWith(input, StringComparison.OrdinalIgnoreCase);
     }
 
-    public static string GetProductNameForPresentation(FileInfo path)
-    {
-      var filename = path.Name;
-      if (filename.StartsWith("rider", StringComparison.OrdinalIgnoreCase))
-        return "Rider";
-      if (filename.StartsWith("fleet", StringComparison.OrdinalIgnoreCase))
-        return "Fleet";
-      return filename;
-    }
-
     private static bool IsAssetImportWorkerProcess()
     {
 #if UNITY_2020_2_OR_NEWER
