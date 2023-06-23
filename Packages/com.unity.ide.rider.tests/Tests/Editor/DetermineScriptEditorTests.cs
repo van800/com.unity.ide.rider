@@ -55,8 +55,8 @@ namespace Packages.Rider.Editor.Tests
             editor.TryGetInstallationForPath(path, out var installation);
 
             Assert.AreEqual(path, installation.Path);
-            var originVersion = RiderPathLocator.GetBuildNumber(installation.Path);
-            var originalBuildNumber = RiderPathLocator.GetBuildVersion(installation.Path);
+            var originVersion = Discovery.RiderPathLocator.GetBuildNumber(installation.Path);
+            var originalBuildNumber = Discovery.RiderPathLocator.GetBuildVersion(installation.Path);
             Assert.AreEqual(new Version("191.7141.355"), originVersion);
             Assert.AreEqual("2021.1", originalBuildNumber.version);
             Assert.AreEqual("EAP 1", originalBuildNumber.versionSuffix);

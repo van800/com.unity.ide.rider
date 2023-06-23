@@ -1,13 +1,12 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text.RegularExpressions;
 using JetBrains.Annotations;
 using Microsoft.Win32;
 using Packages.Rider.Editor.Util;
 using Unity.CodeEditor;
-using UnityEngine;
 
 namespace Packages.Rider.Editor
 {
@@ -18,6 +17,13 @@ namespace Packages.Rider.Editor
 
   internal class Discovery : IDiscovery
   {
+    public static readonly RiderPathLocator RiderPathLocator;
+
+    static Discovery()
+    {
+      RiderPathLocator = new RiderPathLocator(new RiderLocatorEnvironment());
+    }
+
     public CodeEditor.Installation[] PathCallback()
     {
       var res = RiderPathLocator.GetAllRiderPaths()
@@ -34,7 +40,7 @@ namespace Packages.Rider.Editor
           FileSystemUtil.EditorPathExists(editorPath))
       {
         // External editor manually set from custom location
-        var info = new RiderPathLocator.RiderInfo(editorPath, false);
+        var info = new RiderPathLocator.RiderInfo(RiderPathLocator, editorPath, false);
         var installation = new CodeEditor.Installation
         {
           Path = info.Path,
@@ -47,100 +53,113 @@ namespace Packages.Rider.Editor
     }
   }
 
+  public enum OperatingSystemFamily
+  {
+    /// <summary>
+    ///   <para>Returned for operating systems that do not fall into any other category.</para>
+    /// </summary>
+    Other,
+
+    /// <summary>
+    ///   <para>macOS operating system family.</para>
+    /// </summary>
+    MacOSX,
+
+    /// <summary>
+    ///   <para>Windows operating system family.</para>
+    /// </summary>
+    Windows,
+
+    /// <summary>
+    ///   <para>Linux operating system family.</para>
+    /// </summary>
+    Linux
+  }
+  
+  internal interface IRiderLocatorEnvironment
+  {
+    public OperatingSystemFamily operatingSystemFamily { get; }
+
+    T FromJson<T>(string json);
+    void Warn(string message, Exception e = null);
+    void LogException(Exception exception);
+  }
+
+  internal class RiderLocatorEnvironment : IRiderLocatorEnvironment
+  {
+    public OperatingSystemFamily operatingSystemFamily
+    {
+      get
+      {
+        switch (UnityEngine.SystemInfo.operatingSystemFamily)
+        {
+          case UnityEngine.OperatingSystemFamily.Windows:
+            return OperatingSystemFamily.Windows;
+          case UnityEngine.OperatingSystemFamily.MacOSX:
+            return OperatingSystemFamily.MacOSX;
+          case UnityEngine.OperatingSystemFamily.Linux:
+            return OperatingSystemFamily.Linux;
+          default:
+            return OperatingSystemFamily.Other;
+        }
+      }
+    }
+
+    public T FromJson<T>(string json)
+    {
+      return (T)UnityEngine.JsonUtility.FromJson(json, typeof(T));
+    }
+
+    public void Warn(string message, Exception e = null)
+    {
+      UnityEngine.Debug.LogError(message);
+      if (e != null)
+        UnityEngine.Debug.LogException(e);
+    }
+
+    public void LogException(Exception exception)
+    {
+      UnityEngine.Debug.LogException(exception);
+    }
+  }
+  
   /// <summary>
   /// This code is a modified version of the JetBrains resharper-unity plugin listed under Apache License 2.0 license:
   /// https://github.com/JetBrains/resharper-unity/blob/master/unity/JetBrains.Rider.Unity.Editor/EditorPlugin/RiderPathLocator.cs
   /// </summary>
-  internal static class RiderPathLocator
+  internal class RiderPathLocator
   {
-#if !(UNITY_4_7 || UNITY_5_5)
-    [UsedImplicitly] // Used in com.unity.ide.rider
-    public static RiderInfo[] GetAllRiderPaths()
-    {
-      try
-      {
-        if (IsWindows())
-          return CollectRiderInfosWindows();
-        if (IsMac())
-          return CollectRiderInfosMac();
-        if (IsLinux()) return CollectAllRiderPathsLinux();
-      }
-      catch (Exception e)
-      {
-        Debug.LogException(e);
-      }
+    public readonly IRiderLocatorEnvironment RiderLocatorEnvironment;
 
-      return new RiderInfo[0];
+    internal RiderPathLocator(IRiderLocatorEnvironment riderLocatorEnvironment)
+    {
+      RiderLocatorEnvironment = riderLocatorEnvironment;
     }
-#endif
-
-
-#if RIDER_EDITOR_PLUGIN
-internal static RiderInfo[] GetAllFoundInfos(OperatingSystemFamilyRider operatingSystemFamily)
+    
+    [UsedImplicitly] // Used in com.unity.ide.rider
+    public RiderInfo[] GetAllRiderPaths()
     {
       try
       {
-        switch (operatingSystemFamily)
+        switch (RiderLocatorEnvironment.operatingSystemFamily)
         {
-          case OperatingSystemFamilyRider.Windows:
-          {
+          case OperatingSystemFamily.Windows:
             return CollectRiderInfosWindows();
-          }
-          case OperatingSystemFamilyRider.MacOSX:
-          {
+          case OperatingSystemFamily.MacOSX:
             return CollectRiderInfosMac();
-          }
-          case OperatingSystemFamilyRider.Linux:
-          {
+          case OperatingSystemFamily.Linux:
             return CollectAllRiderPathsLinux();
-          }
         }
       }
       catch (Exception e)
       {
-        Debug.LogException(e);
+        RiderLocatorEnvironment.LogException(e);
       }
 
       return new RiderInfo[0];
     }
 
-    internal static string[] GetAllFoundPaths(OperatingSystemFamilyRider operatingSystemFamily)
-    {
-      return GetAllFoundInfos(operatingSystemFamily).Select(a=>a.Path).ToArray();
-    }
-
-    private static bool IsLinux()
-    {
-      return PluginSettings.SystemInfoRiderPlugin.operatingSystemFamily is OperatingSystemFamilyRider.Linux;
-    }
-
-    private static bool IsMac()
-    {
-      return PluginSettings.SystemInfoRiderPlugin.operatingSystemFamily is OperatingSystemFamilyRider.MacOSX;
-    }
-
-    private static bool IsWindows()
-    {
-      return PluginSettings.SystemInfoRiderPlugin.operatingSystemFamily is OperatingSystemFamilyRider.Windows;
-    }
-#else
-    private static bool IsLinux()
-    {
-      return SystemInfo.operatingSystemFamily is OperatingSystemFamily.Linux;
-    }
-
-    private static bool IsMac()
-    {
-      return SystemInfo.operatingSystemFamily is OperatingSystemFamily.MacOSX;
-    }
-
-    private static bool IsWindows()
-    {
-      return SystemInfo.operatingSystemFamily is OperatingSystemFamily.Windows;
-    }
-#endif
-
-    private static RiderInfo[] CollectAllRiderPathsLinux()
+    private RiderInfo[] CollectAllRiderPathsLinux()
     {
       var installInfos = new List<RiderInfo>();
       var appsPath = GetAppsRootPathInToolbox();
@@ -150,11 +169,11 @@ internal static RiderInfo[] GetAllFoundInfos(OperatingSystemFamilyRider operatin
 
       var riderRootPath = Path.Combine(appsPath, "Rider");
       installInfos.AddRange(CollectPathsFromToolbox(riderRootPath, "bin", "rider.sh", false)
-        .Select(a => new RiderInfo(a, true)).ToList());
+        .Select(a => new RiderInfo(this, a, true)).ToList());
 
       var fleetRootPath = Path.Combine(appsPath, "Fleet");
       installInfos.AddRange(CollectPathsFromToolbox(fleetRootPath, "bin", "Fleet", false)
-        .Select(a => new RiderInfo(a, true)).ToList());
+        .Select(a => new RiderInfo(this, a, true)).ToList());
 
       var home = Environment.GetEnvironmentVariable("HOME");
       if (!string.IsNullOrEmpty(home))
@@ -175,7 +194,7 @@ internal static RiderInfo[] GetAllFoundInfos(OperatingSystemFamilyRider operatin
 
             if (installInfos.Any(a => a.Path == path)) // avoid adding similar build as from toolbox
               continue;
-            installInfos.Add(new RiderInfo(path, false));
+            installInfos.Add(new RiderInfo(this, path, false));
           }
         }
       }
@@ -183,12 +202,12 @@ internal static RiderInfo[] GetAllFoundInfos(OperatingSystemFamilyRider operatin
       // snap install
       var snapInstallPath = "/snap/rider/current/bin/rider.sh";
       if (new FileInfo(snapInstallPath).Exists)
-        installInfos.Add(new RiderInfo(snapInstallPath, false));
+        installInfos.Add(new RiderInfo(this, snapInstallPath, false));
 
       return installInfos.ToArray();
     }
 
-    private static IEnumerable<RiderInfo> CollectToolbox20Linux(string appsPath, string pattern, string relPath)
+    private IEnumerable<RiderInfo> CollectToolbox20Linux(string appsPath, string pattern, string relPath)
     {
       var result = new List<RiderInfo>();
       if (string.IsNullOrEmpty(appsPath) || !Directory.Exists(appsPath))
@@ -199,7 +218,7 @@ internal static RiderInfo[] GetAllFoundInfos(OperatingSystemFamilyRider operatin
       return result;
     }
 
-    private static RiderInfo[] CollectRiderInfosMac()
+    private RiderInfo[] CollectRiderInfosMac()
     {
       var installInfos = new List<RiderInfo>();
 
@@ -209,23 +228,23 @@ internal static RiderInfo[] GetAllFoundInfos(OperatingSystemFamilyRider operatin
       var appsPath = GetAppsRootPathInToolbox();
       var riderRootPath = Path.Combine(appsPath, "Rider");
       installInfos.AddRange(CollectPathsFromToolbox(riderRootPath, "", "Rider*.app", true)
-        .Select(a => new RiderInfo(a, true)));
+        .Select(a => new RiderInfo(this, a, true)));
 
       var fleetRootPath = Path.Combine(appsPath, "Fleet");
       installInfos.AddRange(CollectPathsFromToolbox(fleetRootPath, "", "Fleet*.app", true)
-        .Select(a => new RiderInfo(a, true)));
+        .Select(a => new RiderInfo(this, a, true)));
 
       return installInfos.ToArray();
     }
 
-    private static RiderInfo[] CollectFromApplications(string productMask)
+    private RiderInfo[] CollectFromApplications(string productMask)
     {
       var result = new List<RiderInfo>();
       var folder = new DirectoryInfo("/Applications");
       if (folder.Exists)
       {
         result.AddRange(folder.GetDirectories(productMask)
-          .Select(a => new RiderInfo(a.FullName, false))
+          .Select(a => new RiderInfo(this, a.FullName, false))
           .ToList());
       }
 
@@ -236,7 +255,7 @@ internal static RiderInfo[] GetAllFoundInfos(OperatingSystemFamilyRider operatin
         if (userFolder.Exists)
         {
           result.AddRange(userFolder.GetDirectories(productMask)
-            .Select(a => new RiderInfo(a.FullName, false))
+            .Select(a => new RiderInfo(this, a.FullName, false))
             .ToList());
         }
       }
@@ -244,7 +263,7 @@ internal static RiderInfo[] GetAllFoundInfos(OperatingSystemFamilyRider operatin
       return result.ToArray();
     }
 
-    private static RiderInfo[] CollectRiderInfosWindows()
+    private RiderInfo[] CollectRiderInfosWindows()
     {
       var installInfos = new List<RiderInfo>();
 
@@ -254,11 +273,11 @@ internal static RiderInfo[] GetAllFoundInfos(OperatingSystemFamilyRider operatin
       var appsPath = GetAppsRootPathInToolbox();
       var riderRootPath = Path.Combine(appsPath, "Rider");
       installInfos.AddRange(CollectPathsFromToolbox(riderRootPath, "bin", "rider64.exe", false).ToList()
-        .Select(a => new RiderInfo(a, true)).ToList());
+        .Select(a => new RiderInfo(this, a, true)).ToList());
 
       var fleetRootPath = Path.Combine(appsPath, "Fleet");
       installInfos.AddRange(CollectPathsFromToolbox(fleetRootPath, string.Empty, "Fleet.exe", false).ToList()
-        .Select(a => new RiderInfo(a, true)).ToList());
+        .Select(a => new RiderInfo(this, a, true)).ToList());
 
       var installPaths = new List<string>();
       const string registryKey = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall";
@@ -266,12 +285,12 @@ internal static RiderInfo[] GetAllFoundInfos(OperatingSystemFamilyRider operatin
       const string wowRegistryKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall";
       CollectPathsFromRegistry(wowRegistryKey, installPaths);
 
-      installInfos.AddRange(installPaths.Select(a => new RiderInfo(a, false)).ToList());
+      installInfos.AddRange(installPaths.Select(a => new RiderInfo(this, a, false)).ToList());
 
       return installInfos.ToArray();
     }
 
-    private static IEnumerable<RiderInfo> CollectToolbox20Windows(string pattern, string relPath)
+    private IEnumerable<RiderInfo> CollectToolbox20Windows(string pattern, string relPath)
     {
       var result = new List<RiderInfo>();
       var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
@@ -283,7 +302,7 @@ internal static RiderInfo[] GetAllFoundInfos(OperatingSystemFamilyRider operatin
       return result;
     }
 
-    private static void CollectToolbox20(string dir, string pattern, string relPath, List<RiderInfo> result)
+    private void CollectToolbox20(string dir, string pattern, string relPath, List<RiderInfo> result)
     {
       var directoryInfo = new DirectoryInfo(dir);
       if (!directoryInfo.Exists)
@@ -295,31 +314,43 @@ internal static RiderInfo[] GetAllFoundInfos(OperatingSystemFamilyRider operatin
 
         if (File.Exists(executable))
         {
-          result.Add(new RiderInfo(executable, false)); // false, because we can't check if it is Toolbox or not anyway
+          result.Add(new RiderInfo(this, executable, false)); // false, because we can't check if it is Toolbox or not anyway
         }
       }
     }
 
-    private static string GetAppsRootPathInToolbox()
+    private string GetAppsRootPathInToolbox()
     {
       string localAppData = string.Empty;
-      if (IsWindows())
+      switch (RiderLocatorEnvironment.operatingSystemFamily)
       {
-        localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-      }
-      else if (IsMac())
-      {
-        var home = Environment.GetEnvironmentVariable("HOME");
-        if (!string.IsNullOrEmpty(home)) localAppData = Path.Combine(home, @"Library/Application Support");
-      }
-      else if (IsLinux())
-      {
-        var home = Environment.GetEnvironmentVariable("HOME");
-        if (!string.IsNullOrEmpty(home)) localAppData = Path.Combine(home, @".local/share");
-      }
-      else
-      {
-        throw new Exception("Unknown OS");
+        case OperatingSystemFamily.Windows:
+        {
+          localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+          break;
+        }
+
+        case OperatingSystemFamily.MacOSX:
+        {
+          var home = Environment.GetEnvironmentVariable("HOME");
+          if (!string.IsNullOrEmpty(home))
+          {
+            localAppData = Path.Combine(home, @"Library/Application Support");
+          }
+          break;
+        }
+
+        case OperatingSystemFamily.Linux:
+        {
+          var home = Environment.GetEnvironmentVariable("HOME");
+          if (!string.IsNullOrEmpty(home))
+          {
+            localAppData = Path.Combine(home, @".local/share");
+          }
+          break;
+        }
+        default:
+          throw new Exception("Unknown OS");
       }
 
       var toolboxPath = Path.Combine(localAppData, @"JetBrains/Toolbox");
@@ -327,7 +358,7 @@ internal static RiderInfo[] GetAllFoundInfos(OperatingSystemFamilyRider operatin
 
       if (File.Exists(settingsJson))
       {
-        var path = SettingsJson.GetInstallLocationFromJson(File.ReadAllText(settingsJson));
+        var path = SettingsJson.GetInstallLocationFromJson(RiderLocatorEnvironment, File.ReadAllText(settingsJson));
         if (!string.IsNullOrEmpty(path))
           toolboxPath = path;
       }
@@ -335,7 +366,7 @@ internal static RiderInfo[] GetAllFoundInfos(OperatingSystemFamilyRider operatin
       return Path.Combine(toolboxPath, "apps");
     }
 
-    internal static ProductInfo GetBuildVersion(string path)
+    internal ProductInfo GetBuildVersion(string path)
     {
       var buildTxtFileInfo = new FileInfo(Path.Combine(path, GetRelativePathToBuildTxt()));
       var dir = buildTxtFileInfo.DirectoryName;
@@ -345,16 +376,16 @@ internal static RiderInfo[] GetAllFoundInfos(OperatingSystemFamilyRider operatin
       if (!buildVersionFile.Exists)
         return null;
       var json = File.ReadAllText(buildVersionFile.FullName);
-      return ProductInfo.GetProductInfo(json);
+      return ProductInfo.GetProductInfo(RiderLocatorEnvironment, json);
     }
 
-    internal static Version GetBuildNumber(string path)
+    internal Version GetBuildNumber(string path)
     {
       var buildTxtFileInfo = new FileInfo(Path.Combine(path, GetRelativePathToBuildTxt()));
       return GetBuildNumberWithBuildTxt(buildTxtFileInfo) ?? GetBuildNumberFromInput(path);
     }
 
-    private static Version GetBuildNumberWithBuildTxt(FileInfo file)
+    private Version GetBuildNumberWithBuildTxt(FileInfo file)
     {
       if (!file.Exists)
         return null;
@@ -368,7 +399,7 @@ internal static RiderInfo[] GetAllFoundInfos(OperatingSystemFamilyRider operatin
     }
 
     [CanBeNull]
-    private static Version GetBuildNumberFromInput(string input)
+    private Version GetBuildNumberFromInput(string input)
     {
       if (string.IsNullOrEmpty(input))
         return null;
@@ -384,22 +415,26 @@ internal static RiderInfo[] GetAllFoundInfos(OperatingSystemFamilyRider operatin
       return version;
     }
 
-    public static bool GetIsToolbox(string path)
+    public bool GetIsToolbox(string path)
     {
       return Path.GetFullPath(path).StartsWith(Path.GetFullPath(GetAppsRootPathInToolbox()));
     }
 
-    private static string GetRelativePathToBuildTxt()
+    private string GetRelativePathToBuildTxt()
     {
-      if (IsWindows() || IsLinux())
-        return "../../build.txt";
-      if (IsMac())
-        return "Contents/Resources/build.txt";
+      switch (RiderLocatorEnvironment.operatingSystemFamily)
+      {
+        case OperatingSystemFamily.Windows: 
+        case OperatingSystemFamily.Linux:
+          return "../../build.txt";
+        case OperatingSystemFamily.MacOSX:
+          return "Contents/Resources/build.txt";
+      }
 
       throw new Exception("Unknown OS");
     }
 
-    private static void CollectPathsFromRegistry(string registryKey, List<string> installPaths)
+    private void CollectPathsFromRegistry(string registryKey, List<string> installPaths)
     {
       using (var key = Registry.CurrentUser.OpenSubKey(registryKey))
       {
@@ -412,7 +447,7 @@ internal static RiderInfo[] GetAllFoundInfos(OperatingSystemFamilyRider operatin
       }
     }
 
-    private static void CollectPathsFromRegistry(List<string> installPaths, RegistryKey key)
+    private void CollectPathsFromRegistry(List<string> installPaths, RegistryKey key)
     {
       if (key == null) return;
       foreach (var subkeyName in key.GetSubKeyNames())
@@ -453,7 +488,7 @@ internal static RiderInfo[] GetAllFoundInfos(OperatingSystemFamilyRider operatin
       }
     }
 
-    private static string[] CollectPathsFromToolbox(string productRootPathInToolbox, string dirName,
+    private string[] CollectPathsFromToolbox(string productRootPathInToolbox, string dirName,
       string searchPattern,
       bool isMac)
     {
@@ -470,7 +505,7 @@ internal static RiderInfo[] GetAllFoundInfos(OperatingSystemFamilyRider operatin
             if (File.Exists(historyFile))
             {
               var json = File.ReadAllText(historyFile);
-              var build = ToolboxHistory.GetLatestBuildFromJson(json);
+              var build = ToolboxHistory.GetLatestBuildFromJson(RiderLocatorEnvironment, json);
               if (build != null)
               {
                 var buildDir = Path.Combine(channelDir, build);
@@ -484,7 +519,7 @@ internal static RiderInfo[] GetAllFoundInfos(OperatingSystemFamilyRider operatin
             if (File.Exists(channelFile))
             {
               var json = File.ReadAllText(channelFile).Replace("active-application", "active_application");
-              var build = ToolboxInstallData.GetLatestBuildFromJson(json);
+              var build = ToolboxInstallData.GetLatestBuildFromJson(RiderLocatorEnvironment, json);
               if (build != null)
               {
                 var buildDir = Path.Combine(channelDir, build);
@@ -501,7 +536,7 @@ internal static RiderInfo[] GetAllFoundInfos(OperatingSystemFamilyRider operatin
           catch (Exception e)
           {
             // do not write to Debug.Log, just log it.
-            Logger.Warn($"Failed to get path from {channelDir}", e);
+            RiderLocatorEnvironment.Warn($"Failed to get path from {channelDir}", e);
           }
 
           return new string[0];
@@ -511,7 +546,7 @@ internal static RiderInfo[] GetAllFoundInfos(OperatingSystemFamilyRider operatin
       return paths;
     }
 
-    private static string[] GetExecutablePaths(string dirName, string searchPattern, bool isMac, string buildDir)
+    private string[] GetExecutablePaths(string dirName, string searchPattern, bool isMac, string buildDir)
     {
       var folder = new DirectoryInfo(Path.Combine(buildDir, dirName));
       if (!folder.Exists)
@@ -534,19 +569,15 @@ internal static RiderInfo[] GetAllFoundInfos(OperatingSystemFamilyRider operatin
       public string install_location;
 
       [CanBeNull]
-      public static string GetInstallLocationFromJson(string json)
+      public static string GetInstallLocationFromJson(IRiderLocatorEnvironment riderLocatorEnvironment, string json)
       {
         try
         {
-#if UNITY_4_7
-          return JsonConvert.DeserializeObject<SettingsJson>(json).install_location;
-#else
-          return JsonUtility.FromJson<SettingsJson>(json).install_location;
-#endif
+          return riderLocatorEnvironment.FromJson<SettingsJson>(json).install_location;
         }
         catch (Exception)
         {
-          Logger.Warn($"Failed to get install_location from json {json}");
+          riderLocatorEnvironment.Warn($"Failed to get install_location from json {json}");
         }
 
         return null;
@@ -559,19 +590,15 @@ internal static RiderInfo[] GetAllFoundInfos(OperatingSystemFamilyRider operatin
       public List<ItemNode> history;
 
       [CanBeNull]
-      public static string GetLatestBuildFromJson(string json)
+      public static string GetLatestBuildFromJson(IRiderLocatorEnvironment riderLocatorEnvironment, string json)
       {
         try
         {
-#if UNITY_4_7
-          return JsonConvert.DeserializeObject<ToolboxHistory>(json).history.LastOrDefault()?.item.build;
-#else
-          return JsonUtility.FromJson<ToolboxHistory>(json).history.LastOrDefault()?.item.build;
-#endif
+          return riderLocatorEnvironment.FromJson<ToolboxHistory>(json).history.LastOrDefault()?.item.build;
         }
         catch (Exception)
         {
-          Logger.Warn($"Failed to get latest build from json {json}");
+          riderLocatorEnvironment.Warn($"Failed to get latest build from json {json}");
         }
 
         return null;
@@ -597,19 +624,15 @@ internal static RiderInfo[] GetAllFoundInfos(OperatingSystemFamilyRider operatin
       public string versionSuffix;
 
       [CanBeNull]
-      internal static ProductInfo GetProductInfo(string json)
+      internal static ProductInfo GetProductInfo(IRiderLocatorEnvironment riderLocatorEnvironment, string json)
       {
         try
         {
-#if UNITY_4_7
-          return JsonConvert.DeserializeObject<ProductInfo>(json);
-#else
-          return JsonUtility.FromJson<ProductInfo>(json);
-#endif
+          return riderLocatorEnvironment.FromJson<ProductInfo>(json);
         }
         catch (Exception)
         {
-          Logger.Warn($"Failed to get version from json {json}");
+          riderLocatorEnvironment.Warn($"Failed to get version from json {json}");
         }
 
         return null;
@@ -624,22 +647,17 @@ internal static RiderInfo[] GetAllFoundInfos(OperatingSystemFamilyRider operatin
       public ActiveApplication active_application;
 
       [CanBeNull]
-      public static string GetLatestBuildFromJson(string json)
+      public static string GetLatestBuildFromJson(IRiderLocatorEnvironment riderLocatorEnvironment, string json)
       {
         try
         {
-#if UNITY_4_7
-          var toolbox = JsonConvert.DeserializeObject<ToolboxInstallData>(json);
-#else
-          var toolbox = JsonUtility.FromJson<ToolboxInstallData>(json);
-#endif
-          var builds = toolbox.active_application.builds;
+          var builds = riderLocatorEnvironment.FromJson<ToolboxInstallData>(json).active_application.builds;
           if (builds != null && builds.Any())
             return builds.First();
         }
         catch (Exception)
         {
-          Logger.Warn($"Failed to get latest build from json {json}");
+          riderLocatorEnvironment.Warn($"Failed to get latest build from json {json}");
         }
 
         return null;
@@ -663,29 +681,26 @@ internal static RiderInfo[] GetAllFoundInfos(OperatingSystemFamilyRider operatin
       public ProductInfo ProductInfo;
       public string Path;
 
-      public RiderInfo(string path, bool isToolbox)
+      public RiderInfo(RiderPathLocator riderPathLocator, string path, bool isToolbox)
+        : this(path,
+          isToolbox, riderPathLocator.GetBuildNumber(path), riderPathLocator.GetBuildVersion(path))
       {
-        if (path == RiderScriptEditor.CurrentEditor)
-        {
-          RiderScriptEditorData.instance.Init();
-          BuildNumber = RiderScriptEditorData.instance.editorBuildNumber.ToVersion();
-          ProductInfo = RiderScriptEditorData.instance.productInfo;
-        }
-        else
-        {
-          BuildNumber = GetBuildNumber(path);
-          ProductInfo = GetBuildVersion(path);
-        }
-
+      }
+     
+      public RiderInfo(string path, bool isToolbox, Version buildNumber, ProductInfo productInfo)
+      {
+        BuildNumber = buildNumber; 
+        ProductInfo = productInfo;
+        
         var fileInfo = new FileInfo(path);
         var productName = GetProductNameForPresentation(fileInfo);
         Path = fileInfo.FullName; // normalize separators
-        var presentation = $"{productName} {BuildNumber}";
+        var presentation = $"{productName} {buildNumber}";
 
-        if (ProductInfo != null && !string.IsNullOrEmpty(ProductInfo.version))
+        if (productInfo != null && !string.IsNullOrEmpty(productInfo.version))
         {
-          var suffix = string.IsNullOrEmpty(ProductInfo.versionSuffix) ? "" : $" {ProductInfo.versionSuffix}";
-          presentation = $"{productName} {ProductInfo.version}{suffix}";
+          var suffix = string.IsNullOrEmpty(productInfo.versionSuffix) ? "" : $" {productInfo.versionSuffix}";
+          presentation = $"{productName} {productInfo.version}{suffix}";
         }
 
         if (isToolbox)
@@ -703,22 +718,6 @@ internal static RiderInfo[] GetAllFoundInfos(OperatingSystemFamilyRider operatin
         if (filename.StartsWith("fleet", StringComparison.OrdinalIgnoreCase))
           return "Fleet";
         return filename;
-      }
-    }
-
-    private static class Logger
-    {
-      internal static void Warn(string message, Exception e = null)
-      {
-#if RIDER_EDITOR_PLUGIN // can't be used in com.unity.ide.rider
-        Log.GetLog(typeof(RiderPathLocator).Name).Warn(message);
-        if (e != null) 
-          Log.GetLog(typeof(RiderPathLocator).Name).Warn(e);
-#else
-        Debug.LogError(message);
-        if (e != null)
-          Debug.LogException(e);
-#endif
       }
     }
   }
