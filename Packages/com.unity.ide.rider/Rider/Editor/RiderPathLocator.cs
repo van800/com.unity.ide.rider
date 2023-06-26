@@ -6,9 +6,10 @@ using System.Text.RegularExpressions;
 using JetBrains.Annotations;
 using Microsoft.Win32;
 
+// ReSharper disable once CheckNamespace
 namespace Packages.Rider.Editor.EditorPlugin
 {
-  public enum OperatingSystemFamily
+  internal enum OperatingSystemFamily
   {
     /// <summary>
     ///   <para>Returned for operating systems that do not fall into any other category.</para>
