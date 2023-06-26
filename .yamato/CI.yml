@@ -1,6 +1,7 @@
 codeeditor: rider
 
 editors:
+  - version: 2019.2
   - version: 2019.4
   - version: 2020.3
   - version: 2021.3
