@@ -7,6 +7,6 @@ namespace Packages.Rider.Editor.ProjectGeneration
     string ReadAllText(string fileName);
     void WriteAllText(string path, string content);
 
-    string EscapedRelativePathFor(string file, string projectDirectory);
+    string GetInclude(string includeType, string asset, string projectDirectory);
   }
 }

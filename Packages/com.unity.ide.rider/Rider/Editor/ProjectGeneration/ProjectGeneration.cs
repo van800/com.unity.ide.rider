@@ -268,8 +268,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
             stringBuilders[assemblyName] = projectBuilder;
           }
 
-          projectBuilder.Append("     <Folder Include=\"").Append(m_FileIOProvider.EscapedRelativePathFor(asset, ProjectDirectory)).Append("\" />")
-            .Append(Environment.NewLine);
+          projectBuilder.Append(m_FileIOProvider.GetInclude("Folder", asset, ProjectDirectory));
         }
         else if (IsSupportedExtension(extension) && !extension.Equals(".cs", StringComparison.OrdinalIgnoreCase))
         {
@@ -289,8 +288,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
             stringBuilders[assemblyName] = projectBuilder;
           }
 
-          projectBuilder.Append("     <None Include=\"").Append(m_FileIOProvider.EscapedRelativePathFor(asset, ProjectDirectory)).Append("\" />")
-            .Append(Environment.NewLine);
+          projectBuilder.Append(m_FileIOProvider.GetInclude("None", asset, ProjectDirectory));
         }
       }
 
@@ -446,8 +444,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
       foreach (var file in assembly.SourceFiles)
       {
-        var fullFile = m_FileIOProvider.EscapedRelativePathFor(file, ProjectDirectory);
-        projectBuilder.Append("     <Compile Include=\"").Append(fullFile).Append("\" />").Append(Environment.NewLine);
+        projectBuilder.Append(m_FileIOProvider.GetInclude("Compile", file, ProjectDirectory));
       }
 
       projectBuilder.Append(assembly.AssetsProjectPart);

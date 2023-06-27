@@ -35,11 +35,9 @@ namespace Packages.Rider.Editor.Tests
             fileToContent[path] = utf8.GetString(utfBytes, 0, utfBytes.Length);
         }
 
-        public string EscapedRelativePathFor(string file, string projectDirectory)
+        public string GetInclude(string includeType, string asset, string projectDirectory)
         {
-            return file.NormalizePath().StartsWith($"{projectDirectory}{Path.DirectorySeparatorChar}", StringComparison.Ordinal)
-                ? file.Substring(projectDirectory.Length + 1)
-                : file;
+            return FileIOProvider.GetIncludeInternal(includeType, asset, projectDirectory);
         }
 
         public void DeleteFile(string fileName)
