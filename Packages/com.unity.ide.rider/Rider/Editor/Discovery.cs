@@ -1,6 +1,6 @@
 using System;
 using System.Linq;
-using Packages.Rider.Editor.EditorPlugin;
+using JetBrains.Rider.PathLocator;
 using Packages.Rider.Editor.Util;
 using Unity.CodeEditor;
 
@@ -51,20 +51,20 @@ namespace Packages.Rider.Editor
 
   internal class RiderLocatorEnvironment : IRiderLocatorEnvironment
   {
-    public OperatingSystemFamily operatingSystemFamily
+    public OS CurrentOS
     {
       get
       {
         switch (UnityEngine.SystemInfo.operatingSystemFamily)
         {
           case UnityEngine.OperatingSystemFamily.Windows:
-            return OperatingSystemFamily.Windows;
+            return OS.Windows;
           case UnityEngine.OperatingSystemFamily.MacOSX:
-            return OperatingSystemFamily.MacOSX;
+            return OS.MacOSX;
           case UnityEngine.OperatingSystemFamily.Linux:
-            return OperatingSystemFamily.Linux;
+            return OS.Linux;
           default:
-            return OperatingSystemFamily.Other;
+            return OS.Other;
         }
       }
     }
@@ -74,16 +74,26 @@ namespace Packages.Rider.Editor
       return (T)UnityEngine.JsonUtility.FromJson(json, typeof(T));
     }
 
+    public void Info(string message, Exception e = null)
+    {
+      UnityEngine.Debug.Log(message);
+      if (e != null)
+        UnityEngine.Debug.Log(e);
+
+    }
+
     public void Warn(string message, Exception e = null)
+    {
+      UnityEngine.Debug.LogWarning(message);
+      if (e != null)
+        UnityEngine.Debug.LogWarning(e);
+    }
+
+    public void Error(string message, Exception e = null)
     {
       UnityEngine.Debug.LogError(message);
       if (e != null)
         UnityEngine.Debug.LogException(e);
-    }
-
-    public void LogException(Exception exception)
-    {
-      UnityEngine.Debug.LogException(exception);
     }
   }
 }
