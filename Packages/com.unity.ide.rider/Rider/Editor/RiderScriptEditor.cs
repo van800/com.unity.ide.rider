@@ -230,7 +230,7 @@ namespace Packages.Rider.Editor
           // is likely outdated
           if (installations.Any() && installations.All(a => GetEditorRealPath(a.Path) != path))
           {
-            if (Discovery.RiderPathLocator.GetIsToolbox(path)) // is toolbox - update
+            if (Discovery.RiderPathLocator.GetIsToolbox(path)) // is toolbox 1.x - update
             {
               var toolboxInstallations = installations.Where(a => a.IsToolbox).ToArray();
               if (toolboxInstallations.Any())
@@ -246,7 +246,7 @@ namespace Packages.Rider.Editor
                 path = newEditor;
               }
             }
-            else // is non toolbox - notify
+            else // is non toolbox 1.x - notify
             {
               var newEditorName = installations.Last().Presentation;
               Debug.LogWarning($"Consider updating External Editor in Unity to {newEditorName}.");
@@ -303,49 +303,9 @@ namespace Packages.Rider.Editor
         if (fastOpenResult)
           return true;
       }
-
-      var solution = GetSolutionFile(path); // TODO: If solution file doesn't exist resync.
-      if (ExecutableStartsWith(CodeEditor.CurrentEditorInstallation, "fleet")) // I hope fleet would provide a way to specify the sln
-        solution = new FileInfo(solution).Directory.FullName;
-      if (SystemInfo.operatingSystemFamily == OperatingSystemFamily.MacOSX)
-      {
-        return OpenOSXApp(solution, path, line, column);
-      }
-
-      solution = solution == "" ? "" : $"\"{solution}\"";
-      var process = new Process
-      {
-        StartInfo = new ProcessStartInfo
-        {
-          FileName = CodeEditor.CurrentEditorInstallation,
-          Arguments = $"{solution} -l {line} \"{path}\"",
-          UseShellExecute = true,
-        }
-      };
-
-      process.Start();
-
-      return true;
-    }
-
-    private bool OpenOSXApp(string solution, string path, int line, int column)
-    {
-      solution = solution == "" ? "" : $"\"{solution}\"";
-      var pathArguments = path == "" ? "" : $"-l {line} \"{path}\"";
-      var process = new Process
-      {
-        StartInfo = new ProcessStartInfo
-        {
-          FileName = "open",
-          Arguments = $"-n -j \"{CodeEditor.CurrentEditorInstallation}\" --args {solution} {pathArguments}",
-          CreateNoWindow = true,
-          UseShellExecute = true,
-        }
-      };
-
-      process.Start();
-
-      return true;
+      
+      var slnFile = GetSolutionFile(path);
+      return Discovery.RiderFileOpener.OpenFile(CurrentEditor, slnFile, path, line, column);
     }
 
     private string GetSolutionFile(string path)
@@ -390,8 +350,8 @@ namespace Packages.Rider.Editor
     {
       if (FileSystemUtil.EditorPathExists(editorPath) && IsRiderOrFleetInstallation(editorPath))
       {
-        if (editorPath ==
-            CurrentEditor) // this gets called on evert appdomain reload - no need to read productInfo every time
+        // this gets called on evert appdomain reload - no need to read productInfo every time
+        if (editorPath == CurrentEditor) 
         {
           RiderScriptEditorData.instance.Init();
           var inf = new RiderPathLocator.RiderInfo(editorPath, Discovery.RiderPathLocator.GetIsToolbox(editorPath),

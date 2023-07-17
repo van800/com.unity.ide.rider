@@ -14,10 +14,13 @@ namespace Packages.Rider.Editor
   internal class Discovery : IDiscovery
   {
     public static readonly RiderPathLocator RiderPathLocator;
-
+    public static readonly RiderFileOpener RiderFileOpener;
+    
     static Discovery()
     {
-      RiderPathLocator = new RiderPathLocator(new RiderLocatorEnvironment());
+      var env = new RiderLocatorEnvironment();
+      RiderPathLocator = new RiderPathLocator(env);
+      RiderFileOpener = new RiderFileOpener(env);
     }
 
     public CodeEditor.Installation[] PathCallback()
@@ -73,13 +76,20 @@ namespace Packages.Rider.Editor
     {
       return (T)UnityEngine.JsonUtility.FromJson(json, typeof(T));
     }
+    
+    public void Verbose(string message, Exception e = null)
+    {
+      // only writes to Editor.log
+      Console.WriteLine(message);
+      if (e != null)
+        Console.WriteLine(e);
+    }
 
     public void Info(string message, Exception e = null)
     {
       UnityEngine.Debug.Log(message);
       if (e != null)
         UnityEngine.Debug.Log(e);
-
     }
 
     public void Warn(string message, Exception e = null)
