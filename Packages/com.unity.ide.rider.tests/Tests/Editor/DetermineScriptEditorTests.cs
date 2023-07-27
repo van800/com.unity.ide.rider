@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using JetBrains.Rider.PathLocator;
 using Moq;
 using NUnit.Framework;
 using Packages.Rider.Editor.ProjectGeneration;
@@ -52,6 +53,8 @@ namespace Packages.Rider.Editor.Tests
 
             var editor = new RiderScriptEditor(discovery.Object, generator.Object);
 
+            RiderScriptEditorData.instance.installations =
+                new[] { new RiderPathLocator.RiderInfo(false, "Rider", new Version(1, 1), path) };
             editor.TryGetInstallationForPath(path, out var installation);
 
             Assert.AreEqual(path, installation.Path);

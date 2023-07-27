@@ -25,6 +25,8 @@ namespace Packages.Rider.Editor
 
     public CodeEditor.Installation[] PathCallback()
     {
+      // still we want to search for installations, when Preferences is opened
+      
       var res = RiderPathLocator.GetAllRiderPaths()
         .Select(riderInfo => new CodeEditor.Installation
         {

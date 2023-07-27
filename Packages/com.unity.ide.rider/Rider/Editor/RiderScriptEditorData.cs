@@ -15,7 +15,7 @@ namespace Packages.Rider.Editor
     [SerializeField] internal bool initializedOnce;
     [SerializeField] internal SerializableVersion editorBuildNumber;
     [SerializeField] internal SerializableVersion prevEditorBuildNumber;
-    [SerializeField] internal RiderPathLocator.ProductInfo productInfo;
+    [SerializeField] internal RiderPathLocator.RiderInfo[] installations;
     [SerializeField] internal string[] activeScriptCompilationDefines;
 
     public void Init()
@@ -45,7 +45,7 @@ namespace Packages.Rider.Editor
       editorBuildNumber = riderBuildNumber.ToSerializableVersion();
       if (shouldInvalidatePrevEditorBuildNumber)
         prevEditorBuildNumber = editorBuildNumber;
-      productInfo = Discovery.RiderPathLocator.GetBuildVersion(editorInstallationPath);
+      
       if (riderBuildNumber == null) // if we fail to parse for some reason
         shouldLoadEditorPlugin = true;
 

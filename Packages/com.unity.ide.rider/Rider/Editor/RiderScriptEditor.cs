@@ -1,5 +1,5 @@
 using System;
-using System.Diagnostics;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using JetBrains.Annotations;
@@ -29,9 +29,8 @@ namespace Packages.Rider.Editor
         // todo: make ProjectGeneration lazy
         var projectGeneration = new ProjectGeneration.ProjectGeneration();
         m_RiderScriptEditor = new RiderScriptEditor(new Discovery(), projectGeneration);
-        CodeEditor.Register(m_RiderScriptEditor);
-
         InitializeInternal(CurrentEditor);
+        CodeEditor.Register(m_RiderScriptEditor);
       }
       catch (Exception e)
       {
@@ -68,9 +67,7 @@ namespace Packages.Rider.Editor
     internal static string GetEditorRealPath(string path)
     {
       if (string.IsNullOrEmpty(path))
-      {
         return path;
-      }
 
       if (!FileSystemUtil.EditorPathExists(path))
         return path;
@@ -95,7 +92,7 @@ namespace Packages.Rider.Editor
         return realPath;
       }
 
-      return path;
+      return new FileInfo(path).FullName;
     }
 
     public RiderScriptEditor(IDiscovery discovery, IGenerator projectGeneration)
@@ -222,34 +219,43 @@ namespace Packages.Rider.Editor
 
       if (IsRiderOrFleetInstallation(path))
       {
-        RiderPathLocator.RiderInfo[] installations = null;
-
-        if (!RiderScriptEditorData.instance.initializedOnce)
+        var installations = RiderScriptEditorData.instance.installations?.ToList() ??
+                            new List<RiderPathLocator.RiderInfo>();
+        if (!RiderScriptEditorData.instance.initializedOnce || !FileSystemUtil.EditorPathExists(path))
         {
-          installations = Discovery.RiderPathLocator.GetAllRiderPaths().OrderBy(a => a.BuildNumber).ToArray();
+          installations.AddRange(Discovery.RiderPathLocator.GetAllRiderPaths());
           // is likely outdated
-          if (installations.Any() && installations.All(a => GetEditorRealPath(a.Path) != path))
+          if (installations.All(a => GetEditorRealPath(a.Path) != path))
           {
             if (Discovery.RiderPathLocator.GetIsToolbox(path)) // is toolbox 1.x - update
             {
               var toolboxInstallations = installations.Where(a => a.IsToolbox).ToArray();
               if (toolboxInstallations.Any())
               {
-                var newEditor = toolboxInstallations.Last().Path;
+                var newEditor = toolboxInstallations.OrderBy(a => a.BuildNumber).Last().Path;
                 CodeEditor.SetExternalScriptEditor(newEditor);
                 path = newEditor;
               }
-              else
+              else if (installations.Any())
               {
-                var newEditor = installations.Last().Path;
+                var newEditor = installations.OrderBy(a => a.BuildNumber).Last().Path;
                 CodeEditor.SetExternalScriptEditor(newEditor);
                 path = newEditor;
               }
             }
-            else // is non toolbox 1.x - notify
+            else if (installations.Any()) // is non toolbox 1.x
             {
-              var newEditorName = installations.Last().Presentation;
-              Debug.LogWarning($"Consider updating External Editor in Unity to {newEditorName}.");
+              if (!FileSystemUtil.EditorPathExists(path)) // previously used rider was removed
+              {
+                var newEditor = installations.OrderBy(a => a.BuildNumber).Last().Path;
+                CodeEditor.SetExternalScriptEditor(newEditor);
+                path = newEditor;
+              }
+              else // notify
+              {
+                var newEditorName = installations.OrderBy(a => a.BuildNumber).Last().Presentation;
+                Debug.LogWarning($"Consider updating External Editor in Unity to {newEditorName}.");
+              }
             }
           }
 
@@ -257,18 +263,13 @@ namespace Packages.Rider.Editor
           RiderScriptEditorData.instance.initializedOnce = true;
         }
 
-        if (!FileSystemUtil.EditorPathExists(path)) // previously used rider was removed
+        if (FileSystemUtil.EditorPathExists(path) && installations.All(a => a.Path != path)) // custom location
         {
-          if (installations == null)
-            installations = Discovery.RiderPathLocator.GetAllRiderPaths().OrderBy(a => a.BuildNumber).ToArray();
-          if (installations.Any())
-          {
-            var newEditor = installations.Last().Path;
-            CodeEditor.SetExternalScriptEditor(newEditor);
-            path = newEditor;
-          }
+          var info = new RiderPathLocator.RiderInfo(Discovery.RiderPathLocator, path, Discovery.RiderPathLocator.GetIsToolbox(path));
+          installations.Add(info);
         }
 
+        RiderScriptEditorData.instance.installations = installations.ToArray();
         RiderScriptEditorData.instance.Init();
 
         m_RiderScriptEditor.CreateSolutionIfDoesntExist();
@@ -350,30 +351,19 @@ namespace Packages.Rider.Editor
     {
       if (FileSystemUtil.EditorPathExists(editorPath) && IsRiderOrFleetInstallation(editorPath))
       {
-        // this gets called on evert appdomain reload - no need to read productInfo every time
-        if (editorPath == CurrentEditor) 
+        var installations = RiderScriptEditorData.instance.installations ?? Array.Empty<RiderPathLocator.RiderInfo>();
+        var realPath = GetEditorRealPath(editorPath);
+        var editor = installations.SingleOrDefault(a => GetEditorRealPath(a.Path) == realPath);
+        if (editor.Path != null)
         {
-          RiderScriptEditorData.instance.Init();
-          var inf = new RiderPathLocator.RiderInfo(editorPath, Discovery.RiderPathLocator.GetIsToolbox(editorPath),
-            RiderScriptEditorData.instance.editorBuildNumber.ToVersion(), RiderScriptEditorData.instance.productInfo);
-
           installation = new CodeEditor.Installation
           {
-            Name = inf.Presentation,
-            Path = inf.Path
+            Name = editor.Presentation,
+            Path = editor.Path
           };
 
           return true;
         }
-
-        var info = new RiderPathLocator.RiderInfo(Discovery.RiderPathLocator, editorPath,
-          Discovery.RiderPathLocator.GetIsToolbox(editorPath));
-        installation = new CodeEditor.Installation
-        {
-          Name = info.Presentation,
-          Path = info.Path
-        };
-        return true;
       }
 
       installation = default;
