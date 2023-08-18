@@ -14,7 +14,8 @@
     "overrideReferences": true,
     "precompiledReferences": [
         "Moq.dll",
-        "nunit.framework.dll"
+        "nunit.framework.dll",
+        "JetBrains.Rider.PathLocator.dll"
     ],
     "autoReferenced": false,
     "defineConstraints": [
