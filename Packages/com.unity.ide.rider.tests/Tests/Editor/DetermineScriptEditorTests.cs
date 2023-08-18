@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using JetBrains.Rider.PathLocator;
 using Moq;
 using NUnit.Framework;
 using Packages.Rider.Editor.ProjectGeneration;
@@ -52,11 +53,13 @@ namespace Packages.Rider.Editor.Tests
 
             var editor = new RiderScriptEditor(discovery.Object, generator.Object);
 
+            RiderScriptEditorData.instance.installations =
+                new[] { new RiderPathLocator.RiderInfo(false, "Rider", new Version(1, 1), path) };
             editor.TryGetInstallationForPath(path, out var installation);
 
             Assert.AreEqual(path, installation.Path);
-            var originVersion = RiderPathLocator.GetBuildNumber(installation.Path);
-            var originalBuildNumber = RiderPathLocator.GetBuildVersion(installation.Path);
+            var originVersion = Discovery.RiderPathLocator.GetBuildNumber(installation.Path);
+            var originalBuildNumber = Discovery.RiderPathLocator.GetBuildVersion(installation.Path);
             Assert.AreEqual(new Version("191.7141.355"), originVersion);
             Assert.AreEqual("2021.1", originalBuildNumber.version);
             Assert.AreEqual("EAP 1", originalBuildNumber.versionSuffix);
