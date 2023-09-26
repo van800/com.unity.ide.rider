@@ -219,11 +219,14 @@ namespace Packages.Rider.Editor
 
       if (IsRiderOrFleetInstallation(path))
       {
-        var installations = RiderScriptEditorData.instance.installations?.ToList() ??
-                            new List<RiderPathLocator.RiderInfo>();
+        var installations = RiderScriptEditorData.instance.installations?.ToHashSet() ??
+                            new HashSet<RiderPathLocator.RiderInfo>();
         if (!RiderScriptEditorData.instance.initializedOnce || !FileSystemUtil.EditorPathExists(path))
         {
-          installations.AddRange(Discovery.RiderPathLocator.GetAllRiderPaths());
+          foreach (var item in Discovery.RiderPathLocator.GetAllRiderPaths())
+          {
+            installations.Add(item);
+          }
           // is likely outdated
           if (installations.All(a => GetEditorRealPath(a.Path) != path))
           {
@@ -353,7 +356,7 @@ namespace Packages.Rider.Editor
       {
         var installations = RiderScriptEditorData.instance.installations ?? Array.Empty<RiderPathLocator.RiderInfo>();
         var realPath = GetEditorRealPath(editorPath);
-        var editor = installations.SingleOrDefault(a => GetEditorRealPath(a.Path) == realPath);
+        var editor = installations.FirstOrDefault(a => GetEditorRealPath(a.Path) == realPath);
         if (editor.Path != null)
         {
           installation = new CodeEditor.Installation
