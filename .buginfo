@@ -1,0 +1,5 @@
+system: jira
+system: jira.unity3d.com
+issuetype: Bug
+package: Rider
+project: RIDER
