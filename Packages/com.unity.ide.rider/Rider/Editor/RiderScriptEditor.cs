@@ -219,8 +219,15 @@ namespace Packages.Rider.Editor
 
       if (IsRiderOrFleetInstallation(path))
       {
-        var installations = RiderScriptEditorData.instance.installations?.ToHashSet() ??
-                            new HashSet<RiderPathLocator.RiderInfo>();
+        var installations = new HashSet<RiderPathLocator.RiderInfo>();
+        if (RiderScriptEditorData.instance.installations != null)
+        {
+          foreach (var info in RiderScriptEditorData.instance.installations)
+          {
+            installations.Add(info);
+          }
+        }
+        
         if (!RiderScriptEditorData.instance.initializedOnce || !FileSystemUtil.EditorPathExists(path))
         {
           foreach (var item in Discovery.RiderPathLocator.GetAllRiderPaths())
@@ -354,9 +361,13 @@ namespace Packages.Rider.Editor
     {
       if (FileSystemUtil.EditorPathExists(editorPath) && IsRiderOrFleetInstallation(editorPath))
       {
-        var installations = RiderScriptEditorData.instance.installations ?? Array.Empty<RiderPathLocator.RiderInfo>();
+        if (RiderScriptEditorData.instance.installations == null) // the case when other CodeEditor is set from the very Unity start
+        {
+          RiderScriptEditorData.instance.installations = Discovery.RiderPathLocator.GetAllRiderPaths();
+        }
+        
         var realPath = GetEditorRealPath(editorPath);
-        var editor = installations.FirstOrDefault(a => GetEditorRealPath(a.Path) == realPath);
+        var editor = RiderScriptEditorData.instance.installations.FirstOrDefault(a => GetEditorRealPath(a.Path) == realPath);
         if (editor.Path != null)
         {
           installation = new CodeEditor.Installation
