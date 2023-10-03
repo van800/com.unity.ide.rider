@@ -359,6 +359,9 @@ namespace Packages.Rider.Editor
 
     public bool TryGetInstallationForPath(string editorPath, out CodeEditor.Installation installation)
     {
+      installation = default;
+      if (string.IsNullOrEmpty(editorPath)) return false;
+
       if (FileSystemUtil.EditorPathExists(editorPath) && IsRiderOrFleetInstallation(editorPath))
       {
         if (RiderScriptEditorData.instance.installations == null) // the case when other CodeEditor is set from the very Unity start
@@ -380,7 +383,6 @@ namespace Packages.Rider.Editor
         }
       }
 
-      installation = default;
       return false;
     }
 
