@@ -381,6 +381,14 @@ namespace Packages.Rider.Editor
 
           return true;
         }
+        
+        installation = new CodeEditor.Installation
+        {
+          Name = "Rider (custom location)",
+          Path = editorPath
+        };
+
+        return true;
       }
 
       return false;
