@@ -191,7 +191,7 @@ namespace Packages.Rider.Editor
     /// <param name="editorInstallationPath"></param>
     public void Initialize(string editorInstallationPath)
     {
-      var prevEditorBuildNumber = RiderScriptEditorData.instance.prevEditorBuildNumber;
+      var prevEditorVersion = RiderScriptEditorData.instance.prevEditorBuildNumber.ToVersion();
       
       RiderScriptEditorData.instance.Invalidate(editorInstallationPath, true);
 
@@ -201,7 +201,7 @@ namespace Packages.Rider.Editor
         return;
       }
       
-      if (prevEditorBuildNumber.ToVersion() != RiderScriptEditorData.instance.editorBuildNumber.ToVersion()) // in Unity 2019.3 any change in preference causes `Initialize` call
+      if (prevEditorVersion != null && prevEditorVersion != RiderScriptEditorData.instance.editorBuildNumber.ToVersion()) // in Unity 2019.3 any change in preference causes `Initialize` call
       {
         m_ProjectGeneration.Sync(); // regenerate csproj and sln for new editor
 #if UNITY_2019_3_OR_NEWER
@@ -209,7 +209,6 @@ namespace Packages.Rider.Editor
 #else 
         UnityEditorInternal.InternalEditorUtility.RequestScriptReload();
 #endif
-        
       }
     }
 
