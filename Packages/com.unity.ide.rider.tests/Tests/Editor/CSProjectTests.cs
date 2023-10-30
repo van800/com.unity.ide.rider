@@ -31,9 +31,9 @@ namespace Packages.Rider.Editor.Tests
             {
                 var expectedAssemblyName = "my.AssemblyName";
                 var synchronizer = m_Builder.WithNameForDefines(m_Builder.Assembly.defines, m_Builder.Assembly.name, expectedAssemblyName).Build();
-            
+
                 synchronizer.Sync();
-            
+
                 var filePath = MakeAbsolutePathTestImplementation($"{expectedAssemblyName}.csproj").NormalizePath();
                 Assert.That(m_Builder.FileExists(filePath), $"{filePath} doesn't exist");
             }
@@ -226,7 +226,7 @@ namespace Packages.Rider.Editor.Tests
                 var csprojContent = m_Builder.ReadProjectFile(assembly);
                 StringAssert.Contains("file.hlsl", csprojContent);
             }
-            
+
             [Test] // RIDER-60508 Don't have support for Shaderlab
             public void ShaderWithoutCompileScript_WithReference_WillGetAdded()
             {
@@ -237,8 +237,7 @@ namespace Packages.Rider.Editor.Tests
                     new[] {"UnityEditor.dll"}, AssemblyFlags.EditorAssembly);
 
                 var synchronizer = m_Builder
-                    .WithAssemblies(new []{riderAssembly})
-                    .WithNameForDefines(assembly.defines, assembly.name, assembly.name)
+                    .WithAssemblies(new []{riderAssembly, assembly})
                     .WithAssetFiles(new[] {"file.hlsl"})
                     .AssignFilesToAssembly(new[] {"file.hlsl"}, assembly)
                     .Build();
@@ -249,7 +248,7 @@ namespace Packages.Rider.Editor.Tests
                 StringAssert.Contains("file.hlsl", csprojContent);
                 StringAssert.Contains("UnityEditor.dll", csprojContent);
             }
-            
+
             [Test]
             public void NotContributedAnAssembly_WillNotGetAdded()
             {
@@ -307,11 +306,11 @@ namespace Packages.Rider.Editor.Tests
             }
 
             [Test]
-            public void InInternalizedPackage_WillBeAddedToCompileInclude()
+            public void InInternalizedPackage_WilNotBeAddedToCompileInclude()
             {
                 var synchronizer = m_Builder.WithPackageAsset(m_Builder.Assembly.sourceFiles[0], true).Build();
                 synchronizer.Sync();
-                StringAssert.Contains(m_Builder.Assembly.sourceFiles[0], m_Builder.ReadProjectFile(m_Builder.Assembly));
+                Assert.False(m_Builder.FileExists(SynchronizerBuilder.ProjectFilePath(m_Builder.Assembly)));
             }
 
             [Test]
@@ -503,7 +502,7 @@ namespace Packages.Rider.Editor.Tests
                 XMLUtilities.AssertCompileItemsMatchExactly(scriptProject, m_Builder.Assembly.sourceFiles);
                 XMLUtilities.AssertNonCompileItemsMatchExactly(scriptProject, nonCompileItem);
             }
-            
+
 #if UNITY_2021_3 || UNITY_2022_2_OR_NEWER
             [Test]
             public void RoslynAdditionalFilePaths_WillBeAdded()
@@ -608,7 +607,7 @@ namespace Packages.Rider.Editor.Tests
                 CheckOtherArgument(new[] { $"-warnaserror{value}" }, $"<TreatWarningsAsErrors>{state}</TreatWarningsAsErrors>");
                 CheckOtherArgument(new[] { $"/warnaserror{value}" }, $"<TreatWarningsAsErrors>{state}</TreatWarningsAsErrors>");
             }
-            
+
             [Test]
             public void SetWarnAsError2()
             {
@@ -616,7 +615,7 @@ namespace Packages.Rider.Editor.Tests
                 CheckOtherArgument(new[] { $"-warnaserror+" }, "<TreatWarningsAsErrors>True</TreatWarningsAsErrors>");
                 CheckOtherArgument(new[] { $"-warnaserror-" }, "<TreatWarningsAsErrors>False</TreatWarningsAsErrors>");
             }
-            
+
             [Test]
             public void SetWarnAsErrorCombined1()
             {
@@ -625,7 +624,7 @@ namespace Packages.Rider.Editor.Tests
 
                 CheckOtherArgument(new[] { "-warnaserror+", "-warnaserror-:0169;0123" }, expectedOutput, expectedOutput2);
             }
-            
+
             [Test]
             public void SetWarnAsErrorCombined2()
             {
@@ -694,7 +693,7 @@ namespace Packages.Rider.Editor.Tests
             {
                 CheckOtherArgument(new string[0], $"<LangVersion>{Helper.GetLangVersion()}</LangVersion>");
             }
-            
+
             [Test]
             public void CheckNullable()
             {
@@ -748,7 +747,7 @@ namespace Packages.Rider.Editor.Tests
                 StringAssert.Contains($"<LangVersion>{languageVersion}</LangVersion>", csprojFileContents);
             }
 #endif
-            
+
             [Test]
             public void AllowUnsafeFromAssemblySettings_AddBlockToCsproj()
             {
@@ -856,7 +855,7 @@ namespace Packages.Rider.Editor.Tests
             [Test]
             public void AssemblyReferenceFromInternalizedPackage_IsAddedAsReference()
             {
-                string[] files = { "test.cs" };
+                string[] files = { "package.cs" };
                 var assemblyReferences = new[]
                 {
                     new Assembly("MyPlugin", "/some/path/MyPlugin.dll", files, new string[0], new Assembly[0], new string[0], AssemblyFlags.None),

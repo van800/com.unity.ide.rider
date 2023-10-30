@@ -20,8 +20,8 @@ namespace Packages.Rider.Editor.ProjectGeneration
     public string ProjectGenerationRootNamespace => EditorSettings.projectGenerationRootNamespace;
 
     private Assembly[] m_AllEditorAssemblies;
-
     private Assembly[] m_AllPlayerAssemblies;
+    private Assembly[] m_AllAssemblies;
 
     public ProjectGenerationFlag ProjectGenerationFlag
     {
@@ -38,35 +38,71 @@ namespace Packages.Rider.Editor.ProjectGeneration
       return CompilationPipeline.GetAssemblyNameFromScriptPath(path);
     }
 
-    public IEnumerable<Assembly> GetAssemblies(Func<string, bool> shouldFileBePartOfSolution)
+    public Assembly[] GetAllAssemblies()
     {
       if (m_AllEditorAssemblies == null)
-        m_AllEditorAssemblies = GetAssembliesByType(AssembliesType.Editor).ToArray();
+      {
+        m_AllEditorAssemblies = GetAssembliesByType(AssembliesType.Editor);
+        m_AllAssemblies = m_AllEditorAssemblies;
+      }
 
       if (ProjectGenerationFlag.HasFlag(ProjectGenerationFlag.PlayerAssemblies))
       {
         if (m_AllPlayerAssemblies == null)
-          m_AllPlayerAssemblies = GetAssembliesByType(AssembliesType.Player).ToArray();
+        {
+          m_AllPlayerAssemblies = GetAssembliesByType(AssembliesType.Player);
+          m_AllAssemblies = new Assembly[m_AllEditorAssemblies.Length + m_AllPlayerAssemblies.Length];
+          Array.Copy(m_AllEditorAssemblies, m_AllAssemblies, m_AllEditorAssemblies.Length);
+          Array.Copy(m_AllPlayerAssemblies, 0, m_AllAssemblies, m_AllEditorAssemblies.Length, m_AllPlayerAssemblies.Length);
+        }
       }
 
-      if (!ProjectGenerationFlag.HasFlag(ProjectGenerationFlag.PlayerAssemblies))
-        return m_AllEditorAssemblies.Where(a => a.sourceFiles.Any(shouldFileBePartOfSolution));
 
-      return m_AllEditorAssemblies.Concat(m_AllPlayerAssemblies).Where(a => a.sourceFiles.Any(shouldFileBePartOfSolution));
+      return m_AllAssemblies;
     }
 
-    private static IEnumerable<Assembly> GetAssembliesByType(AssembliesType type)
+    private static Assembly[] GetAssembliesByType(AssembliesType type)
     {
-      foreach (var assembly in CompilationPipeline.GetAssemblies(type))
+      // This is a very expensive Unity call...
+      var compilationPipelineAssemblies = CompilationPipeline.GetAssemblies(type);
+      var assemblies = new Assembly[compilationPipelineAssemblies.Length];
+      var i = 0;
+      foreach (var compilationPipelineAssembly in compilationPipelineAssemblies)
       {
-        var outputPath = type == AssembliesType.Editor ? $@"Temp\Bin\Debug\{assembly.name}\" : $@"Temp\Bin\Debug\{assembly.name}\Player\";
-        yield return new Assembly(assembly.name, outputPath, assembly.sourceFiles, assembly.defines,
-          assembly.assemblyReferences, assembly.compiledAssemblyReferences, assembly.flags, assembly.compilerOptions
+        // The CompilationPipeline's assemblies have an output path of Libraries/ScriptAssemblies
+        // TODO: It might be worth using the app's copy of Assembly and updating output path when we need it
+        // But that requires tracking editor and player assemblies separately
+        var outputPath = type == AssembliesType.Editor
+          ? $@"Temp\Bin\Debug\{compilationPipelineAssembly.name}\"
+          : $@"Temp\Bin\Debug\{compilationPipelineAssembly.name}\Player\";
+        assemblies[i] = new Assembly(
+          compilationPipelineAssembly.name,
+          outputPath,
+          compilationPipelineAssembly.sourceFiles,
+          compilationPipelineAssembly.defines,
+          compilationPipelineAssembly.assemblyReferences,
+          compilationPipelineAssembly.compiledAssemblyReferences,
+          compilationPipelineAssembly.flags,
+          compilationPipelineAssembly.compilerOptions
 #if UNITY_2020_2_OR_NEWER
-          , assembly.rootNamespace
+          , compilationPipelineAssembly.rootNamespace
 #endif
         );
+        i++;
       }
+
+      return assemblies;
+    }
+
+    public Assembly GetNamedAssembly(string name)
+    {
+      foreach (var assembly in GetAllAssemblies())
+      {
+        if (assembly.name == name)
+          return assembly;
+      }
+
+      return null;
     }
 
     public string GetProjectName(string name, string[] defines)

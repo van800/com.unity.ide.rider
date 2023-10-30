@@ -195,13 +195,17 @@ namespace Packages.Rider.Editor.ProjectGeneration
     {
       // Only synchronize islands that have associated source files and ones that we actually want in the project.
       // This also filters out DLLs coming from .asmdef files in packages.
-      var assemblies = m_AssemblyNameProvider.GetAssemblies(ShouldFileBePartOfSolution).ToArray();
+      var allAssemblies = m_AssemblyNameProvider.GetAllAssemblies();
+      
       var allAssetProjectParts = GenerateAllAssetProjectParts();
 
       var projectParts = new List<ProjectPart>();
       var visitedAssemblyNames = new HashSet<string>();
-      foreach (var assembly in assemblies)
+      foreach (var assembly in allAssemblies)
       {
+        if (!assembly.sourceFiles.Any(ShouldFileBePartOfSolution))
+          continue;
+        
         if (visitedAssemblyNames.Contains(assembly.name))
           projectParts.Add(new ProjectPart(assembly.name, assembly, string.Empty)); // do not add asset project parts to both editor and player projects
         else
@@ -213,7 +217,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
       }
 
       var executingAssemblyName = typeof(ProjectGeneration).Assembly.GetName().Name;
-      var riderAssembly = m_AssemblyNameProvider.GetAssemblies(_ => true).FirstOrDefault(a=>a.name == executingAssemblyName);
+      var riderAssembly = m_AssemblyNameProvider.GetNamedAssembly(executingAssemblyName);
       var projectPartsWithoutAssembly = allAssetProjectParts.Where(a => !visitedAssemblyNames.Contains(a.Key));
       projectParts.AddRange(projectPartsWithoutAssembly.Select(allAssetProjectPart => 
         AddProjectPart(allAssetProjectPart.Key, riderAssembly, allAssetProjectPart.Value)));

@@ -13,7 +13,8 @@ namespace Packages.Rider.Editor.ProjectGeneration
     string GetAssemblyNameFromScriptPath(string path);
     string GetProjectName(string name, string[] defines);
     bool IsInternalizedPackagePath(string path);
-    IEnumerable<Assembly> GetAssemblies(Func<string, bool> shouldFileBePartOfSolution);
+    Assembly[] GetAllAssemblies();
+    Assembly GetNamedAssembly(string name);
     IEnumerable<string> GetAllAssetPaths();
     UnityEditor.PackageManager.PackageInfo FindForAssetPath(string assetPath);
     ResponseFileData ParseResponseFile(string responseFilePath, string projectDirectory, string[] systemReferenceDirectories);

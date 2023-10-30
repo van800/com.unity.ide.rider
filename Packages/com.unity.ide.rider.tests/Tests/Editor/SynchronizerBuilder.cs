@@ -76,10 +76,11 @@ namespace Packages.Rider.Editor.Tests
         public SynchronizerBuilder WithAssemblies(Assembly[] assemblies)
         {
             m_Assemblies = assemblies;
-            m_AssemblyProvider.Setup(x => x.GetAssemblies(It.IsAny<Func<string, bool>>())).Returns(m_Assemblies);
+            m_AssemblyProvider.Setup(x => x.GetAllAssemblies()).Returns(m_Assemblies);
             foreach (var assembly in assemblies)
             {
                 m_AssemblyProvider.Setup(x => x.GetProjectName(assembly.name, assembly.defines)).Returns(assembly.name);
+                m_AssemblyProvider.Setup(x => x.GetNamedAssembly(assembly.name)).Returns(assembly);
             }
             return this;
         }
@@ -108,7 +109,7 @@ namespace Packages.Rider.Editor.Tests
 
             var builder = WithAssembly(assembly);
             foreach (var assemblyReference in assembly.assemblyReferences)
-            {   
+            {
                 builder.WithNameForDefines(assemblyReference.defines, assemblyReference.name, assemblyReference.name);
             }
 
