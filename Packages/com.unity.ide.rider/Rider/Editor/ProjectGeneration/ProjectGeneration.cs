@@ -302,25 +302,25 @@ namespace Packages.Rider.Editor.ProjectGeneration
         // (E.g. an example large project with 45,600 assets, 5,000 are folders and only 2,500 are useful assets)
         if (AssetDatabase.IsValidFolder(asset))
         {
-          var assemblyDllName = assemblyDllNames.FindClosestMatch(asset);
-          if (string.IsNullOrEmpty(assemblyDllName))
-          {
-            // Can't find it in trie (Assembly-CSharp and related projects don't have .asmdef files)
-            assemblyDllName = m_AssemblyNameProvider.GetAssemblyNameFromScriptPath($"{asset}/asset.cs");
-          }
-          if (string.IsNullOrEmpty(assemblyDllName))
-            assemblyDllName = fallbackAssemblyDllName;
-
-          if (!stringBuilders.TryGetValue(assemblyDllName, out var projectBuilder))
-          {
-            projectBuilder = new StringBuilder();
-            stringBuilders[assemblyDllName] = projectBuilder;
-          }
-
-          projectBuilder.Append("     <Folder Include=\"")
-            .Append(m_FileIOProvider.EscapedRelativePathFor(asset, ProjectDirectoryWithSlash))
-            .Append("\" />")
-            .AppendLine();
+          // var assemblyDllName = assemblyDllNames.FindClosestMatch(asset);
+          // if (string.IsNullOrEmpty(assemblyDllName))
+          // {
+          //   // Can't find it in trie (Assembly-CSharp and related projects don't have .asmdef files)
+          //   assemblyDllName = m_AssemblyNameProvider.GetAssemblyNameFromScriptPath($"{asset}/asset.cs");
+          // }
+          // if (string.IsNullOrEmpty(assemblyDllName))
+          //  assemblyDllName = fallbackAssemblyDllName;
+//
+          // if (!stringBuilders.TryGetValue(assemblyDllName, out var projectBuilder))
+          // {
+          //   projectBuilder = new StringBuilder();
+          //   stringBuilders[assemblyDllName] = projectBuilder;
+          //}
+//
+          // projectBuilder.Append("     <Folder Include=\"")
+          //   .Append(m_FileIOProvider.EscapedRelativePathFor(asset, ProjectDirectoryWithSlash))
+          //   .Append("\" />")
+          //   .AppendLine();
         }
         else
         {
