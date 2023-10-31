@@ -324,8 +324,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
         }
         else
         {
-          var extension = Path.GetExtension(asset);
-          if (IsSupportedExtension(extension) && !extension.Equals(".cs", StringComparison.OrdinalIgnoreCase))
+          if (!asset.EndsWith(".cs", StringComparison.OrdinalIgnoreCase) && IsSupportedExtension(Path.GetExtension(asset)))
           {
             var assemblyDllName = assemblyDllNames.FindClosestMatch(asset);
             if (string.IsNullOrEmpty(assemblyDllName))
