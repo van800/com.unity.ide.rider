@@ -28,24 +28,24 @@ namespace Packages.Rider.Editor.ProjectGeneration
     private static readonly Dictionary<string, ScriptingLanguage> k_BuiltinSupportedExtensions =
       new Dictionary<string, ScriptingLanguage>
       {
-        { "cs", ScriptingLanguage.CSharp },
-        { "uxml", ScriptingLanguage.None },
-        { "uss", ScriptingLanguage.None },
-        { "shader", ScriptingLanguage.None },
-        { "compute", ScriptingLanguage.None },
-        { "cginc", ScriptingLanguage.None },
-        { "hlsl", ScriptingLanguage.None },
-        { "glslinc", ScriptingLanguage.None },
-        { "template", ScriptingLanguage.None },
-        { "raytrace", ScriptingLanguage.None },
-        { "json", ScriptingLanguage.None},
-        { "rsp", ScriptingLanguage.None},
-        { "asmdef", ScriptingLanguage.None},
-        { "asmref", ScriptingLanguage.None},
-        { "xaml", ScriptingLanguage.None},
-        { "tt", ScriptingLanguage.None},
-        { "t4", ScriptingLanguage.None},
-        { "ttinclude", ScriptingLanguage.None}
+        { ".cs", ScriptingLanguage.CSharp },
+        { ".uxml", ScriptingLanguage.None },
+        { ".uss", ScriptingLanguage.None },
+        { ".shader", ScriptingLanguage.None },
+        { ".compute", ScriptingLanguage.None },
+        { ".cginc", ScriptingLanguage.None },
+        { ".hlsl", ScriptingLanguage.None },
+        { ".glslinc", ScriptingLanguage.None },
+        { ".template", ScriptingLanguage.None },
+        { ".raytrace", ScriptingLanguage.None },
+        { ".json", ScriptingLanguage.None},
+        { ".rsp", ScriptingLanguage.None},
+        { ".asmdef", ScriptingLanguage.None},
+        { ".asmref", ScriptingLanguage.None},
+        { ".xaml", ScriptingLanguage.None},
+        { ".tt", ScriptingLanguage.None},
+        { ".t4", ScriptingLanguage.None},
+        { ".ttinclude", ScriptingLanguage.None}
       };
 
     private string m_SolutionProjectEntryTemplate = string.Join(Environment.NewLine,
@@ -56,7 +56,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
       @"        {{{0}}}.Debug|Any CPU.ActiveCfg = Debug|Any CPU",
       @"        {{{0}}}.Debug|Any CPU.Build.0 = Debug|Any CPU").Replace("    ", "\t");
 
-    private string[] m_ProjectSupportedExtensions = new string[0];
+    private string[] m_ProjectSupportedExtensions = Array.Empty<string>();
 
     public string ProjectDirectory { get; }
 
@@ -158,7 +158,12 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
     private void SetupSupportedExtensions()
     {
-      m_ProjectSupportedExtensions = m_AssemblyNameProvider.ProjectSupportedExtensions;
+      var extensions = m_AssemblyNameProvider.ProjectSupportedExtensions;
+      m_ProjectSupportedExtensions = new string[extensions.Length];
+      for (var i = 0; i < extensions.Length; i++)
+      {
+        m_ProjectSupportedExtensions[i] = "." + extensions[i];
+      }
     }
 
     private bool ShouldFileBePartOfSolution(string file)
@@ -173,18 +178,16 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
     public bool HasValidExtension(string file)
     {
-      var extension = Path.GetExtension(file);
-
       // Dll's are not scripts but still need to be included..
-      if (extension.Equals(".dll", StringComparison.OrdinalIgnoreCase))
+      if (file.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
           return true;
-
+      
+      var extension = Path.GetExtension(file);
       return IsSupportedExtension(extension);
     }
 
     private bool IsSupportedExtension(string extension)
     {
-      extension = extension.TrimStart('.');
       return k_BuiltinSupportedExtensions.ContainsKey(extension) || m_ProjectSupportedExtensions.Contains(extension);
     }
 
