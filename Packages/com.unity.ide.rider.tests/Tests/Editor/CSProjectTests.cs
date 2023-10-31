@@ -41,8 +41,7 @@ namespace Packages.Rider.Editor.Tests
             [Test]
             public void DefaultSyncSettings_WhenSynced_CreatesProjectFileFromDefaultTemplate()
             {
-                var projectGuid = "ProjectGuid";
-                var synchronizer = m_Builder.WithProjectGuid(projectGuid, m_Builder.Assembly).Build();
+                var synchronizer = m_Builder.Build();
 
                 synchronizer.Sync();
 
@@ -63,7 +62,7 @@ namespace Packages.Rider.Editor.Tests
                     "    <ProductVersion>10.0.20506</ProductVersion>",
                     "    <SchemaVersion>2.0</SchemaVersion>",
                     "    <RootNamespace></RootNamespace>",
-                    $"    <ProjectGuid>{{{projectGuid}}}</ProjectGuid>",
+                    $"    <ProjectGuid>{{2c24a770-9be1-a718-c8a6-8cab2edf7848}}</ProjectGuid>",
                     "    <ProjectTypeGuids>{E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>",
                     "    <OutputType>Library</OutputType>",
                     "    <AppDesignerFolder>Properties</AppDesignerFolder>",

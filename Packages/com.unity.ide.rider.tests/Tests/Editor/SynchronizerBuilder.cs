@@ -21,7 +21,6 @@ namespace Packages.Rider.Editor.Tests
         public static string ProjectDirectory = Path.GetFullPath("/FullPath/Example");
 
         MockFileIO m_FileIoMock = new MockFileIO();
-        Mock<IGUIDGenerator> m_GUIDGenerator = new Mock<IGUIDGenerator>();
 
         public string ReadFile(string fileName) => m_FileIoMock.ReadAllText(fileName);
         public static string ProjectFilePath(Assembly assembly) => Path.Combine(ProjectDirectory, $"{assembly.name}.csproj").NormalizePath();
@@ -49,11 +48,12 @@ namespace Packages.Rider.Editor.Tests
         public SynchronizerBuilder()
         {
             WithAssemblyData();
+            m_AssemblyProvider.Setup(x => x.GetProjectName("Assembly-CSharp", It.IsAny<string[]>())).Returns("Assembly-CSharp");
         }
 
         internal IGenerator Build()
         {
-            return m_Synchronizer = new ProjectGeneration.ProjectGeneration(ProjectDirectory, m_AssemblyProvider.Object, m_FileIoMock, m_GUIDGenerator.Object);
+            return m_Synchronizer = new ProjectGeneration.ProjectGeneration(ProjectDirectory, m_AssemblyProvider.Object, m_FileIoMock, new GUIDProvider());
         }
 
         public SynchronizerBuilder WithSolutionText(string solutionText)
@@ -64,12 +64,6 @@ namespace Packages.Rider.Editor.Tests
             }
 
             m_FileIoMock.WriteAllText(m_Synchronizer.SolutionFile(), solutionText);
-            return this;
-        }
-
-        public SynchronizerBuilder WithProjectGuid(string projectGuid, Assembly assembly)
-        {
-            m_GUIDGenerator.Setup(x => x.ProjectGuid(Path.GetFileName(ProjectDirectory) + assembly.name)).Returns(projectGuid);
             return this;
         }
 

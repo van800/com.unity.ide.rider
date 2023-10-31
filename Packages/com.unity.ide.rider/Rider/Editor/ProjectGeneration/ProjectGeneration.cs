@@ -66,6 +66,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
     private readonly IAssemblyNameProvider m_AssemblyNameProvider;
     private readonly IFileIO m_FileIOProvider;
     private readonly IGUIDGenerator m_GUIDGenerator;
+    private readonly Dictionary<string, string> m_ProjectGuids = new Dictionary<string, string>();
 
     internal static bool isRiderProjectGeneration; // workaround to https://github.cds.internal.unity3d.com/unity/com.unity.ide.rider/issues/28
 
@@ -150,6 +151,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
       OnGeneratedCSProjectFiles(types);
       m_AssemblyNameProvider.ResetPackageInfoCache();
       m_AssemblyNameProvider.ResetAssembliesCache();
+      m_ProjectGuids.Clear();
       RiderScriptEditorData.instance.hasChanges = false;
       RiderScriptEditorData.instance.InvalidateSavedCompilationDefines();
     }
@@ -1007,7 +1009,13 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
     private string ProjectGuid(string name)
     {
-      return m_GUIDGenerator.ProjectGuid(m_ProjectName + name);
+      if (!m_ProjectGuids.TryGetValue(name, out var guid))
+      {
+        guid = m_GUIDGenerator.ProjectGuid(m_ProjectName + name);
+        m_ProjectGuids.Add(name, guid);
+      }
+
+      return guid;
     }
   }
 
@@ -1032,7 +1040,6 @@ namespace Packages.Rider.Editor.ProjectGeneration
       {
         if (node.Children == null)
           node.Children = new Dictionary<string, TrieNode>(StringComparer.OrdinalIgnoreCase);
-
         // ReSharper disable once CanSimplifyDictionaryLookupWithTryAdd
         if (!node.Children.ContainsKey(part))
           node.Children[part] = new TrieNode();
