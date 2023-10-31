@@ -200,30 +200,40 @@ namespace Packages.Rider.Editor.ProjectGeneration
       // This also filters out DLLs coming from .asmdef files in packages.
       var allAssemblies = m_AssemblyNameProvider.GetAllAssemblies();
       
-      var allAssetProjectParts = GenerateAllAssetProjectParts();
+      var projectPartsForAssetsByAssembly = GenerateAllAssetProjectParts();
 
       var projectParts = new List<ProjectPart>();
-      var visitedAssemblyNames = new HashSet<string>();
+      var assemblyNamesWithSource = new HashSet<string>();
       foreach (var assembly in allAssemblies)
       {
         if (!assembly.sourceFiles.Any(ShouldFileBePartOfSolution))
           continue;
         
-        if (visitedAssemblyNames.Contains(assembly.name))
+        // TODO: Will this check ever be true? Player assemblies don't have the same name as editor assemblies, right?
+        if (assemblyNamesWithSource.Contains(assembly.name))
           projectParts.Add(new ProjectPart(assembly.name, assembly, string.Empty)); // do not add asset project parts to both editor and player projects
         else
         {
-          allAssetProjectParts.TryGetValue(assembly.name, out var additionalAssetsForProject);
+          projectPartsForAssetsByAssembly.TryGetValue(assembly.name, out var additionalAssetsForProject);
           projectParts.Add(new ProjectPart(assembly.name, assembly, additionalAssetsForProject));
-          visitedAssemblyNames.Add(assembly.name);  
+          assemblyNamesWithSource.Add(assembly.name);  
         }
       }
 
+      // If there are any assets that should be in a separate assembly, but that assembly folder doesn't contain any
+      // source files, we'll have orphaned assets. Create a project for these assemblies, with references based on the
+      // Rider package assembly
+      // TODO: Would this produce the same results if we removed the check for ShouldFileBePartOfSolution above?
+      // I suspect the only difference would be output path and references, and potentially simplify things
       var executingAssemblyName = typeof(ProjectGeneration).Assembly.GetName().Name;
       var riderAssembly = m_AssemblyNameProvider.GetNamedAssembly(executingAssemblyName);
-      var projectPartsWithoutAssembly = allAssetProjectParts.Where(a => !visitedAssemblyNames.Contains(a.Key));
-      projectParts.AddRange(projectPartsWithoutAssembly.Select(allAssetProjectPart => 
-        AddProjectPart(allAssetProjectPart.Key, riderAssembly, allAssetProjectPart.Value)));
+      foreach (var (assembly, projectPart) in projectPartsForAssetsByAssembly)
+      {
+        if (!assemblyNamesWithSource.Contains(assembly))
+        {
+          projectParts.Add(AddProjectPart(assembly, riderAssembly, projectPart));
+        }
+      }
 
       SyncSolution(projectParts.ToArray(), types);
 
@@ -237,13 +247,17 @@ namespace Packages.Rider.Editor.ProjectGeneration
     {
       Assembly assembly = null;
       if (riderAssembly != null)
+      {
         // We want to add those references, so that Rider would detect Unity path and version and provide rich features for shader files
+        // Note that output path will be Library/ScriptAssemblies
         assembly = new Assembly(assemblyName, riderAssembly.outputPath, Array.Empty<string>(),
           new []{"UNITY_EDITOR"},
           Array.Empty<Assembly>(),
           riderAssembly.compiledAssemblyReferences.Where(a =>
-            a.EndsWith("UnityEditor.dll", StringComparison.Ordinal) || a.EndsWith("UnityEngine.dll", StringComparison.Ordinal) ||
+            a.EndsWith("UnityEditor.dll", StringComparison.Ordinal) ||
+            a.EndsWith("UnityEngine.dll", StringComparison.Ordinal) ||
             a.EndsWith("UnityEngine.CoreModule.dll", StringComparison.Ordinal)).ToArray(), riderAssembly.flags);
+      }
       return new ProjectPart(assemblyName, assembly, assetProjectPart);
     }
 
