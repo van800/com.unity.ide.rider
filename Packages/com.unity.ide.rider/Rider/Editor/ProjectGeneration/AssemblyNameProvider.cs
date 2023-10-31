@@ -4,21 +4,23 @@ using System.Linq;
 using UnityEditor;
 using UnityEditor.Compilation;
 using UnityEditor.PackageManager;
+using PackageInfo = UnityEditor.PackageManager.PackageInfo;
 
 namespace Packages.Rider.Editor.ProjectGeneration
 {
   internal class AssemblyNameProvider : IAssemblyNameProvider
   {
-    private readonly Dictionary<string, UnityEditor.PackageManager.PackageInfo> m_PackageInfoCache = new Dictionary<string, UnityEditor.PackageManager.PackageInfo>();
+    private readonly Dictionary<string, PackageInfo> m_PackageInfoCache
+      = new Dictionary<string, PackageInfo>(StringComparer.OrdinalIgnoreCase);
 
     ProjectGenerationFlag m_ProjectGenerationFlag = (ProjectGenerationFlag)EditorPrefs.GetInt("unity_project_generation_flag", 3);
 
     public string[] ProjectSupportedExtensions => EditorSettings.projectGenerationUserExtensions;
-    
+
     public string ProjectGenerationRootNamespace => EditorSettings.projectGenerationRootNamespace;
 
     private Assembly[] m_AllEditorAssemblies;
-    
+
     private Assembly[] m_AllPlayerAssemblies;
 
     public ProjectGenerationFlag ProjectGenerationFlag
@@ -46,10 +48,10 @@ namespace Packages.Rider.Editor.ProjectGeneration
         if (m_AllPlayerAssemblies == null)
           m_AllPlayerAssemblies = GetAssembliesByType(AssembliesType.Player).ToArray();
       }
-      
+
       if (!ProjectGenerationFlag.HasFlag(ProjectGenerationFlag.PlayerAssemblies))
         return m_AllEditorAssemblies.Where(a => a.sourceFiles.Any(shouldFileBePartOfSolution));
-      
+
       return m_AllEditorAssemblies.Concat(m_AllPlayerAssemblies).Where(a => a.sourceFiles.Any(shouldFileBePartOfSolution));
     }
 
@@ -88,15 +90,11 @@ namespace Packages.Rider.Editor.ProjectGeneration
       }
 
       var followupSeparator = assetPath.IndexOf('/', packagesPrefix.Length);
-      if (followupSeparator == -1)
-      {
-        return assetPath.ToLowerInvariant();
-      }
-
-      return assetPath.Substring(0, followupSeparator).ToLowerInvariant();
+      // Note that we return the first path segment without modifying/normalising case!
+      return followupSeparator == -1 ? assetPath : assetPath.Substring(0, followupSeparator);
     }
 
-    public UnityEditor.PackageManager.PackageInfo FindForAssetPath(string assetPath)
+    public PackageInfo FindForAssetPath(string assetPath)
     {
       var parentPackageAssetPath = ResolvePotentialParentPackageAssetPath(assetPath);
       if (parentPackageAssetPath == null)
@@ -109,7 +107,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
         return cachedPackageInfo;
       }
 
-      var result = UnityEditor.PackageManager.PackageInfo.FindForAssetPath(parentPackageAssetPath);
+      var result = PackageInfo.FindForAssetPath(parentPackageAssetPath);
       m_PackageInfoCache[parentPackageAssetPath] = result;
       return result;
     }
@@ -127,7 +125,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
     public bool IsInternalizedPackagePath(string path)
     {
-      if (string.IsNullOrEmpty(path.Trim()))
+      if (string.IsNullOrEmpty(path))
       {
         return false;
       }
