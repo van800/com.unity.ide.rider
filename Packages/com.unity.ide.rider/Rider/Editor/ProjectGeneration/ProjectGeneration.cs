@@ -257,7 +257,6 @@ namespace Packages.Rider.Editor.ProjectGeneration
         }
 
         const string fallbackAssemblyDllName = "Assembly-CSharp.dll";
-        var extension = Path.GetExtension(asset);
         if (AssetDatabase.IsValidFolder(asset))
         {
           // TODO: This is a very expensive call for very large projects (e.g. 50,000+ assets)
@@ -278,26 +277,30 @@ namespace Packages.Rider.Editor.ProjectGeneration
             .Append("\" />")
             .AppendLine();
         }
-        else if (IsSupportedExtension(extension) && !extension.Equals(".cs", StringComparison.OrdinalIgnoreCase))
+        else
         {
-          // TODO: This is a very expensive call for very large projects (e.g. 50,000+ assets)
-          // Find assembly the asset belongs to by adding script extension and using compilation pipeline.
-          var assemblyDllName = m_AssemblyNameProvider.GetAssemblyNameFromScriptPath(asset + ".cs");
-          if (string.IsNullOrEmpty(assemblyDllName))
+          var extension = Path.GetExtension(asset);
+          if (IsSupportedExtension(extension) && !extension.Equals(".cs", StringComparison.OrdinalIgnoreCase))
           {
-            assemblyDllName = fallbackAssemblyDllName;
-          }
+            // TODO: This is a very expensive call for very large projects (e.g. 50,000+ assets)
+            // Find assembly the asset belongs to by adding script extension and using compilation pipeline.
+            var assemblyDllName = m_AssemblyNameProvider.GetAssemblyNameFromScriptPath(asset + ".cs");
+            if (string.IsNullOrEmpty(assemblyDllName))
+            {
+              assemblyDllName = fallbackAssemblyDllName;
+            }
 
-          if (!stringBuilders.TryGetValue(assemblyDllName, out var projectBuilder))
-          {
-            projectBuilder = new StringBuilder();
-            stringBuilders[assemblyDllName] = projectBuilder;
-          }
+            if (!stringBuilders.TryGetValue(assemblyDllName, out var projectBuilder))
+            {
+              projectBuilder = new StringBuilder();
+              stringBuilders[assemblyDllName] = projectBuilder;
+            }
 
-          projectBuilder.Append("     <None Include=\"")
-            .Append(m_FileIOProvider.EscapedRelativePathFor(asset, ProjectDirectory))
-            .Append("\" />")
-            .AppendLine();
+            projectBuilder.Append("     <None Include=\"")
+              .Append(m_FileIOProvider.EscapedRelativePathFor(asset, ProjectDirectory))
+              .Append("\" />")
+              .AppendLine();
+          }
         }
       }
 
