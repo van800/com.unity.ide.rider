@@ -48,14 +48,6 @@ namespace Packages.Rider.Editor.ProjectGeneration
         { ".ttinclude", ScriptingLanguage.None}
       };
 
-    private string m_SolutionProjectEntryTemplate = string.Join(Environment.NewLine,
-      @"Project(""{{{0}}}"") = ""{1}"", ""{2}"", ""{{{3}}}""",
-      @"EndProject").Replace("    ", "\t");
-
-    private string m_SolutionProjectConfigurationTemplate = string.Join(Environment.NewLine,
-      @"        {{{0}}}.Debug|Any CPU.ActiveCfg = Debug|Any CPU",
-      @"        {{{0}}}.Debug|Any CPU.Build.0 = Debug|Any CPU").Replace("    ", "\t");
-
     private string[] m_ProjectSupportedExtensions = Array.Empty<string>();
 
     // Note that ProjectDirectory can be assumed to be the reults of Path.GetFullPath
@@ -744,27 +736,6 @@ namespace Packages.Rider.Editor.ProjectGeneration
       return 4.ToString();
     }
 
-    private static string GetSolutionText()
-    {
-      return string.Join(Environment.NewLine,
-        @"",
-        @"Microsoft Visual Studio Solution File, Format Version {0}",
-        @"# Visual Studio {1}",
-        @"{2}",
-        @"Global",
-        @"    GlobalSection(SolutionConfigurationPlatforms) = preSolution",
-        @"        Debug|Any CPU = Debug|Any CPU",
-        @"    EndGlobalSection",
-        @"    GlobalSection(ProjectConfigurationPlatforms) = postSolution",
-        @"{3}",
-        @"    EndGlobalSection",
-        @"    GlobalSection(SolutionProperties) = preSolution",
-        @"        HideSolutionNode = FALSE",
-        @"    EndGlobalSection",
-        @"EndGlobal",
-        @"").Replace("    ", "\t");
-    }
-
     private static string GetProjectFooterTemplate()
     {
       return string.Join(Environment.NewLine,
@@ -849,13 +820,48 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
     private string SolutionText(List<ProjectPart> islands)
     {
-      var fileversion = "11.00";
-      var vsversion = "2010";
+      var stringBuilder = new StringBuilder();
+      stringBuilder
+        .AppendLine()
+        .AppendLine("Microsoft Visual Studio Solution File, Format Version 11.00")
+        .AppendLine("# Visual Studio 2010");
 
-      var projectEntries = GetProjectEntries(islands);
-      var projectConfigurations = string.Join(Environment.NewLine,
-        islands.Select(i => GetProjectActiveConfigurations(ProjectGuid(m_AssemblyNameProvider.GetProjectName(i.Name, i.Defines)))).ToArray());
-      return string.Format(GetSolutionText(), fileversion, vsversion, projectEntries, projectConfigurations);
+      foreach (var island in islands)
+      {
+        var projectName = m_AssemblyNameProvider.GetProjectName(island.Name, island.Defines);
+
+        // GUID is for C# class libraries
+        stringBuilder.AppendFormat("Project(\"{{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}}\") = \"{0}\", \"{1}.csproj\", \"{{{2}}}\"",
+            island.Name,
+            projectName,
+            ProjectGuid(projectName))
+          .AppendLine()
+          .AppendLine("EndProject");
+      }
+
+      stringBuilder.AppendLine("Global")
+        .AppendLine("\tGlobalSection(SolutionConfigurationPlatforms) = preSolution")
+        .AppendLine("\t\tDebug|Any CPU = Debug|Any CPU")
+        .AppendLine("\tEndGlobalSection")
+        .AppendLine("\tGlobalSection(ProjectConfigurationPlatforms) = postSolution");
+
+      foreach (var island in islands)
+      {
+        var projectGuid = ProjectGuid(m_AssemblyNameProvider.GetProjectName(island.Name, island.Defines));
+
+        stringBuilder.AppendFormat("\t\t{{{0}}}.Debug|Any CPU.ActiveCfg = Debug|Any CPU", projectGuid)
+          .AppendLine()
+          .AppendFormat("\t\t{{{0}}}.Debug|Any CPU.Build.0 = Debug|Any CPU", projectGuid)
+          .AppendLine();
+      }
+
+      stringBuilder.AppendLine("\tEndGlobalSection")
+        .AppendLine("\tGlobalSection(SolutionProperties) = preSolution")
+        .AppendLine("\t\tHideSolutionNode = FALSE")
+        .AppendLine("\tEndGlobalSection")
+        .AppendLine("EndGlobal");
+
+      return stringBuilder.ToString();
     }
 
     private static string GenerateAnalyserItemGroup(string[] paths)
@@ -972,29 +978,6 @@ namespace Packages.Rider.Editor.ProjectGeneration
         return string.Empty;
 
       return string.Join(",", codes.Distinct());
-    }
-
-    private string GetProjectEntries(List<ProjectPart> islands)
-    {
-      var projectEntries = islands.Select(i => string.Format(
-        m_SolutionProjectEntryTemplate,
-        SolutionGuidGenerator.GuidForSolution(),
-        i.Name,
-        Path.GetFileName(ProjectFile(i)),
-        ProjectGuid(m_AssemblyNameProvider.GetProjectName(i.Name, i.Defines))
-      ));
-
-      return string.Join(Environment.NewLine, projectEntries.ToArray());
-    }
-
-    /// <summary>
-    /// Generate the active configuration string for a given project guid
-    /// </summary>
-    private string GetProjectActiveConfigurations(string projectGuid)
-    {
-      return string.Format(
-        m_SolutionProjectConfigurationTemplate,
-        projectGuid);
     }
 
     private static string ProjectFooter()
