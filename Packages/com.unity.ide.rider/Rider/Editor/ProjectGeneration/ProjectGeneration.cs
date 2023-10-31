@@ -235,7 +235,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
         }
       }
 
-      SyncSolution(projectParts.ToArray(), types);
+      SyncSolution(projectParts, types);
 
       foreach (var projectPart in projectParts)
       {
@@ -841,12 +841,12 @@ namespace Packages.Rider.Editor.ProjectGeneration
       return string.Join(Environment.NewLine, pieces);
     }
 
-    private void SyncSolution(ProjectPart[] islands, Type[] types)
+    private void SyncSolution(List<ProjectPart> islands, Type[] types)
     {
       SyncSolutionFileIfNotChanged(SolutionFile(), SolutionText(islands), types);
     }
 
-    private string SolutionText(ProjectPart[] islands)
+    private string SolutionText(List<ProjectPart> islands)
     {
       var fileversion = "11.00";
       var vsversion = "2010";
@@ -973,7 +973,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
       return string.Join(",", codes.Distinct());
     }
 
-    private string GetProjectEntries(ProjectPart[] islands)
+    private string GetProjectEntries(List<ProjectPart> islands)
     {
       var projectEntries = islands.Select(i => string.Format(
         m_SolutionProjectEntryTemplate,
