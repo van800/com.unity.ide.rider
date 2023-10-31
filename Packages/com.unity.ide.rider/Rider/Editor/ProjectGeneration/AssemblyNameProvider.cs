@@ -10,8 +10,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
 {
   internal class AssemblyNameProvider : IAssemblyNameProvider
   {
-    private readonly Dictionary<string, PackageInfo> m_PackageInfoCache
-      = new Dictionary<string, PackageInfo>(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, PackageInfo> m_PackageInfoCache = new Dictionary<string, PackageInfo>();
 
     ProjectGenerationFlag m_ProjectGenerationFlag = (ProjectGenerationFlag)EditorPrefs.GetInt("unity_project_generation_flag", 3);
 
@@ -117,7 +116,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
       return AssetDatabase.GetAllAssetPaths();
     }
 
-    private static string ResolvePotentialParentPackageAssetPath(string assetPath)
+    private static string GetPackageRootDirectoryName(string assetPath)
     {
       const string packagesPrefix = "packages/";
       if (!assetPath.StartsWith(packagesPrefix, StringComparison.OrdinalIgnoreCase))
@@ -130,21 +129,27 @@ namespace Packages.Rider.Editor.ProjectGeneration
       return followupSeparator == -1 ? assetPath : assetPath.Substring(0, followupSeparator);
     }
 
-    public PackageInfo FindForAssetPath(string assetPath)
+    public PackageInfo GetPackageInfoForAssetPath(string assetPath)
     {
-      var parentPackageAssetPath = ResolvePotentialParentPackageAssetPath(assetPath);
-      if (parentPackageAssetPath == null)
+      var packageName = GetPackageRootDirectoryName(assetPath);
+      if (packageName == null)
       {
         return null;
       }
 
-      if (m_PackageInfoCache.TryGetValue(parentPackageAssetPath, out var cachedPackageInfo))
-      {
+      // Assume the package name casing is consistent. If it's not, we'll fall back to an uppercase variant that's
+      // saved in the same dictionary. This gives us cheaper case sensitive matching, with a fallback if our assumption
+      // is incorrect
+      if (m_PackageInfoCache.TryGetValue(packageName, out var cachedPackageInfo))
         return cachedPackageInfo;
-      }
 
-      var result = PackageInfo.FindForAssetPath(parentPackageAssetPath);
-      m_PackageInfoCache[parentPackageAssetPath] = result;
+      var packageNameUpper = packageName.ToUpperInvariant();
+      if (m_PackageInfoCache.TryGetValue(packageNameUpper, out cachedPackageInfo))
+        return cachedPackageInfo;
+
+      var result = PackageInfo.FindForAssetPath(packageName);
+      m_PackageInfoCache[packageName] = result;
+      m_PackageInfoCache[packageNameUpper] = result;
       return result;
     }
 
@@ -166,7 +171,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
         return false;
       }
 
-      var packageInfo = FindForAssetPath(path);
+      var packageInfo = GetPackageInfoForAssetPath(path);
       if (packageInfo == null)
       {
         return false;

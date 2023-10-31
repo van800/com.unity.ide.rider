@@ -16,7 +16,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
     Assembly[] GetAllAssemblies();
     Assembly GetNamedAssembly(string name);
     IEnumerable<string> GetAllAssetPaths();
-    UnityEditor.PackageManager.PackageInfo FindForAssetPath(string assetPath);
+    UnityEditor.PackageManager.PackageInfo GetPackageInfoForAssetPath(string assetPath);
     ResponseFileData ParseResponseFile(string responseFilePath, string projectDirectory, string[] systemReferenceDirectories);
     IEnumerable<string> GetRoslynAnalyzerPaths();
     void ToggleProjectGeneration(ProjectGenerationFlag preference);

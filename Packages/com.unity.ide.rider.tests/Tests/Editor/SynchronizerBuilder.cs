@@ -185,7 +185,7 @@ namespace Packages.Rider.Editor.Tests
 
         public SynchronizerBuilder WithPackageInfo(string assetPath)
         {
-            m_AssemblyProvider.Setup(x => x.FindForAssetPath(assetPath)).Returns(default(UnityEditor.PackageManager.PackageInfo));
+            m_AssemblyProvider.Setup(x => x.GetPackageInfoForAssetPath(assetPath)).Returns(default(UnityEditor.PackageManager.PackageInfo));
             return this;
         }
 
