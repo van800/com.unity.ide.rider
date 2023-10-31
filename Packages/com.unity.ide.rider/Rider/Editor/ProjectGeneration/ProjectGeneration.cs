@@ -221,11 +221,20 @@ namespace Packages.Rider.Editor.ProjectGeneration
       // I suspect the only difference would be output path and references, and potentially simplify things
       var executingAssemblyName = typeof(ProjectGeneration).Assembly.GetName().Name;
       var riderAssembly = m_AssemblyNameProvider.GetNamedAssembly(executingAssemblyName);
+      string[] coreReferences = null;
       foreach (var (assembly, projectPart) in projectPartsForAssetsByAssembly)
       {
         if (!assemblyNamesWithSource.Contains(assembly))
         {
-          projectParts.Add(AddProjectPart(assembly, riderAssembly, projectPart));
+          if (coreReferences == null)
+          {
+            coreReferences = riderAssembly?.compiledAssemblyReferences.Where(a =>
+              a.EndsWith("UnityEditor.dll", StringComparison.Ordinal) ||
+              a.EndsWith("UnityEngine.dll", StringComparison.Ordinal) ||
+              a.EndsWith("UnityEngine.CoreModule.dll", StringComparison.Ordinal)).ToArray();
+          }
+
+          projectParts.Add(AddProjectPart(assembly, riderAssembly, coreReferences, projectPart));
         }
       }
 
@@ -237,7 +246,8 @@ namespace Packages.Rider.Editor.ProjectGeneration
       }
     }
 
-    private static ProjectPart AddProjectPart(string assemblyName, Assembly riderAssembly, string assetProjectPart)
+    private static ProjectPart AddProjectPart(string assemblyName, Assembly riderAssembly, string[] coreReferences,
+      string assetProjectPart)
     {
       Assembly assembly = null;
       if (riderAssembly != null)
@@ -247,10 +257,8 @@ namespace Packages.Rider.Editor.ProjectGeneration
         assembly = new Assembly(assemblyName, riderAssembly.outputPath, Array.Empty<string>(),
           new []{"UNITY_EDITOR"},
           Array.Empty<Assembly>(),
-          riderAssembly.compiledAssemblyReferences.Where(a =>
-            a.EndsWith("UnityEditor.dll", StringComparison.Ordinal) ||
-            a.EndsWith("UnityEngine.dll", StringComparison.Ordinal) ||
-            a.EndsWith("UnityEngine.CoreModule.dll", StringComparison.Ordinal)).ToArray(), riderAssembly.flags);
+          coreReferences,
+          riderAssembly.flags);
       }
       return new ProjectPart(assemblyName, assembly, assetProjectPart);
     }
