@@ -256,55 +256,58 @@ namespace Packages.Rider.Editor.ProjectGeneration
           continue;
         }
 
-        var fallbackAssemblyName = "Assembly-CSharp";
+        const string fallbackAssemblyDllName = "Assembly-CSharp.dll";
         var extension = Path.GetExtension(asset);
         if (AssetDatabase.IsValidFolder(asset))
         {
-          var assemblyName = m_AssemblyNameProvider.GetAssemblyNameFromScriptPath($"{asset}/asset.cs");
-
-          if (string.IsNullOrEmpty(assemblyName))
+          // TODO: This is a very expensive call for very large projects (e.g. 50,000+ assets)
+          var assemblyDllName = m_AssemblyNameProvider.GetAssemblyNameFromScriptPath($"{asset}/asset.cs");
+          if (string.IsNullOrEmpty(assemblyDllName))
           {
-            assemblyName = fallbackAssemblyName;
+            assemblyDllName = fallbackAssemblyDllName;
           }
 
-          assemblyName = FileSystemUtil.FileNameWithoutExtension(assemblyName);
-
-          if (!stringBuilders.TryGetValue(assemblyName, out var projectBuilder))
+          if (!stringBuilders.TryGetValue(assemblyDllName, out var projectBuilder))
           {
             projectBuilder = new StringBuilder();
-            stringBuilders[assemblyName] = projectBuilder;
+            stringBuilders[assemblyDllName] = projectBuilder;
           }
 
-          projectBuilder.Append("     <Folder Include=\"").Append(m_FileIOProvider.EscapedRelativePathFor(asset, ProjectDirectory)).Append("\" />")
-            .Append(Environment.NewLine);
+          projectBuilder.Append("     <Folder Include=\"")
+            .Append(m_FileIOProvider.EscapedRelativePathFor(asset, ProjectDirectory))
+            .Append("\" />")
+            .AppendLine();
         }
         else if (IsSupportedExtension(extension) && !extension.Equals(".cs", StringComparison.OrdinalIgnoreCase))
         {
+          // TODO: This is a very expensive call for very large projects (e.g. 50,000+ assets)
           // Find assembly the asset belongs to by adding script extension and using compilation pipeline.
-          var assemblyName = m_AssemblyNameProvider.GetAssemblyNameFromScriptPath(asset + ".cs");
-
-          if (string.IsNullOrEmpty(assemblyName))
+          var assemblyDllName = m_AssemblyNameProvider.GetAssemblyNameFromScriptPath(asset + ".cs");
+          if (string.IsNullOrEmpty(assemblyDllName))
           {
-            assemblyName = fallbackAssemblyName;
+            assemblyDllName = fallbackAssemblyDllName;
           }
 
-          assemblyName = FileSystemUtil.FileNameWithoutExtension(assemblyName);
-
-          if (!stringBuilders.TryGetValue(assemblyName, out var projectBuilder))
+          if (!stringBuilders.TryGetValue(assemblyDllName, out var projectBuilder))
           {
             projectBuilder = new StringBuilder();
-            stringBuilders[assemblyName] = projectBuilder;
+            stringBuilders[assemblyDllName] = projectBuilder;
           }
 
-          projectBuilder.Append("     <None Include=\"").Append(m_FileIOProvider.EscapedRelativePathFor(asset, ProjectDirectory)).Append("\" />")
-            .Append(Environment.NewLine);
+          projectBuilder.Append("     <None Include=\"")
+            .Append(m_FileIOProvider.EscapedRelativePathFor(asset, ProjectDirectory))
+            .Append("\" />")
+            .AppendLine();
         }
       }
 
       var result = new Dictionary<string, string>();
 
       foreach (var entry in stringBuilders)
-        result[entry.Key] = entry.Value.ToString();
+      {
+        var assemblyName = FileSystemUtil.FileNameWithoutExtension(entry.Key);
+        result[assemblyName] = entry.Value.ToString();
+      }
 
       return result;
     }
