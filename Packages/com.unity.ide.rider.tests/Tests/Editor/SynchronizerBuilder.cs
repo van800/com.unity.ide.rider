@@ -18,7 +18,7 @@ namespace Packages.Rider.Editor.Tests
 
         IGenerator m_Synchronizer;
         Mock<IAssemblyNameProvider> m_AssemblyProvider = new Mock<IAssemblyNameProvider>();
-        public const string ProjectDirectory = "/FullPath/Example";
+        public static string ProjectDirectory = Path.GetFullPath("/FullPath/Example");
 
         MockFileIO m_FileIoMock = new MockFileIO();
         Mock<IGUIDGenerator> m_GUIDGenerator = new Mock<IGUIDGenerator>();

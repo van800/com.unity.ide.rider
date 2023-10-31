@@ -58,7 +58,9 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
     private string[] m_ProjectSupportedExtensions = Array.Empty<string>();
 
+    // Note that ProjectDirectory can be assumed to be the reults of Path.GetFullPath
     public string ProjectDirectory { get; }
+    public string ProjectDirectoryWithSlash { get; }
 
     private readonly string m_ProjectName;
     private readonly IAssemblyNameProvider m_AssemblyNameProvider;
@@ -77,12 +79,13 @@ namespace Packages.Rider.Editor.ProjectGeneration
     public ProjectGeneration()
       : this(Directory.GetParent(Application.dataPath).FullName) { }
 
-    public ProjectGeneration(string tempDirectory)
-      : this(tempDirectory, new AssemblyNameProvider(), new FileIOProvider(), new GUIDProvider()) { }
+    public ProjectGeneration(string projectDirectory)
+      : this(projectDirectory, new AssemblyNameProvider(), new FileIOProvider(), new GUIDProvider()) { }
 
-    public ProjectGeneration(string tempDirectory, IAssemblyNameProvider assemblyNameProvider, IFileIO fileIoProvider, IGUIDGenerator guidGenerator)
+    public ProjectGeneration(string projectDirectory, IAssemblyNameProvider assemblyNameProvider, IFileIO fileIoProvider, IGUIDGenerator guidGenerator)
     {
-      ProjectDirectory = tempDirectory.NormalizePath();
+      ProjectDirectory = Path.GetFullPath(projectDirectory.NormalizePath());
+      ProjectDirectoryWithSlash = ProjectDirectory + Path.DirectorySeparatorChar;
       m_ProjectName = Path.GetFileName(ProjectDirectory);
       m_AssemblyNameProvider = assemblyNameProvider;
       m_FileIOProvider = fileIoProvider;
@@ -248,6 +251,8 @@ namespace Packages.Rider.Editor.ProjectGeneration
     {
       var stringBuilders = new Dictionary<string, StringBuilder>();
 
+      // This can return a huge number of assets for large projects, e.g. 50,000+
+      // This loop is a hot path, be very careful!
       foreach (var asset in m_AssemblyNameProvider.GetAllAssetPaths())
       {
         // Exclude files coming from packages except if they are internalized.
@@ -273,7 +278,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
           }
 
           projectBuilder.Append("     <Folder Include=\"")
-            .Append(m_FileIOProvider.EscapedRelativePathFor(asset, ProjectDirectory))
+            .Append(m_FileIOProvider.EscapedRelativePathFor(asset, ProjectDirectoryWithSlash))
             .Append("\" />")
             .AppendLine();
         }

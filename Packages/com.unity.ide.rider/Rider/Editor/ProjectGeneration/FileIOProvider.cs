@@ -23,22 +23,23 @@ namespace Packages.Rider.Editor.ProjectGeneration {
       LastWriteTracker.UpdateLastWriteIfNeeded(path);
     }
 
-    public string EscapedRelativePathFor(string file, string projectDirectory)
+    public string EscapedRelativePathFor(string file, string rootDirectoryFullPath)
     {
-      var projectDir = Path.GetFullPath(projectDirectory);
-
       // We have to normalize the path, because the PackageManagerRemapper assumes
       // dir seperators will be os specific.
       var absolutePath = Path.GetFullPath(file.NormalizePath());
-      var path = SkipPathPrefix(absolutePath, projectDir);
+      var path = SkipPathPrefix(absolutePath, rootDirectoryFullPath);
 
       return SecurityElement.Escape(path);
     }
 
     private static string SkipPathPrefix(string path, string prefix)
     {
-      return path.StartsWith($@"{prefix}{Path.DirectorySeparatorChar}", StringComparison.Ordinal)
-        ? path.Substring(prefix.Length + 1)
+      var root = prefix[prefix.Length - 1] == Path.DirectorySeparatorChar
+        ? prefix
+        : prefix + Path.DirectorySeparatorChar;
+      return path.StartsWith(root, StringComparison.Ordinal)
+        ? path.Substring(root.Length)
         : path;
     }
   }
