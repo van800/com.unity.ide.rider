@@ -110,10 +110,10 @@ namespace Packages.Rider.Editor.ProjectGeneration
     public bool SyncIfNeeded(IEnumerable<string> affectedFiles, IEnumerable<string> reimportedFiles, bool checkProjectFiles = false)
     {
       SetupSupportedExtensions();
-      
+
       PackageManagerTracker.SyncIfNeeded(checkProjectFiles);
 
-      if (HasFilesBeenModified(affectedFiles, reimportedFiles) || RiderScriptEditorData.instance.hasChanges 
+      if (HasFilesBeenModified(affectedFiles, reimportedFiles) || RiderScriptEditorData.instance.hasChanges
                                                                || RiderScriptEditorData.instance.HasChangesInCompilationDefines()
                                                                || (checkProjectFiles && LastWriteTracker.HasLastWriteTimeChanged()))
       {
@@ -184,7 +184,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
       // Dll's are not scripts but still need to be included..
       if (file.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
           return true;
-      
+
       var extension = Path.GetExtension(file);
       return IsSupportedExtension(extension);
     }
@@ -194,12 +194,12 @@ namespace Packages.Rider.Editor.ProjectGeneration
       return k_BuiltinSupportedExtensions.ContainsKey(extension) || m_ProjectSupportedExtensions.Contains(extension);
     }
 
-    public void GenerateAndWriteSolutionAndProjects(Type[] types)
+    private void GenerateAndWriteSolutionAndProjects(Type[] types)
     {
       // Only synchronize islands that have associated source files and ones that we actually want in the project.
       // This also filters out DLLs coming from .asmdef files in packages.
       var allAssemblies = m_AssemblyNameProvider.GetAllAssemblies();
-      
+
       var projectPartsForAssetsByAssembly = GenerateAllAssetProjectParts();
 
       var projectParts = new List<ProjectPart>();
@@ -208,7 +208,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
       {
         if (!assembly.sourceFiles.Any(ShouldFileBePartOfSolution))
           continue;
-        
+
         // TODO: Will this check ever be true? Player assemblies don't have the same name as editor assemblies, right?
         if (assemblyNamesWithSource.Contains(assembly.name))
           projectParts.Add(new ProjectPart(assembly.name, assembly, string.Empty)); // do not add asset project parts to both editor and player projects
@@ -216,7 +216,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
         {
           projectPartsForAssetsByAssembly.TryGetValue(assembly.name, out var additionalAssetsForProject);
           projectParts.Add(new ProjectPart(assembly.name, assembly, additionalAssetsForProject));
-          assemblyNamesWithSource.Add(assembly.name);  
+          assemblyNamesWithSource.Add(assembly.name);
         }
       }
 
@@ -263,27 +263,53 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
     private Dictionary<string, string> GenerateAllAssetProjectParts()
     {
-      var stringBuilders = new Dictionary<string, StringBuilder>();
-
-      // This can return a huge number of assets for large projects, e.g. 50,000+
-      // This loop is a hot path, be very careful!
-      foreach (var asset in m_AssemblyNameProvider.GetAllAssetPaths())
+      var assemblyDllNames = new FilePathTrie<string>();
+      var interestingAssets = new List<string>();
+      foreach (var assetPath in m_AssemblyNameProvider.GetAllAssetPaths())
       {
-        // Exclude files coming from packages except if they are internalized.
-        if (m_AssemblyNameProvider.IsInternalizedPackagePath(asset))
-        {
+        if (m_AssemblyNameProvider.IsInternalizedPackagePath(assetPath))
           continue;
+
+        // Find all the .asmdef and .asmref files. Then get the assembly for a file in the same folder. Anything in that
+        // folder or below will be in the same assembly (unless there's another nested .asmdef, obvs)
+        if (assetPath.EndsWith(".asmdef", StringComparison.OrdinalIgnoreCase)
+            || assetPath.EndsWith(".asmref", StringComparison.OrdinalIgnoreCase))
+        {
+          // This call is very expensive when working with a very large project (e.g. called for 50,000+ assets), hence
+          // the approach of working with assembly definition root folders. We don't need a real script file to get the
+          // assembly DLL name
+          var assemblyDllName = m_AssemblyNameProvider.GetAssemblyNameFromScriptPath(assetPath + ".cs");
+          assemblyDllNames.Insert(Path.GetDirectoryName(assetPath), assemblyDllName);
         }
 
-        const string fallbackAssemblyDllName = "Assembly-CSharp.dll";
+        interestingAssets.Add(assetPath);
+      }
+
+      const string fallbackAssemblyDllName = "Assembly-CSharp.dll";
+
+      var stringBuilders = new Dictionary<string, StringBuilder>();
+      foreach (var asset in interestingAssets)
+      {
+        // TODO: Can we remove folders from generated projects?
+        // Why do we add them? We get an asset for every folder, including intermediate folders. We add folders that
+        // contain assets that we don't add to project files, so they appear empty. Adding them to the project file does
+        // not give us anything special - they appear as a folder in the Solution Explorer, so we can right click and
+        // add a file, but we could also "Show All Files" and do the same. Equally, Rider defaults to the Unity Explorer
+        // view, which shows all files and folders by default.
+        // We gain nothing by adding folders, and for very large projects, it can be very expensive to discover what
+        // project they should be added to, since most paths will be _above_ asmdef files, or inside Assets (which
+        // requires the full expensive check due to Editor, Resources, etc.)
+        // (E.g. an example large project with 45,600 assets, 5,000 are folders and only 2,500 are useful assets)
         if (AssetDatabase.IsValidFolder(asset))
         {
-          // TODO: This is a very expensive call for very large projects (e.g. 50,000+ assets)
-          var assemblyDllName = m_AssemblyNameProvider.GetAssemblyNameFromScriptPath($"{asset}/asset.cs");
+          var assemblyDllName = assemblyDllNames.FindClosestMatch(asset);
           if (string.IsNullOrEmpty(assemblyDllName))
           {
-            assemblyDllName = fallbackAssemblyDllName;
+            // Can't find it in trie (Assembly-CSharp and related projects don't have .asmdef files)
+            assemblyDllName = m_AssemblyNameProvider.GetAssemblyNameFromScriptPath($"{asset}/asset.cs");
           }
+          if (string.IsNullOrEmpty(assemblyDllName))
+            assemblyDllName = fallbackAssemblyDllName;
 
           if (!stringBuilders.TryGetValue(assemblyDllName, out var projectBuilder))
           {
@@ -301,13 +327,14 @@ namespace Packages.Rider.Editor.ProjectGeneration
           var extension = Path.GetExtension(asset);
           if (IsSupportedExtension(extension) && !extension.Equals(".cs", StringComparison.OrdinalIgnoreCase))
           {
-            // TODO: This is a very expensive call for very large projects (e.g. 50,000+ assets)
-            // Find assembly the asset belongs to by adding script extension and using compilation pipeline.
-            var assemblyDllName = m_AssemblyNameProvider.GetAssemblyNameFromScriptPath(asset + ".cs");
+            var assemblyDllName = assemblyDllNames.FindClosestMatch(asset);
             if (string.IsNullOrEmpty(assemblyDllName))
             {
-              assemblyDllName = fallbackAssemblyDllName;
+              // Can't find it in trie (Assembly-CSharp and related projects don't have .asmdef files)
+              assemblyDllName = m_AssemblyNameProvider.GetAssemblyNameFromScriptPath($"{asset}.cs");
             }
+            if (string.IsNullOrEmpty(assemblyDllName))
+              assemblyDllName = fallbackAssemblyDllName;
 
             if (!stringBuilders.TryGetValue(assemblyDllName, out var projectBuilder))
             {
@@ -316,7 +343,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
             }
 
             projectBuilder.Append("     <None Include=\"")
-              .Append(m_FileIOProvider.EscapedRelativePathFor(asset, ProjectDirectory))
+              .Append(m_FileIOProvider.EscapedRelativePathFor(asset, ProjectDirectoryWithSlash))
               .Append("\" />")
               .AppendLine();
           }
@@ -594,10 +621,10 @@ namespace Packages.Rider.Editor.ProjectGeneration
 #elif UNITY_2022_2_OR_NEWER
         configFile = assembly.CompilerOptions.AnalyzerConfigPath; // https://docs.unity3d.com/2021.3/Documentation/ScriptReference/Compilation.ScriptCompilerOptions.AnalyzerConfigPath.html
 #endif
-      
+
       if (string.IsNullOrEmpty(configFile))
         return string.Empty;
-      
+
       var builder = new StringBuilder();
       builder.AppendLine("  <ItemGroup>");
       builder.AppendLine($"    <GlobalAnalyzerConfigFiles Include=\"{configFile}\" />");
@@ -663,9 +690,9 @@ namespace Packages.Rider.Editor.ProjectGeneration
     private string GenerateNullable(IEnumerable<string> enumerable)
     {
       var val = enumerable.FirstOrDefault();
-      if (string.IsNullOrWhiteSpace(val)) 
+      if (string.IsNullOrWhiteSpace(val))
         return string.Empty;
-      
+
       return $"{Environment.NewLine}    <Nullable>{val}</Nullable>";
     }
 
@@ -692,7 +719,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
           warningIds.Add(s);
         }
       }
-      
+
       warningIds.AddRange(argsPlus);
 
       returnValue += $@"    <TreatWarningsAsErrors>{allWarningsAsErrors}</TreatWarningsAsErrors>";
@@ -703,7 +730,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
       if (argsMinus.Any())
         returnValue += $"{Environment.NewLine}    <WarningsNotAsErrors>{string.Join(";", argsMinus)}</WarningsNotAsErrors>";
-      
+
       return $"{Environment.NewLine}{returnValue}";
     }
 
@@ -823,7 +850,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
     {
       var fileversion = "11.00";
       var vsversion = "2010";
-      
+
       var projectEntries = GetProjectEntries(islands);
       var projectConfigurations = string.Join(Environment.NewLine,
         islands.Select(i => GetProjectActiveConfigurations(ProjectGuid(m_AssemblyNameProvider.GetProjectName(i.Name, i.Defines)))).ToArray());
@@ -933,7 +960,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
       var propertyInfo = type.GetProperty("suppressCommonWarnings");
       if (propertyInfo != null && propertyInfo.GetValue(null) is bool && (bool)propertyInfo.GetValue(null))
       {
-        codes.AddRange(new[] {"0169", "0649"});  
+        codes.AddRange(new[] {"0169", "0649"});
       }
 #elif UNITY_2020_2_OR_NEWER
       if (PlayerSettings.suppressCommonWarnings)
@@ -945,7 +972,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
       return string.Join(",", codes.Distinct());
     }
-    
+
     private string GetProjectEntries(ProjectPart[] islands)
     {
       var projectEntries = islands.Select(i => string.Format(
@@ -982,6 +1009,55 @@ namespace Packages.Rider.Editor.ProjectGeneration
     private string ProjectGuid(string name)
     {
       return m_GUIDGenerator.ProjectGuid(m_ProjectName + name);
+    }
+  }
+
+  internal class FilePathTrie<TData>
+  {
+    private static readonly char[] Separators = { '\\', '/' };
+
+    private readonly TrieNode m_Root = new TrieNode();
+
+    private class TrieNode
+    {
+      public Dictionary<string, TrieNode> Children;
+      public TData Data;
+    }
+
+    public void Insert(string filePath, TData data)
+    {
+      var parts = filePath.Split(Separators);
+
+      var node = m_Root;
+      foreach (var part in parts)
+      {
+        if (node.Children == null)
+          node.Children = new Dictionary<string, TrieNode>(StringComparer.OrdinalIgnoreCase);
+
+        // ReSharper disable once CanSimplifyDictionaryLookupWithTryAdd
+        if (!node.Children.ContainsKey(part))
+          node.Children[part] = new TrieNode();
+
+        node = node.Children[part];
+      }
+
+      node.Data = data;
+    }
+
+    public TData FindClosestMatch(string filePath)
+    {
+      var parts = filePath.Split(Separators);
+
+      var node = m_Root;
+      foreach (var part in parts)
+      {
+        if (node.Children != null && node.Children.TryGetValue(part, out var next))
+          node = next;
+        else
+          break;
+      }
+
+      return node.Data;
     }
   }
 }
