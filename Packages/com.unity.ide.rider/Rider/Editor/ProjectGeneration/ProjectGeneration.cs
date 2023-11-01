@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.IO;
 using System.Linq;
 using System.Security;
@@ -507,51 +508,72 @@ namespace Packages.Rider.Editor.ProjectGeneration
       foreach (var file in assembly.SourceFiles)
       {
         var fullFile = m_FileIOProvider.EscapedRelativePathFor(file, ProjectDirectory);
-        projectBuilder.Append("     <Compile Include=\"").Append(fullFile).Append("\" />").Append(Environment.NewLine);
+        // TODO: Fix indent
+        projectBuilder.Append("     <Compile Include=\"").Append(fullFile).AppendLine("\" />");
       }
 
+      // TODO: ProjectPart should keep a list of assets, and we'll format it here, using StringBuilder
       projectBuilder.Append(assembly.AssetsProjectPart);
 
-      var responseRefs = responseFilesData.SelectMany(x => x.FullPathReferences.Select(r => r));
-      var internalAssemblyReferences = assembly.AssemblyReferences
-        .Where(reference => !reference.sourceFiles.Any(ShouldFileBePartOfSolution)).Select(i => i.outputPath);
-      var allReferences =
-        assembly.CompiledAssemblyReferences
-          .Union(responseRefs)
-          .Union(internalAssemblyReferences).ToArray();
-
-      foreach (var reference in allReferences)
+      var binaryReferences = new HashSet<string>(assembly.CompiledAssemblyReferences);
+      foreach (var responseFileData in responseFilesData) 
+        binaryReferences.UnionWith(responseFileData.FullPathReferences);
+      foreach (var assemblyReference in assembly.AssemblyReferences)
       {
+        // TODO: We do the same check when we initially get all assemblies, and again below.
+        // It's very expensive when called for every project
+        if (!assemblyReference.sourceFiles.Any(ShouldFileBePartOfSolution))
+          binaryReferences.Add(assemblyReference.outputPath);
+      }
+
+      foreach (var reference in binaryReferences)
+      {
+        // TODO: References should be mostly the same across all projects. Amortise the cost of this
         var fullReference = Path.IsPathRooted(reference) ? reference : Path.GetFullPath(reference);
-        AppendReference(fullReference, projectBuilder);
+        var escapedFullPath = SecurityElement.Escape(fullReference).NormalizePath();
+        var assemblyName = FileSystemUtil.FileNameWithoutExtension(escapedFullPath);
+        // TODO: Fix indents
+        projectBuilder
+          .Append("     <Reference Include=\"").Append(assemblyName).AppendLine("\">")
+          .Append("     <HintPath>").Append(escapedFullPath).AppendLine("</HintPath>")
+          .AppendLine("     </Reference>");
       }
 
       if (0 < assembly.AssemblyReferences.Length)
       {
-        projectBuilder.Append("  </ItemGroup>").Append(Environment.NewLine);
-        projectBuilder.Append("  <ItemGroup>").Append(Environment.NewLine);
-        foreach (var reference in assembly.AssemblyReferences.Where(i => i.sourceFiles.Any(ShouldFileBePartOfSolution)))
+        projectBuilder
+          .AppendLine("  </ItemGroup>")
+          .AppendLine("  <ItemGroup>");
+        
+        foreach (var reference in assembly.AssemblyReferences)
         {
+          // TODO: We've already done this above, and also when preparing ProjectPart
+          if (!reference.sourceFiles.Any(ShouldFileBePartOfSolution))
+            continue;
+            
           var name = m_AssemblyNameProvider.GetProjectName(reference.name, reference.defines);
-          projectBuilder.Append("    <ProjectReference Include=\"").Append(name).Append(GetProjectExtension()).Append("\">").Append(Environment.NewLine);
-          projectBuilder.Append("      <Project>{").Append(ProjectGuid(name)).Append("}</Project>").Append(Environment.NewLine);
-          projectBuilder.Append("      <Name>").Append(name).Append("</Name>").Append(Environment.NewLine);
-          projectBuilder.Append("    </ProjectReference>").Append(Environment.NewLine);
+          projectBuilder
+            .Append("    <ProjectReference Include=\"").Append(name).AppendLine(".csproj\">")
+            .Append("      <Project>{").Append(ProjectGuid(name)).AppendLine("}</Project>")
+            .Append("      <Name>").Append(name).AppendLine("</Name>")
+            .AppendLine("    </ProjectReference>");
         }
       }
 
-      projectBuilder.Append(ProjectFooter());
+      projectBuilder
+        .AppendLine("  </ItemGroup>")
+        .AppendLine("  <Import Project=\"$(MSBuildToolsPath)\\Microsoft.CSharp.targets\" />")
+        .AppendLine(
+          "  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.")
+        .AppendLine("       Other similar extension points exist, see Microsoft.Common.targets.")
+        .AppendLine("  <Target Name=\"BeforeBuild\">")
+        .AppendLine("  </Target>")
+        .AppendLine("  <Target Name=\"AfterBuild\">")
+        .AppendLine("  </Target>")
+        .AppendLine("  -->")
+        .AppendLine("</Project>");
+      
       return projectBuilder.ToString();
-    }
-
-    private static void AppendReference(string fullReference, StringBuilder projectBuilder)
-    {
-      var escapedFullPath = SecurityElement.Escape(fullReference);
-      escapedFullPath = escapedFullPath.NormalizePath();
-      projectBuilder.Append("     <Reference Include=\"").Append(FileSystemUtil.FileNameWithoutExtension(escapedFullPath))
-        .Append("\">").Append(Environment.NewLine);
-      projectBuilder.Append("     <HintPath>").Append(escapedFullPath).Append("</HintPath>").Append(Environment.NewLine);
-      projectBuilder.Append("     </Reference>").Append(Environment.NewLine);
     }
 
     private string ProjectFile(ProjectPart projectPart)
@@ -744,22 +766,6 @@ namespace Packages.Rider.Editor.ProjectGeneration
       return 4.ToString();
     }
 
-    private static string GetProjectFooterTemplate()
-    {
-      return string.Join(Environment.NewLine,
-        @"  </ItemGroup>",
-        @"  <Import Project=""$(MSBuildToolsPath)\Microsoft.CSharp.targets"" />",
-        @"  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.",
-        @"       Other similar extension points exist, see Microsoft.Common.targets.",
-        @"  <Target Name=""BeforeBuild"">",
-        @"  </Target>",
-        @"  <Target Name=""AfterBuild"">",
-        @"  </Target>",
-        @"  -->",
-        @"</Project>",
-        @"");
-    }
-
     private static string GetProjectHeaderTemplate()
     {
       var header = new[]
@@ -839,11 +845,14 @@ namespace Packages.Rider.Editor.ProjectGeneration
         var projectName = m_AssemblyNameProvider.GetProjectName(island.Name, island.Defines);
 
         // GUID is for C# class libraries
-        stringBuilder.AppendFormat("Project(\"{{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}}\") = \"{0}\", \"{1}.csproj\", \"{{{2}}}\"",
-            island.Name,
-            projectName,
-            ProjectGuid(projectName))
-          .AppendLine()
+        stringBuilder
+          .Append("Project(\"{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}\") = \"")
+          .Append(island.Name)
+          .Append("\", \"")
+          .Append(projectName)
+          .Append(".csproj\", \"{")
+          .Append(ProjectGuid(projectName))
+          .AppendLine("}\"")
           .AppendLine("EndProject");
       }
 
@@ -857,10 +866,9 @@ namespace Packages.Rider.Editor.ProjectGeneration
       {
         var projectGuid = ProjectGuid(m_AssemblyNameProvider.GetProjectName(island.Name, island.Defines));
 
-        stringBuilder.AppendFormat("\t\t{{{0}}}.Debug|Any CPU.ActiveCfg = Debug|Any CPU", projectGuid)
-          .AppendLine()
-          .AppendFormat("\t\t{{{0}}}.Debug|Any CPU.Build.0 = Debug|Any CPU", projectGuid)
-          .AppendLine();
+        stringBuilder
+          .Append("\t\t{").Append(projectGuid).AppendLine("}.Debug|Any CPU.ActiveCfg = Debug|Any CPU")
+          .Append("\t\t{").Append(projectGuid).AppendLine("}.Debug|Any CPU.Build.0 = Debug|Any CPU");
       }
 
       stringBuilder.AppendLine("\tEndGlobalSection")
@@ -986,16 +994,6 @@ namespace Packages.Rider.Editor.ProjectGeneration
         return string.Empty;
 
       return string.Join(",", codes.Distinct());
-    }
-
-    private static string ProjectFooter()
-    {
-      return GetProjectFooterTemplate();
-    }
-
-    private static string GetProjectExtension()
-    {
-      return ".csproj";
     }
 
     private string ProjectGuid(string name)
