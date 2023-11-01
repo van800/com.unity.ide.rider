@@ -29,8 +29,8 @@ namespace Packages.Rider.Editor
         // todo: make ProjectGeneration lazy
         var projectGeneration = new ProjectGeneration.ProjectGeneration();
         m_RiderScriptEditor = new RiderScriptEditor(new Discovery(), projectGeneration);
-        InitializeInternal(CurrentEditor);
         CodeEditor.Register(m_RiderScriptEditor);
+        InitializeInternal(CurrentEditor);
       }
       catch (Exception e)
       {
@@ -195,21 +195,23 @@ namespace Packages.Rider.Editor
       
       RiderScriptEditorData.instance.Invalidate(editorInstallationPath, true);
 
-      if (EditorPluginInterop.EditorPluginAssembly == null) // no need to reload all - just load the EditorPlugin
+      // previous editor did not have EditorPlugin
+      // just load the EditorPlugin
+      if (EditorPluginInterop.EditorPluginAssembly == null) 
       {
         InitializeInternal(editorInstallationPath);
         return;
       }
       
+      // previous editor was Rider with a different version
+      // need to load new Editor plugin 
       if (prevEditorBuildNumber.ToVersion() != RiderScriptEditorData.instance.editorBuildNumber.ToVersion()) // in Unity 2019.3 any change in preference causes `Initialize` call
       {
-        m_ProjectGeneration.SyncIfNeeded(new string[] { }, new string[] { }, true); // need to regenerate csproj and sln because maybe previous External Editor was not generating them properly
 #if UNITY_2019_3_OR_NEWER
         EditorUtility.RequestScriptReload(); // EditorPlugin would get loaded
 #else 
         UnityEditorInternal.InternalEditorUtility.RequestScriptReload();
 #endif
-        
       }
     }
 
