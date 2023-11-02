@@ -507,8 +507,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
       foreach (var file in assembly.SourceFiles)
       {
         var fullFile = m_FileIOProvider.EscapedRelativePathFor(file, ProjectDirectory);
-        // TODO: Fix indent
-        projectBuilder.Append("     <Compile Include=\"").Append(fullFile).AppendLine("\" />");
+        projectBuilder.Append("    <Compile Include=\"").Append(fullFile).AppendLine("\" />");
       }
 
       foreach (var additionalAsset in (IEnumerable<string>)assembly.AdditionalAssets ?? Array.Empty<string>())
@@ -533,11 +532,10 @@ namespace Packages.Rider.Editor.ProjectGeneration
         var fullReference = Path.IsPathRooted(reference) ? reference : Path.GetFullPath(reference);
         var escapedFullPath = SecurityElement.Escape(fullReference).NormalizePath();
         var assemblyName = FileSystemUtil.FileNameWithoutExtension(escapedFullPath);
-        // TODO: Fix indents
         projectBuilder
-          .Append("     <Reference Include=\"").Append(assemblyName).AppendLine("\">")
-          .Append("     <HintPath>").Append(escapedFullPath).AppendLine("</HintPath>")
-          .AppendLine("     </Reference>");
+          .Append("    <Reference Include=\"").Append(assemblyName).AppendLine("\">")
+          .Append("      <HintPath>").Append(escapedFullPath).AppendLine("</HintPath>")
+          .AppendLine("    </Reference>");
       }
 
       if (0 < assembly.AssemblyReferences.Length)

@@ -91,7 +91,7 @@ namespace Packages.Rider.Editor.Tests
                     "    <ImplicitlyExpandDesignTimeFacades>false</ImplicitlyExpandDesignTimeFacades>",
                     "  </PropertyGroup>",
                     "  <ItemGroup>",
-                    "     <Compile Include=\"test.cs\" />",
+                    "    <Compile Include=\"test.cs\" />",
                     "  </ItemGroup>",
                     "  <Import Project=\"$(MSBuildToolsPath)\\Microsoft.CSharp.targets\" />",
                     "  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.",
