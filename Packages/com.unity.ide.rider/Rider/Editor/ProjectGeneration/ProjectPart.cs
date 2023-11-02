@@ -10,7 +10,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
     public string Name { get; }
     public string OutputPath { get; }
     public Assembly Assembly { get; }
-    public string AssetsProjectPart { get; }
+    public List<string> AdditionalAssets { get; }
     public string[] SourceFiles { get; }
     public string RootNamespace { get; }
     public Assembly[] AssemblyReferences { get; }
@@ -18,11 +18,11 @@ namespace Packages.Rider.Editor.ProjectGeneration
     public string[] Defines { get; }      
     public ScriptCompilerOptions CompilerOptions { get; }
 
-    public ProjectPart(string name, Assembly assembly, string assetsProjectPart)
+    public ProjectPart(string name, Assembly assembly, List<string> additionalAssets)
     {
       Name = name;
       Assembly = assembly;
-      AssetsProjectPart = assetsProjectPart;
+      AdditionalAssets = additionalAssets;
       OutputPath = assembly != null ? assembly.outputPath : "Temp/Bin/Debug";
       SourceFiles = assembly != null ? assembly.sourceFiles : new string[0];
 #if UNITY_2020_2_OR_NEWER

@@ -195,7 +195,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
       // This also filters out DLLs coming from .asmdef files in packages.
       var allAssemblies = m_AssemblyNameProvider.GetAllAssemblies();
 
-      var projectPartsForAssetsByAssembly = GenerateAllAssetProjectParts();
+      var additionalAssetsByAssembly = GetAdditionalAssets();
 
       var projectParts = new List<ProjectPart>();
       var assemblyNamesWithSource = new HashSet<string>();
@@ -206,10 +206,10 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
         // TODO: Will this check ever be true? Player assemblies don't have the same name as editor assemblies, right?
         if (assemblyNamesWithSource.Contains(assembly.name))
-          projectParts.Add(new ProjectPart(assembly.name, assembly, string.Empty)); // do not add asset project parts to both editor and player projects
+          projectParts.Add(new ProjectPart(assembly.name, assembly, new List<string>())); // do not add asset project parts to both editor and player projects
         else
         {
-          projectPartsForAssetsByAssembly.TryGetValue(assembly.name, out var additionalAssetsForProject);
+          additionalAssetsByAssembly.TryGetValue(assembly.name, out var additionalAssetsForProject);
           projectParts.Add(new ProjectPart(assembly.name, assembly, additionalAssetsForProject));
           assemblyNamesWithSource.Add(assembly.name);
         }
@@ -223,8 +223,11 @@ namespace Packages.Rider.Editor.ProjectGeneration
       var executingAssemblyName = typeof(ProjectGeneration).Assembly.GetName().Name;
       var riderAssembly = m_AssemblyNameProvider.GetNamedAssembly(executingAssemblyName);
       string[] coreReferences = null;
-      foreach (var (assembly, projectPart) in projectPartsForAssetsByAssembly)
+      foreach (var pair in additionalAssetsByAssembly)
       {
+        var assembly = pair.Key;
+        var additionalAssets = pair.Value;
+
         if (!assemblyNamesWithSource.Contains(assembly))
         {
           if (coreReferences == null)
@@ -235,7 +238,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
               a.EndsWith("UnityEngine.CoreModule.dll", StringComparison.Ordinal)).ToArray();
           }
 
-          projectParts.Add(AddProjectPart(assembly, riderAssembly, coreReferences, projectPart));
+          projectParts.Add(AddProjectPart(assembly, riderAssembly, coreReferences, additionalAssets));
         }
       }
 
@@ -248,7 +251,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
     }
 
     private static ProjectPart AddProjectPart(string assemblyName, Assembly riderAssembly, string[] coreReferences,
-      string assetProjectPart)
+      List<string> additionalAssets)
     {
       Assembly assembly = null;
       if (riderAssembly != null)
@@ -261,10 +264,10 @@ namespace Packages.Rider.Editor.ProjectGeneration
           coreReferences,
           riderAssembly.flags);
       }
-      return new ProjectPart(assemblyName, assembly, assetProjectPart);
+      return new ProjectPart(assemblyName, assembly, additionalAssets);
     }
 
-    private Dictionary<string, string> GenerateAllAssetProjectParts()
+    private Dictionary<string, List<string>> GetAdditionalAssets()
     {
       var assemblyDllNames = new FilePathTrie<string>();
       var interestingAssets = new List<string>();
@@ -290,7 +293,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
       const string fallbackAssemblyDllName = "Assembly-CSharp.dll";
 
-      var stringBuilders = new Dictionary<string, StringBuilder>();
+      var assetsByAssemblyDll = new Dictionary<string, List<string>>();
       foreach (var asset in interestingAssets)
       {
         // TODO: Can we remove folders from generated projects?
@@ -338,29 +341,25 @@ namespace Packages.Rider.Editor.ProjectGeneration
             if (string.IsNullOrEmpty(assemblyDllName))
               assemblyDllName = fallbackAssemblyDllName;
 
-            if (!stringBuilders.TryGetValue(assemblyDllName, out var projectBuilder))
+            if (!assetsByAssemblyDll.TryGetValue(assemblyDllName, out var assets))
             {
-              projectBuilder = new StringBuilder();
-              stringBuilders[assemblyDllName] = projectBuilder;
+              assets = new List<string>();
+              assetsByAssemblyDll[assemblyDllName] = assets;
             }
 
-            projectBuilder.Append("     <None Include=\"")
-              .Append(m_FileIOProvider.EscapedRelativePathFor(asset, ProjectDirectoryWithSlash))
-              .Append("\" />")
-              .AppendLine();
+            assets.Add(m_FileIOProvider.EscapedRelativePathFor(asset, ProjectDirectoryWithSlash));
           }
         }
       }
 
-      var result = new Dictionary<string, string>();
-
-      foreach (var entry in stringBuilders)
+      var assetsByAssemblyName = new Dictionary<string, List<string>>(assetsByAssemblyDll.Count);
+      foreach (var entry in assetsByAssemblyDll)
       {
         var assemblyName = FileSystemUtil.FileNameWithoutExtension(entry.Key);
-        result[assemblyName] = entry.Value.ToString();
+        assetsByAssemblyName[assemblyName] = entry.Value;
       }
 
-      return result;
+      return assetsByAssemblyName;
     }
 
     private void SyncProject(
@@ -512,11 +511,13 @@ namespace Packages.Rider.Editor.ProjectGeneration
         projectBuilder.Append("     <Compile Include=\"").Append(fullFile).AppendLine("\" />");
       }
 
-      // TODO: ProjectPart should keep a list of assets, and we'll format it here, using StringBuilder
-      projectBuilder.Append(assembly.AssetsProjectPart);
+      foreach (var additionalAsset in (IEnumerable<string>)assembly.AdditionalAssets ?? Array.Empty<string>())
+      {
+        projectBuilder.Append("    <None Include=\"").Append(additionalAsset).AppendLine("\" />");
+      }
 
       var binaryReferences = new HashSet<string>(assembly.CompiledAssemblyReferences);
-      foreach (var responseFileData in responseFilesData) 
+      foreach (var responseFileData in responseFilesData)
         binaryReferences.UnionWith(responseFileData.FullPathReferences);
       foreach (var assemblyReference in assembly.AssemblyReferences)
       {
@@ -544,13 +545,13 @@ namespace Packages.Rider.Editor.ProjectGeneration
         projectBuilder
           .AppendLine("  </ItemGroup>")
           .AppendLine("  <ItemGroup>");
-        
+
         foreach (var reference in assembly.AssemblyReferences)
         {
           // TODO: We've already done this above, and also when preparing ProjectPart
           if (!reference.sourceFiles.Any(ShouldFileBePartOfSolution))
             continue;
-            
+
           var name = m_AssemblyNameProvider.GetProjectName(reference.name, reference.defines);
           projectBuilder
             .Append("    <ProjectReference Include=\"").Append(name).AppendLine(".csproj\">")
@@ -572,7 +573,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
         .AppendLine("  </Target>")
         .AppendLine("  -->")
         .AppendLine("</Project>");
-      
+
       return projectBuilder.ToString();
     }
 
