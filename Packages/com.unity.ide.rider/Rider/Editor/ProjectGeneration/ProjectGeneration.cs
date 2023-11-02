@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Design;
 using System.IO;
 using System.Linq;
 using System.Security;
@@ -59,6 +58,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
     private readonly IAssemblyNameProvider m_AssemblyNameProvider;
     private readonly IFileIO m_FileIOProvider;
     private readonly IGUIDGenerator m_GUIDGenerator;
+
     private readonly Dictionary<string, string> m_ProjectGuids = new Dictionary<string, string>();
 
     internal static bool isRiderProjectGeneration; // workaround to https://github.cds.internal.unity3d.com/unity/com.unity.ide.rider/issues/28
@@ -189,19 +189,56 @@ namespace Packages.Rider.Editor.ProjectGeneration
       return k_BuiltinSupportedExtensions.ContainsKey(extension) || m_ProjectSupportedExtensions.Contains(extension);
     }
 
+    private class AssemblyUsage
+    {
+      private readonly HashSet<string> m_ProjectAssemblies = new HashSet<string>();
+      private readonly HashSet<string> m_PrecompiledAssemblies = new HashSet<string>();
+
+      public void AddProjectAssembly(Assembly assembly)
+      {
+        m_ProjectAssemblies.Add(assembly.name);
+      }
+
+      public void AddPrecompiledAssembly(Assembly assembly)
+      {
+        m_PrecompiledAssemblies.Add(assembly.name);
+      }
+
+      public bool IsProjectAssembly(Assembly assembly) => m_ProjectAssemblies.Contains(assembly.name);
+      public bool IsPrecompiledAssembly(Assembly assembly) => m_PrecompiledAssemblies.Contains(assembly.name);
+    }
+
     private void GenerateAndWriteSolutionAndProjects(Type[] types)
     {
       // Only synchronize islands that have associated source files and ones that we actually want in the project.
       // This also filters out DLLs coming from .asmdef files in packages.
-      var allAssemblies = m_AssemblyNameProvider.GetAllAssemblies();
 
+      // Get all of the assemblies that Unity will compile from source. This includes Assembly-CSharp, all user assembly
+      // definitions, and all packages. Not all of the returned assemblies will require project files - by default,
+      // registry, git and local tarball packages are pre-compiled by Unity and will not require a project. This can be
+      // changed by the user in the External Tools settings page.
+      // Each assembly instance contains source files, output path, defines, compiler options and references. There
+      // will be `compiledAssemblyReferences`, which are DLLs, such as UnityEngine.dll, and assembly references, which
+      // are references to other assemblies that Unity will compile from source. Again, these assemblies might be
+      // projects, or pre-compiled by Unity, depending on the options selected by the user.
+      var allAssemblies = m_AssemblyNameProvider.GetAllAssemblies();
+      var assemblyUsage = new AssemblyUsage();
+      foreach (var assembly in allAssemblies)
+      {
+        if (assembly.sourceFiles.Any(ShouldFileBePartOfSolution))
+          assemblyUsage.AddProjectAssembly(assembly);
+        else
+          assemblyUsage.AddPrecompiledAssembly(assembly);
+      }
+
+      // Get additional assets (other than source files) that we want to add to the projects, e.g. shaders, asmdef, etc.
       var additionalAssetsByAssembly = GetAdditionalAssets();
 
       var projectParts = new List<ProjectPart>();
       var assemblyNamesWithSource = new HashSet<string>();
       foreach (var assembly in allAssemblies)
       {
-        if (!assembly.sourceFiles.Any(ShouldFileBePartOfSolution))
+        if (!assemblyUsage.IsProjectAssembly(assembly))
           continue;
 
         // TODO: Will this check ever be true? Player assemblies don't have the same name as editor assemblies, right?
@@ -246,7 +283,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
       foreach (var projectPart in projectParts)
       {
-        SyncProject(projectPart, types);
+        SyncProject(projectPart, assemblyUsage, types);
       }
     }
 
@@ -362,13 +399,13 @@ namespace Packages.Rider.Editor.ProjectGeneration
       return assetsByAssemblyName;
     }
 
-    private void SyncProject(
-      ProjectPart island,
+    private void SyncProject(ProjectPart island,
+      AssemblyUsage assemblyUsage,
       Type[] types)
     {
       SyncProjectFileIfNotChanged(
         ProjectFile(island),
-        ProjectText(island),
+        ProjectText(island, assemblyUsage),
         types);
     }
 
@@ -499,7 +536,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
       m_FileIOProvider.WriteAllText(path, newContents);
     }
 
-    private string ProjectText(ProjectPart assembly)
+    private string ProjectText(ProjectPart assembly, AssemblyUsage assemblyUsage)
     {
       var responseFilesData = assembly.ParseResponseFileData(m_AssemblyNameProvider, ProjectDirectory).ToList();
       var projectBuilder = new StringBuilder(ProjectHeader(assembly, responseFilesData));
@@ -520,9 +557,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
         binaryReferences.UnionWith(responseFileData.FullPathReferences);
       foreach (var assemblyReference in assembly.AssemblyReferences)
       {
-        // TODO: We do the same check when we initially get all assemblies, and again below.
-        // It's very expensive when called for every project
-        if (!assemblyReference.sourceFiles.Any(ShouldFileBePartOfSolution))
+        if (assemblyUsage.IsPrecompiledAssembly(assemblyReference))
           binaryReferences.Add(assemblyReference.outputPath);
       }
 
@@ -546,16 +581,15 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
         foreach (var reference in assembly.AssemblyReferences)
         {
-          // TODO: We've already done this above, and also when preparing ProjectPart
-          if (!reference.sourceFiles.Any(ShouldFileBePartOfSolution))
-            continue;
-
-          var name = m_AssemblyNameProvider.GetProjectName(reference.name, reference.defines);
-          projectBuilder
-            .Append("    <ProjectReference Include=\"").Append(name).AppendLine(".csproj\">")
-            .Append("      <Project>{").Append(ProjectGuid(name)).AppendLine("}</Project>")
-            .Append("      <Name>").Append(name).AppendLine("</Name>")
-            .AppendLine("    </ProjectReference>");
+          if (assemblyUsage.IsProjectAssembly(reference))
+{
+            var name = m_AssemblyNameProvider.GetProjectName(reference.name, reference.defines);
+            projectBuilder
+              .Append("    <ProjectReference Include=\"").Append(name).AppendLine(".csproj\">")
+              .Append("      <Project>{").Append(ProjectGuid(name)).AppendLine("}</Project>")
+              .Append("      <Name>").Append(name).AppendLine("</Name>")
+              .AppendLine("    </ProjectReference>");
+          }
         }
       }
 

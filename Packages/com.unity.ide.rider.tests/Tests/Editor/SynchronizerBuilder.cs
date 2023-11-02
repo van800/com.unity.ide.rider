@@ -101,7 +101,7 @@ namespace Packages.Rider.Editor.Tests
                 rootNamespace
             );
 
-            var builder = WithAssembly(assembly);
+            var builder = WithAssemblies(new []{assembly}.Concat(assembly.assemblyReferences).ToArray());
             foreach (var assemblyReference in assembly.assemblyReferences)
             {
                 builder.WithNameForDefines(assemblyReference.defines, assemblyReference.name, assemblyReference.name);
