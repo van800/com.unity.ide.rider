@@ -7,7 +7,6 @@ using System.Text;
 using Packages.Rider.Editor.Util;
 using UnityEditor;
 using UnityEditor.Compilation;
-using UnityEditorInternal;
 using UnityEngine;
 
 namespace Packages.Rider.Editor.ProjectGeneration
@@ -19,8 +18,6 @@ namespace Packages.Rider.Editor.ProjectGeneration
       None,
       CSharp
     }
-
-    public static readonly string MSBuildNamespaceUri = "http://schemas.microsoft.com/developer/msbuild/2003";
 
     /// <summary>
     /// Map source extensions to ScriptingLanguages
@@ -62,11 +59,6 @@ namespace Packages.Rider.Editor.ProjectGeneration
     private readonly Dictionary<string, string> m_ProjectGuids = new Dictionary<string, string>();
 
     internal static bool isRiderProjectGeneration; // workaround to https://github.cds.internal.unity3d.com/unity/com.unity.ide.rider/issues/28
-
-    private const string k_ToolsVersion = "4.0";
-    private const string k_ProductVersion = "10.0.20506";
-    private const string k_BaseDirectory = ".";
-    private const string k_TargetLanguageVersion = "latest";
 
     IAssemblyNameProvider IGenerator.AssemblyNameProvider => m_AssemblyNameProvider;
 
@@ -539,7 +531,9 @@ namespace Packages.Rider.Editor.ProjectGeneration
     private string ProjectText(ProjectPart assembly, AssemblyUsage assemblyUsage)
     {
       var responseFilesData = assembly.ParseResponseFileData(m_AssemblyNameProvider, ProjectDirectory).ToList();
-      var projectBuilder = new StringBuilder(ProjectHeader(assembly, responseFilesData));
+      var projectBuilder = new StringBuilder();
+
+      ProjectHeader(projectBuilder, assembly, responseFilesData);
 
       foreach (var file in assembly.SourceFiles)
       {
@@ -566,7 +560,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
         // TODO: References should be mostly the same across all projects. Amortise the cost of this
         var fullReference = Path.IsPathRooted(reference) ? reference : Path.GetFullPath(reference);
         var escapedFullPath = SecurityElement.Escape(fullReference).NormalizePath();
-        var assemblyName = FileSystemUtil.FileNameWithoutExtension(escapedFullPath);
+        var assemblyName = FileSystemUtil.FileNameWithoutExtension(escapedFullPath);  // We had this from Assembly!
         projectBuilder
           .Append("    <Reference Include=\"").Append(assemblyName).AppendLine("\">")
           .Append("      <HintPath>").Append(escapedFullPath).AppendLine("</HintPath>")
@@ -619,49 +613,63 @@ namespace Packages.Rider.Editor.ProjectGeneration
       return Path.Combine(ProjectDirectory, $"{m_ProjectName}.sln");
     }
 
-    private string ProjectHeader(
-      ProjectPart assembly,
-      List<ResponseFileData> responseFilesData
-    )
+    private void ProjectHeader(StringBuilder stringBuilder, ProjectPart assembly, List<ResponseFileData> responseFilesData)
     {
       var otherResponseFilesData = GetOtherArgumentsFromResponseFilesData(responseFilesData);
-      var arguments = new object[]
-      {
-        k_ToolsVersion,
-        k_ProductVersion,
-        ProjectGuid(m_AssemblyNameProvider.GetProjectName(assembly.Name, assembly.Defines)),
-        InternalEditorUtility.GetEngineAssemblyPath(),
-        InternalEditorUtility.GetEditorAssemblyPath(),
-        string.Join(";", assembly.Defines.Concat(responseFilesData.SelectMany(x => x.Defines)).Distinct().ToArray()),
-        MSBuildNamespaceUri,
-        assembly.Name,
-        assembly.OutputPath,
-        assembly.RootNamespace,
-        assembly.CompilerOptions.ApiCompatibilityLevel,
-        GenerateLangVersion(otherResponseFilesData["langversion"], assembly),
-        k_BaseDirectory,
-        assembly.CompilerOptions.AllowUnsafeCode | responseFilesData.Any(x => x.Unsafe),
-        GenerateNoWarn(otherResponseFilesData["nowarn"].Distinct().ToList()),
-        GenerateAnalyserItemGroup(RetrieveRoslynAnalyzers(assembly, otherResponseFilesData)),
-        GenerateAnalyserAdditionalFiles(RetrieveAdditionalFiles(assembly, otherResponseFilesData)),
-        GenerateRoslynAnalyzerRulesetPath(assembly, otherResponseFilesData),
-        GenerateWarningLevel(otherResponseFilesData["warn"].Concat(otherResponseFilesData["w"]).Distinct()),
-        GenerateWarningAsError(otherResponseFilesData["warnaserror"], otherResponseFilesData["warnaserror-"], otherResponseFilesData["warnaserror+"]),
-        GenerateDocumentationFile(otherResponseFilesData["doc"].ToArray()),
-        GenerateNullable(otherResponseFilesData["nullable"]),
-        GenerateGlobalAnalyzerConfigFiles(assembly)
-      };
 
-      try
-      {
-        return string.Format(GetProjectHeaderTemplate(), arguments);
-      }
-      catch (Exception)
-      {
-        throw new NotSupportedException(
-          "Failed creating c# project because the c# project header did not have the correct amount of arguments, which is " +
-          arguments.Length);
-      }
+      stringBuilder
+        .AppendLine("<?xml version=\"1.0\" encoding=\"utf-8\"?>")
+        .AppendLine("<Project ToolsVersion=\"4.0\" DefaultTargets=\"Build\" xmlns=\"http://schemas.microsoft.com/developer/msbuild/2003\">")
+        .AppendLine("  <PropertyGroup>")
+        .Append("    <LangVersion>").Append(GenerateLangVersion(otherResponseFilesData["langversion"], assembly)).AppendLine("</LangVersion>")
+        .AppendLine(
+          "    <_TargetFrameworkDirectories>non_empty_path_generated_by_unity.rider.package</_TargetFrameworkDirectories>")
+        .AppendLine(
+          "    <_FullFrameworkReferenceAssemblyPaths>non_empty_path_generated_by_unity.rider.package</_FullFrameworkReferenceAssemblyPaths>")
+        .AppendLine("    <DisableHandlePackageFileConflicts>true</DisableHandlePackageFileConflicts>")
+        .Append(GenerateRoslynAnalyzerRulesetPath(assembly, otherResponseFilesData))  // TODO
+        .AppendLine("  </PropertyGroup>")
+        .AppendLine("  <PropertyGroup>")
+        .AppendLine("    <Configuration Condition=\" '$(Configuration)' == '' \">Debug</Configuration>")
+        .AppendLine("    <Platform Condition=\" '$(Platform)' == '' \">AnyCPU</Platform>")
+        .AppendLine("    <ProductVersion>10.0.20506</ProductVersion>")
+        .AppendLine("    <SchemaVersion>2.0</SchemaVersion>")
+        .Append("    <RootNamespace>").Append(assembly.RootNamespace).AppendLine("</RootNamespace>")
+        .Append("    <ProjectGuid>{").Append(ProjectGuid(m_AssemblyNameProvider.GetProjectName(assembly.Name, assembly.Defines))).AppendLine("}</ProjectGuid>")
+        .AppendLine(
+          "    <ProjectTypeGuids>{E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>")
+        .AppendLine("    <OutputType>Library</OutputType>")
+        .AppendLine("    <AppDesignerFolder>Properties</AppDesignerFolder>")
+        .Append("    <AssemblyName>").Append(assembly.Name).AppendLine("</AssemblyName>")
+        .AppendLine("    <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>")
+        .AppendLine("    <FileAlignment>512</FileAlignment>")
+        .AppendLine("    <BaseDirectory>.</BaseDirectory>")
+        .AppendLine("  </PropertyGroup>")
+        .AppendLine("  <PropertyGroup Condition=\" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' \">")
+        .AppendLine("    <DebugSymbols>true</DebugSymbols>")
+        .AppendLine("    <DebugType>full</DebugType>")
+        .AppendLine("    <Optimize>false</Optimize>")
+        .Append("    <OutputPath>").Append(assembly.OutputPath).AppendLine("</OutputPath>")
+        .Append("    <DefineConstants>").Append(string.Join(";", assembly.Defines.Concat(responseFilesData.SelectMany(x => x.Defines)).Distinct().ToArray())).AppendLine("</DefineConstants>")
+        .AppendLine("    <ErrorReport>prompt</ErrorReport>")
+        .Append("    <WarningLevel>").Append(GenerateWarningLevel(otherResponseFilesData["warn"].Concat(otherResponseFilesData["w"]).Distinct())).AppendLine("</WarningLevel>")
+        .Append("    <NoWarn>").Append(GenerateNoWarn(otherResponseFilesData["nowarn"].Distinct().ToList())).AppendLine("</NoWarn>")
+        .Append("    <AllowUnsafeBlocks>").Append(assembly.CompilerOptions.AllowUnsafeCode | responseFilesData.Any(x => x.Unsafe)).Append("</AllowUnsafeBlocks>") // AppendLine!
+        .Append(GenerateWarningAsError(otherResponseFilesData["warnaserror"], otherResponseFilesData["warnaserror-"], otherResponseFilesData["warnaserror+"])) // TODO
+        .Append(GenerateDocumentationFile(otherResponseFilesData["doc"].ToArray()))
+        .AppendLine(GenerateNullable(otherResponseFilesData["nullable"]))
+        .AppendLine("  </PropertyGroup>")
+        .AppendLine("  <PropertyGroup>")
+        .AppendLine("    <NoConfig>true</NoConfig>")
+        .AppendLine("    <NoStdLib>true</NoStdLib>")
+        .AppendLine("    <AddAdditionalExplicitAssemblyReferences>false</AddAdditionalExplicitAssemblyReferences>")
+        .AppendLine("    <ImplicitlyExpandNETStandardFacades>false</ImplicitlyExpandNETStandardFacades>")
+        .AppendLine("    <ImplicitlyExpandDesignTimeFacades>false</ImplicitlyExpandDesignTimeFacades>")
+        .AppendLine("  </PropertyGroup>")
+        .Append(GenerateAnalyserItemGroup(RetrieveRoslynAnalyzers(assembly, otherResponseFilesData)))
+        .Append(GenerateAnalyserAdditionalFiles(RetrieveAdditionalFiles(assembly, otherResponseFilesData)))
+        .Append(GenerateGlobalAnalyzerConfigFiles(assembly))
+        .AppendLine("  <ItemGroup>");
     }
 
     private static string GenerateGlobalAnalyzerConfigFiles(ProjectPart assembly)
@@ -799,67 +807,6 @@ namespace Packages.Rider.Editor.ProjectGeneration
       return 4.ToString();
     }
 
-    private static string GetProjectHeaderTemplate()
-    {
-      var header = new[]
-      {
-        @"<?xml version=""1.0"" encoding=""utf-8""?>",
-        @"<Project ToolsVersion=""{0}"" DefaultTargets=""Build"" xmlns=""{6}"">",
-        @"  <PropertyGroup>",
-        @"    <LangVersion>{11}</LangVersion>",
-        @"    <_TargetFrameworkDirectories>non_empty_path_generated_by_unity.rider.package</_TargetFrameworkDirectories>",
-        @"    <_FullFrameworkReferenceAssemblyPaths>non_empty_path_generated_by_unity.rider.package</_FullFrameworkReferenceAssemblyPaths>",
-        @"    <DisableHandlePackageFileConflicts>true</DisableHandlePackageFileConflicts>{17}",
-        @"  </PropertyGroup>",
-        @"  <PropertyGroup>",
-        @"    <Configuration Condition="" '$(Configuration)' == '' "">Debug</Configuration>",
-        @"    <Platform Condition="" '$(Platform)' == '' "">AnyCPU</Platform>",
-        @"    <ProductVersion>{1}</ProductVersion>",
-        @"    <SchemaVersion>2.0</SchemaVersion>",
-        @"    <RootNamespace>{9}</RootNamespace>",
-        @"    <ProjectGuid>{{{2}}}</ProjectGuid>",
-        @"    <ProjectTypeGuids>{{E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1}};{{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}}</ProjectTypeGuids>",
-        @"    <OutputType>Library</OutputType>",
-        @"    <AppDesignerFolder>Properties</AppDesignerFolder>",
-        @"    <AssemblyName>{7}</AssemblyName>",
-        @"    <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>",
-        @"    <FileAlignment>512</FileAlignment>",
-        @"    <BaseDirectory>{12}</BaseDirectory>",
-        @"  </PropertyGroup>",
-        @"  <PropertyGroup Condition="" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' "">",
-        @"    <DebugSymbols>true</DebugSymbols>",
-        @"    <DebugType>full</DebugType>",
-        @"    <Optimize>false</Optimize>",
-        @"    <OutputPath>{8}</OutputPath>",
-        @"    <DefineConstants>{5}</DefineConstants>",
-        @"    <ErrorReport>prompt</ErrorReport>",
-        @"    <WarningLevel>{18}</WarningLevel>",
-        @"    <NoWarn>{14}</NoWarn>",
-        @"    <AllowUnsafeBlocks>{13}</AllowUnsafeBlocks>{19}{20}{21}",
-        @"  </PropertyGroup>"
-      };
-
-      var forceExplicitReferences = new[]
-      {
-        @"  <PropertyGroup>",
-        @"    <NoConfig>true</NoConfig>",
-        @"    <NoStdLib>true</NoStdLib>",
-        @"    <AddAdditionalExplicitAssemblyReferences>false</AddAdditionalExplicitAssemblyReferences>",
-        @"    <ImplicitlyExpandNETStandardFacades>false</ImplicitlyExpandNETStandardFacades>",
-        @"    <ImplicitlyExpandDesignTimeFacades>false</ImplicitlyExpandDesignTimeFacades>",
-        @"  </PropertyGroup>"
-      };
-
-      var footer = new[]
-      {
-        @"{15}{16}{22}  <ItemGroup>",
-        @""
-      };
-
-      var pieces = header.Concat(forceExplicitReferences).Concat(footer).ToArray();
-      return string.Join(Environment.NewLine, pieces);
-    }
-
     private void SyncSolution(List<ProjectPart> islands, Type[] types)
     {
       SyncSolutionFileIfNotChanged(SolutionFile(), SolutionText(islands), types);
@@ -872,7 +819,6 @@ namespace Packages.Rider.Editor.ProjectGeneration
         .AppendLine()
         .AppendLine("Microsoft Visual Studio Solution File, Format Version 11.00")
         .AppendLine("# Visual Studio 2010");
-
       foreach (var island in islands)
       {
         var projectName = m_AssemblyNameProvider.GetProjectName(island.Name, island.Defines);
@@ -980,7 +926,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
 #if UNITY_2020_2_OR_NEWER
       return assembly.CompilerOptions.LanguageVersion;
 #else
-      return k_TargetLanguageVersion;
+      return "latest";
 #endif
     }
 
