@@ -535,6 +535,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
       ProjectHeader(projectBuilder, assembly, responseFilesData);
 
+      projectBuilder.AppendLine("  <ItemGroup>");
       foreach (var file in assembly.SourceFiles)
       {
         var fullFile = m_FileIOProvider.EscapedRelativePathFor(file, ProjectDirectory);
@@ -615,19 +616,24 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
     private void ProjectHeader(StringBuilder stringBuilder, ProjectPart assembly, List<ResponseFileData> responseFilesData)
     {
-      var otherResponseFilesData = GetOtherArgumentsFromResponseFilesData(responseFilesData);
-
+      var responseFilesDataArgs = GetOtherArgumentsFromResponseFilesData(responseFilesData);
       stringBuilder
         .AppendLine("<?xml version=\"1.0\" encoding=\"utf-8\"?>")
-        .AppendLine("<Project ToolsVersion=\"4.0\" DefaultTargets=\"Build\" xmlns=\"http://schemas.microsoft.com/developer/msbuild/2003\">")
+        .AppendLine(
+          "<Project ToolsVersion=\"4.0\" DefaultTargets=\"Build\" xmlns=\"http://schemas.microsoft.com/developer/msbuild/2003\">")
         .AppendLine("  <PropertyGroup>")
-        .Append("    <LangVersion>").Append(GenerateLangVersion(otherResponseFilesData["langversion"], assembly)).AppendLine("</LangVersion>")
+        .Append("    <LangVersion>").Append(GetLangVersion(responseFilesDataArgs["langversion"], assembly)).AppendLine("</LangVersion>")
         .AppendLine(
           "    <_TargetFrameworkDirectories>non_empty_path_generated_by_unity.rider.package</_TargetFrameworkDirectories>")
         .AppendLine(
           "    <_FullFrameworkReferenceAssemblyPaths>non_empty_path_generated_by_unity.rider.package</_FullFrameworkReferenceAssemblyPaths>")
-        .AppendLine("    <DisableHandlePackageFileConflicts>true</DisableHandlePackageFileConflicts>")
-        .Append(GenerateRoslynAnalyzerRulesetPath(assembly, otherResponseFilesData))  // TODO
+        .AppendLine("    <DisableHandlePackageFileConflicts>true</DisableHandlePackageFileConflicts>");
+
+      var rulesetPaths = GetRoslynAnalyzerRulesetPaths(assembly, responseFilesDataArgs);
+      foreach (var path in rulesetPaths)
+        stringBuilder.Append("    <CodeAnalysisRuleSet>").Append(path).AppendLine("</CodeAnalysisRuleSet>");
+
+      stringBuilder
         .AppendLine("  </PropertyGroup>")
         .AppendLine("  <PropertyGroup>")
         .AppendLine("    <Configuration Condition=\" '$(Configuration)' == '' \">Debug</Configuration>")
@@ -649,15 +655,33 @@ namespace Packages.Rider.Editor.ProjectGeneration
         .AppendLine("    <DebugSymbols>true</DebugSymbols>")
         .AppendLine("    <DebugType>full</DebugType>")
         .AppendLine("    <Optimize>false</Optimize>")
-        .Append("    <OutputPath>").Append(assembly.OutputPath).AppendLine("</OutputPath>")
-        .Append("    <DefineConstants>").Append(string.Join(";", assembly.Defines.Concat(responseFilesData.SelectMany(x => x.Defines)).Distinct().ToArray())).AppendLine("</DefineConstants>")
-        .AppendLine("    <ErrorReport>prompt</ErrorReport>")
-        .Append("    <WarningLevel>").Append(GenerateWarningLevel(otherResponseFilesData["warn"].Concat(otherResponseFilesData["w"]).Distinct())).AppendLine("</WarningLevel>")
-        .Append("    <NoWarn>").Append(GenerateNoWarn(otherResponseFilesData["nowarn"].Distinct().ToList())).AppendLine("</NoWarn>")
-        .Append("    <AllowUnsafeBlocks>").Append(assembly.CompilerOptions.AllowUnsafeCode | responseFilesData.Any(x => x.Unsafe)).Append("</AllowUnsafeBlocks>") // AppendLine!
-        .Append(GenerateWarningAsError(otherResponseFilesData["warnaserror"], otherResponseFilesData["warnaserror-"], otherResponseFilesData["warnaserror+"])) // TODO
-        .Append(GenerateDocumentationFile(otherResponseFilesData["doc"].ToArray()))
-        .AppendLine(GenerateNullable(otherResponseFilesData["nullable"]))
+        .Append("    <OutputPath>").Append(assembly.OutputPath).AppendLine("</OutputPath>");
+
+      var defines = new HashSet<string>(assembly.Defines);
+      foreach (var responseFileData in responseFilesData)
+        defines.UnionWith(responseFileData.Defines);
+      stringBuilder
+        .Append("    <DefineConstants>").CompatibleAppendJoin(';', defines).AppendLine("</DefineConstants>")
+        .AppendLine("    <ErrorReport>prompt</ErrorReport>");
+
+      var warningLevel = responseFilesDataArgs["warn"].Concat(responseFilesDataArgs["w"]).Distinct().FirstOrDefault();
+      stringBuilder
+        .Append("    <WarningLevel>").Append(!string.IsNullOrWhiteSpace(warningLevel) ? warningLevel : "4").AppendLine("</WarningLevel>")
+        .Append("    <NoWarn>").CompatibleAppendJoin(',', GetNoWarn(responseFilesDataArgs["nowarn"].ToList())).AppendLine("</NoWarn>")
+        .Append("    <AllowUnsafeBlocks>").Append(assembly.CompilerOptions.AllowUnsafeCode | responseFilesData.Any(x => x.Unsafe)).AppendLine("</AllowUnsafeBlocks>");
+
+      AppendWarningAsError(stringBuilder, responseFilesDataArgs["warnaserror"],
+        responseFilesDataArgs["warnaserror-"], responseFilesDataArgs["warnaserror+"]);
+
+      // TODO: Can we have multiple documentation files in a project file?
+      foreach (var docFile in responseFilesDataArgs["doc"])
+        stringBuilder.Append("    <DocumentationFile>").Append(docFile).AppendLine("</DocumentationFile>");
+
+      var nullable = responseFilesDataArgs["nullable"].FirstOrDefault();
+      if (!string.IsNullOrEmpty(nullable))
+        stringBuilder.Append("    <Nullable>").Append(nullable).AppendLine("</Nullable>");
+
+      stringBuilder
         .AppendLine("  </PropertyGroup>")
         .AppendLine("  <PropertyGroup>")
         .AppendLine("    <NoConfig>true</NoConfig>")
@@ -665,14 +689,37 @@ namespace Packages.Rider.Editor.ProjectGeneration
         .AppendLine("    <AddAdditionalExplicitAssemblyReferences>false</AddAdditionalExplicitAssemblyReferences>")
         .AppendLine("    <ImplicitlyExpandNETStandardFacades>false</ImplicitlyExpandNETStandardFacades>")
         .AppendLine("    <ImplicitlyExpandDesignTimeFacades>false</ImplicitlyExpandDesignTimeFacades>")
-        .AppendLine("  </PropertyGroup>")
-        .Append(GenerateAnalyserItemGroup(RetrieveRoslynAnalyzers(assembly, otherResponseFilesData)))
-        .Append(GenerateAnalyserAdditionalFiles(RetrieveAdditionalFiles(assembly, otherResponseFilesData)))
-        .Append(GenerateGlobalAnalyzerConfigFiles(assembly))
-        .AppendLine("  <ItemGroup>");
+        .AppendLine("  </PropertyGroup>");
+
+      var analyzers = GetRoslynAnalyzers(assembly, responseFilesDataArgs);
+      if (analyzers.Length > 0)
+      {
+        stringBuilder.AppendLine("  <ItemGroup>");
+        foreach (var analyzer in analyzers)
+          stringBuilder.AppendLine($"    <Analyzer Include=\"{analyzer.NormalizePath()}\" />");
+        stringBuilder.AppendLine("  </ItemGroup>");
+      }
+
+      var additionalFiles = GetRoslynAdditionalFiles(assembly, responseFilesDataArgs);
+      if (additionalFiles.Length > 0)
+      {
+        stringBuilder.AppendLine("  <ItemGroup>");
+        foreach (var additionalFile in additionalFiles)
+          stringBuilder.AppendLine($"    <AdditionalFiles Include=\"{additionalFile}\" />");
+        stringBuilder.AppendLine("  </ItemGroup>");
+      }
+
+      var configFile = GetGlobalAnalyzerConfigFile(assembly);
+      if (!string.IsNullOrEmpty(configFile))
+      {
+        stringBuilder
+          .AppendLine("  <ItemGroup>")
+          .Append("    <GlobalAnalyzerConfigFiles Include=\"").Append(configFile).AppendLine("\" />")
+          .AppendLine("  </ItemGroup>");
+      }
     }
 
-    private static string GenerateGlobalAnalyzerConfigFiles(ProjectPart assembly)
+    private static string GetGlobalAnalyzerConfigFile(ProjectPart assembly)
     {
       var configFile = string.Empty;
 #if UNITY_2021_3 // https://github.com/JetBrains/resharper-unity/issues/2401
@@ -686,17 +733,11 @@ namespace Packages.Rider.Editor.ProjectGeneration
         configFile = assembly.CompilerOptions.AnalyzerConfigPath; // https://docs.unity3d.com/2021.3/Documentation/ScriptReference/Compilation.ScriptCompilerOptions.AnalyzerConfigPath.html
 #endif
 
-      if (string.IsNullOrEmpty(configFile))
-        return string.Empty;
 
-      var builder = new StringBuilder();
-      builder.AppendLine("  <ItemGroup>");
-      builder.AppendLine($"    <GlobalAnalyzerConfigFiles Include=\"{configFile}\" />");
-      builder.AppendLine("  </ItemGroup>");
-      return builder.ToString();
+      return configFile;
     }
 
-    private static string[] RetrieveAdditionalFiles(ProjectPart assembly, ILookup<string, string> otherResponseFilesData)
+    private static string[] GetRoslynAdditionalFiles(ProjectPart assembly, ILookup<string, string> otherResponseFilesData)
     {
       var additionalFilePathsFromCompilationPipeline = Array.Empty<string>();
 #if UNITY_2021_3 // https://github.com/JetBrains/resharper-unity/issues/2401
@@ -715,7 +756,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
         .Distinct().ToArray();
     }
 
-    string[] RetrieveRoslynAnalyzers(ProjectPart assembly, ILookup<string, string> otherResponseFilesData)
+    string[] GetRoslynAnalyzers(ProjectPart assembly, ILookup<string, string> otherResponseFilesData)
     {
 #if UNITY_2020_2_OR_NEWER
       return otherResponseFilesData["analyzer"].Concat(otherResponseFilesData["a"])
@@ -742,69 +783,39 @@ namespace Packages.Rider.Editor.ProjectGeneration
       return Path.IsPathRooted(path) ? path : Path.GetFullPath(path);
     }
 
-    private string GenerateRoslynAnalyzerRulesetPath(ProjectPart assembly, ILookup<string, string> otherResponseFilesData)
+    private IEnumerable<string> GetRoslynAnalyzerRulesetPaths(ProjectPart assembly, ILookup<string, string> otherResponseFilesData)
     {
+      var paths = new HashSet<string>(otherResponseFilesData["ruleset"]);
 #if UNITY_2020_2_OR_NEWER
-      return GenerateAnalyserRuleSet(otherResponseFilesData["ruleset"].Append(assembly.CompilerOptions.RoslynAnalyzerRulesetPath).Where(a=>!string.IsNullOrEmpty(a)).Distinct().Select(x => MakeAbsolutePath(x).NormalizePath()).ToArray());
-#else
-      return GenerateAnalyserRuleSet(otherResponseFilesData["ruleset"].Distinct().Select(x => MakeAbsolutePath(x).NormalizePath()).ToArray());
+      if (!string.IsNullOrEmpty(assembly.CompilerOptions.RoslynAnalyzerRulesetPath))
+        paths.Add(assembly.CompilerOptions.RoslynAnalyzerRulesetPath);
 #endif
+
+
+      return paths.Select(path => MakeAbsolutePath(path).NormalizePath());
     }
 
-    private string GenerateNullable(IEnumerable<string> enumerable)
+    private static void AppendWarningAsError(StringBuilder stringBuilder,
+      IEnumerable<string> args, IEnumerable<string> argsMinus, IEnumerable<string> argsPlus)
     {
-      var val = enumerable.FirstOrDefault();
-      if (string.IsNullOrWhiteSpace(val))
-        return string.Empty;
-
-      return $"{Environment.NewLine}    <Nullable>{val}</Nullable>";
-    }
-
-    private static string GenerateDocumentationFile(string[] paths)
-    {
-      if (!paths.Any())
-        return String.Empty;
-
-      return $"{Environment.NewLine}{string.Join(Environment.NewLine, paths.Select(a => $"  <DocumentationFile>{a}</DocumentationFile>"))}";
-    }
-
-    private static string GenerateWarningAsError(IEnumerable<string> args, IEnumerable<string> argsMinus, IEnumerable<string> argsPlus)
-    {
-      var returnValue = String.Empty;
-      var allWarningsAsErrors = false;
+      var treatWarningsAsErrors = false;
       var warningIds = new List<string>();
+      var notWarningIds = new List<string>(argsMinus);
 
       foreach (var s in args)
       {
-        if (s == "+" || s == string.Empty) allWarningsAsErrors = true;
-        else if (s == "-") allWarningsAsErrors = false;
-        else
-        {
-          warningIds.Add(s);
-        }
+        if (s == "+" || s == "") treatWarningsAsErrors = true;
+        else if (s == "-") treatWarningsAsErrors = false;
+        else warningIds.Add(s);
       }
 
       warningIds.AddRange(argsPlus);
 
-      returnValue += $@"    <TreatWarningsAsErrors>{allWarningsAsErrors}</TreatWarningsAsErrors>";
-      if (warningIds.Any())
-      {
-        returnValue += $"{Environment.NewLine}    <WarningsAsErrors>{string.Join(";", warningIds)}</WarningsAsErrors>";
-      }
-
-      if (argsMinus.Any())
-        returnValue += $"{Environment.NewLine}    <WarningsNotAsErrors>{string.Join(";", argsMinus)}</WarningsNotAsErrors>";
-
-      return $"{Environment.NewLine}{returnValue}";
-    }
-
-    private static string GenerateWarningLevel(IEnumerable<string> warningLevel)
-    {
-      var level = warningLevel.FirstOrDefault();
-      if (!string.IsNullOrWhiteSpace(level))
-        return level;
-
-      return 4.ToString();
+      stringBuilder.Append("    <TreatWarningsAsErrors>").Append(treatWarningsAsErrors) .AppendLine("</TreatWarningsAsErrors>");
+      if (warningIds.Count > 0)
+        stringBuilder.Append("    <WarningsAsErrors>").CompatibleAppendJoin(';', warningIds).AppendLine("</WarningsAsErrors>");
+      if (notWarningIds.Count > 0)
+        stringBuilder.Append("    <WarningsNotAsErrors>").CompatibleAppendJoin(';', notWarningIds) .AppendLine("</WarningsNotAsErrors>");
     }
 
     private void SyncSolution(List<ProjectPart> islands, Type[] types)
@@ -859,26 +870,6 @@ namespace Packages.Rider.Editor.ProjectGeneration
       return stringBuilder.ToString();
     }
 
-    private static string GenerateAnalyserItemGroup(string[] paths)
-    {
-      //   <ItemGroup>
-      //      <Analyzer Include="..\packages\Comments_analyser.1.0.6626.21356\analyzers\dotnet\cs\Comments_analyser.dll" />
-      //      <Analyzer Include="..\packages\UnityEngineAnalyzer.1.0.0.0\analyzers\dotnet\cs\UnityEngineAnalyzer.dll" />
-      //  </ItemGroup>
-      if (!paths.Any())
-        return string.Empty;
-
-      var analyserBuilder = new StringBuilder();
-      analyserBuilder.AppendLine("  <ItemGroup>");
-      foreach (var path in paths)
-      {
-        analyserBuilder.AppendLine($"    <Analyzer Include=\"{path.NormalizePath()}\" />");
-      }
-
-      analyserBuilder.AppendLine("  </ItemGroup>");
-      return analyserBuilder.ToString();
-    }
-
     private static ILookup<string, string> GetOtherArgumentsFromResponseFilesData(List<ResponseFileData> responseFilesData)
     {
       var paths = responseFilesData.SelectMany(x =>
@@ -918,7 +909,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
       return paths;
     }
 
-    private string GenerateLangVersion(IEnumerable<string> langVersionList, ProjectPart assembly)
+    private string GetLangVersion(IEnumerable<string> langVersionList, ProjectPart assembly)
     {
       var langVersion = langVersionList.FirstOrDefault();
       if (!string.IsNullOrWhiteSpace(langVersion))
@@ -930,32 +921,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
 #endif
     }
 
-    private static string GenerateAnalyserRuleSet(string[] paths)
-    {
-      //<CodeAnalysisRuleSet>..\path\to\myrules.ruleset</CodeAnalysisRuleSet>
-      if (!paths.Any())
-        return string.Empty;
-
-      return $"{Environment.NewLine}{string.Join(Environment.NewLine, paths.Select(a => $"    <CodeAnalysisRuleSet>{a}</CodeAnalysisRuleSet>"))}";
-    }
-
-    private static string GenerateAnalyserAdditionalFiles(string[] paths)
-    {
-      if (!paths.Any())
-        return string.Empty;
-
-      var analyserBuilder = new StringBuilder();
-      analyserBuilder.AppendLine("  <ItemGroup>");
-      foreach (var path in paths)
-      {
-        analyserBuilder.AppendLine($"    <AdditionalFiles Include=\"{path}\" />");
-      }
-
-      analyserBuilder.AppendLine("  </ItemGroup>");
-      return analyserBuilder.ToString();
-    }
-
-    public static string GenerateNoWarn(List<string> codes)
+    public static IEnumerable<string> GetNoWarn(List<string> codes)
     {
 #if UNITY_2020_1 // RIDER-77206 Unity 2020.1.3 'PlayerSettings' does not contain a definition for 'suppressCommonWarnings'
       var type = typeof(PlayerSettings);
@@ -969,10 +935,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
         codes.AddRange(new[] {"0169", "0649"});
 #endif
 
-      if (!codes.Any())
-        return string.Empty;
-
-      return string.Join(",", codes.Distinct());
+      return codes.Distinct();
     }
 
     private string ProjectGuid(string name)
