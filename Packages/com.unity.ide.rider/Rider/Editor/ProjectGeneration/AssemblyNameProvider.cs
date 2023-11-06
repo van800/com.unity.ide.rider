@@ -11,6 +11,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
   internal class AssemblyNameProvider : IAssemblyNameProvider
   {
     private readonly Dictionary<string, PackageInfo> m_PackageInfoCache = new Dictionary<string, PackageInfo>();
+    private readonly Dictionary<string, ResponseFileData> m_ResponseFilesCache = new Dictionary<string, ResponseFileData>();
 
     ProjectGenerationFlag m_ProjectGenerationFlag = (ProjectGenerationFlag)EditorPrefs.GetInt("unity_project_generation_flag", 3);
 
@@ -153,13 +154,10 @@ namespace Packages.Rider.Editor.ProjectGeneration
       return result;
     }
 
-    public void ResetPackageInfoCache()
+    public void ResetCaches()
     {
       m_PackageInfoCache.Clear();
-    }
-
-    public void ResetAssembliesCache()
-    {
+      m_ResponseFilesCache.Clear();
       m_AllEditorAssemblies = null;
       m_AllPlayerAssemblies = null;
     }
@@ -204,14 +202,20 @@ namespace Packages.Rider.Editor.ProjectGeneration
     public ResponseFileData ParseResponseFile(string responseFilePath, string projectDirectory,
       ApiCompatibilityLevel apiCompatibilityLevel)
     {
-      // TODO: Use file path and API compatibility level to cache response
-      var systemReferenceDirectories =
-        CompilationPipeline.GetSystemAssemblyDirectories(apiCompatibilityLevel);
-      return CompilationPipeline.ParseResponseFile(
-        responseFilePath,
-        projectDirectory,
-        systemReferenceDirectories
-      );
+      var key = responseFilePath + ":" + (int) apiCompatibilityLevel;
+      if (!m_ResponseFilesCache.TryGetValue(key, out var responseFileData))
+      {
+        var systemReferenceDirectories =
+          CompilationPipeline.GetSystemAssemblyDirectories(apiCompatibilityLevel);
+        responseFileData = CompilationPipeline.ParseResponseFile(
+          responseFilePath,
+          projectDirectory,
+          systemReferenceDirectories
+        );
+        m_ResponseFilesCache.Add(key, responseFileData);
+      }
+
+      return responseFileData;
     }
 
     public IEnumerable<string> GetRoslynAnalyzerPaths()

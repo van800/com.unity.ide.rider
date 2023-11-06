@@ -134,8 +134,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
       }
 
       OnGeneratedCSProjectFiles(types);
-      m_AssemblyNameProvider.ResetPackageInfoCache();
-      m_AssemblyNameProvider.ResetAssembliesCache();
+      m_AssemblyNameProvider.ResetCaches();
       m_ProjectGuids.Clear();
       RiderScriptEditorData.instance.hasChanges = false;
       RiderScriptEditorData.instance.InvalidateSavedCompilationDefines();
@@ -530,7 +529,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
     private string ProjectText(ProjectPart assembly, AssemblyUsage assemblyUsage)
     {
-      var responseFilesData = assembly.ParseResponseFileData(m_AssemblyNameProvider, ProjectDirectory);
+      var responseFilesData = assembly.GetResponseFileData(m_AssemblyNameProvider, ProjectDirectory);
       var projectBuilder = new StringBuilder();
 
       ProjectHeader(projectBuilder, assembly, responseFilesData);

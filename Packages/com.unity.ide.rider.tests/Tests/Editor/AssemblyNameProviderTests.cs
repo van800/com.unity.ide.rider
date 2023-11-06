@@ -28,8 +28,7 @@ namespace Packages.Rider.Editor.Tests
         public void SetUp()
         {
             m_AssemblyNameProvider.ResetProjectGenerationFlag();
-            m_AssemblyNameProvider.ResetAssembliesCache();
-            m_AssemblyNameProvider.ResetPackageInfoCache();
+            m_AssemblyNameProvider.ResetCaches();
         }
 
         [Test]

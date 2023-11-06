@@ -36,7 +36,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
       CompilerOptions = assembly != null ? assembly.compilerOptions : new ScriptCompilerOptions();
     }
 
-    public List<ResponseFileData> ParseResponseFileData(IAssemblyNameProvider assemblyNameProvider, string projectDirectory)
+    public List<ResponseFileData> GetResponseFileData(IAssemblyNameProvider assemblyNameProvider, string projectDirectory)
     {
       if (Assembly == null)
         return new List<ResponseFileData>();
