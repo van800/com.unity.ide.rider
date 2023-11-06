@@ -530,7 +530,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
     private string ProjectText(ProjectPart assembly, AssemblyUsage assemblyUsage)
     {
-      var responseFilesData = assembly.ParseResponseFileData(m_AssemblyNameProvider, ProjectDirectory).ToList();
+      var responseFilesData = assembly.ParseResponseFileData(m_AssemblyNameProvider, ProjectDirectory);
       var projectBuilder = new StringBuilder();
 
       ProjectHeader(projectBuilder, assembly, responseFilesData);
@@ -543,9 +543,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
       }
 
       foreach (var additionalAsset in (IEnumerable<string>)assembly.AdditionalAssets ?? Array.Empty<string>())
-      {
         projectBuilder.Append("    <None Include=\"").Append(additionalAsset).AppendLine("\" />");
-      }
 
       var binaryReferences = new HashSet<string>(assembly.CompiledAssemblyReferences);
       foreach (var responseFileData in responseFilesData)
@@ -558,7 +556,9 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
       foreach (var reference in binaryReferences)
       {
-        // TODO: References should be mostly the same across all projects. Amortise the cost of this
+        // TODO: References should be mostly the same across all projects. Amortise the cost of this normalisation
+        // Note that references from response files will be rooted and normalised
+        // Everything else is project relative, unix format
         var fullReference = Path.IsPathRooted(reference) ? reference : Path.GetFullPath(reference);
         var escapedFullPath = SecurityElement.Escape(fullReference).NormalizePath();
         var assemblyName = FileSystemUtil.FileNameWithoutExtension(escapedFullPath);  // We had this from Assembly!

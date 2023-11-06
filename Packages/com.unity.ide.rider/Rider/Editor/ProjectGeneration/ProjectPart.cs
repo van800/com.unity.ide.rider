@@ -1,5 +1,5 @@
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEditor.Compilation;
 using UnityEngine;
 
@@ -14,8 +14,8 @@ namespace Packages.Rider.Editor.ProjectGeneration
     public string[] SourceFiles { get; }
     public string RootNamespace { get; }
     public Assembly[] AssemblyReferences { get; }
-    public string[] CompiledAssemblyReferences { get; } 
-    public string[] Defines { get; }      
+    public string[] CompiledAssemblyReferences { get; }
+    public string[] Defines { get; }
     public ScriptCompilerOptions CompilerOptions { get; }
 
     public ProjectPart(string name, Assembly assembly, List<string> additionalAssets)
@@ -24,46 +24,33 @@ namespace Packages.Rider.Editor.ProjectGeneration
       Assembly = assembly;
       AdditionalAssets = additionalAssets;
       OutputPath = assembly != null ? assembly.outputPath : "Temp/Bin/Debug";
-      SourceFiles = assembly != null ? assembly.sourceFiles : new string[0];
+      SourceFiles = assembly != null ? assembly.sourceFiles : Array.Empty<string>();
 #if UNITY_2020_2_OR_NEWER
       RootNamespace = assembly != null ? assembly.rootNamespace : string.Empty;
 #else
       RootNamespace = UnityEditor.EditorSettings.projectGenerationRootNamespace;
 #endif
-      AssemblyReferences = assembly != null ? assembly.assemblyReferences : new Assembly[0];
-      CompiledAssemblyReferences = assembly!=null? assembly.compiledAssemblyReferences:new string[0];
-      Defines = assembly != null ? assembly.defines : new string[0];
+      AssemblyReferences = assembly != null ? assembly.assemblyReferences : Array.Empty<Assembly>();
+      CompiledAssemblyReferences = assembly != null ? assembly.compiledAssemblyReferences : Array.Empty<string>();
+      Defines = assembly != null ? assembly.defines : Array.Empty<string>();
       CompilerOptions = assembly != null ? assembly.compilerOptions : new ScriptCompilerOptions();
     }
 
-    public IEnumerable<ResponseFileData> ParseResponseFileData(IAssemblyNameProvider assemblyNameProvider, string projectDirectory)
+    public List<ResponseFileData> ParseResponseFileData(IAssemblyNameProvider assemblyNameProvider, string projectDirectory)
     {
       if (Assembly == null)
-        return new ResponseFileData[0];
-      
-      var systemReferenceDirectories =
-        CompilationPipeline.GetSystemAssemblyDirectories(Assembly.compilerOptions.ApiCompatibilityLevel);
+        return new List<ResponseFileData>();
 
-      var responseFilesData = Assembly.compilerOptions.ResponseFiles.ToDictionary(
-        x => x, x => assemblyNameProvider.ParseResponseFile(
-          x,
-          projectDirectory,
-          systemReferenceDirectories
-        ));
-
-      var responseFilesWithErrors = responseFilesData.Where(x => x.Value.Errors.Any())
-        .ToDictionary(x => x.Key, x => x.Value);
-
-      if (responseFilesWithErrors.Any())
+      var data = new List<ResponseFileData>();
+      foreach (var responseFile in Assembly.compilerOptions.ResponseFiles)
       {
-        foreach (var error in responseFilesWithErrors)
-        foreach (var valueError in error.Value.Errors)
-        {
-          Debug.LogError($"{error.Key} Parse Error : {valueError}");
-        }
+        var responseFileData = assemblyNameProvider.ParseResponseFile(responseFile, projectDirectory, Assembly.compilerOptions.ApiCompatibilityLevel);
+        foreach (var error in responseFileData.Errors)
+          Debug.Log($"{responseFile} Parse Error : {error}");
+        data.Add(responseFileData);
       }
 
-      return responseFilesData.Select(x => x.Value);
+      return data;
     }
   }
 }

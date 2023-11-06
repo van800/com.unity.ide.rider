@@ -201,8 +201,12 @@ namespace Packages.Rider.Editor.ProjectGeneration
       return false;
     }
 
-    public ResponseFileData ParseResponseFile(string responseFilePath, string projectDirectory, string[] systemReferenceDirectories)
+    public ResponseFileData ParseResponseFile(string responseFilePath, string projectDirectory,
+      ApiCompatibilityLevel apiCompatibilityLevel)
     {
+      // TODO: Use file path and API compatibility level to cache response
+      var systemReferenceDirectories =
+        CompilationPipeline.GetSystemAssemblyDirectories(apiCompatibilityLevel);
       return CompilationPipeline.ParseResponseFile(
         responseFilePath,
         projectDirectory,

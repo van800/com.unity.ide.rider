@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEditor.Compilation;
 
 namespace Packages.Rider.Editor.ProjectGeneration
@@ -17,7 +18,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
     Assembly GetNamedAssembly(string name);
     IEnumerable<string> GetAllAssetPaths();
     UnityEditor.PackageManager.PackageInfo GetPackageInfoForAssetPath(string assetPath);
-    ResponseFileData ParseResponseFile(string responseFilePath, string projectDirectory, string[] systemReferenceDirectories);
+    ResponseFileData ParseResponseFile(string responseFilePath, string projectDirectory, ApiCompatibilityLevel systemReferenceDirectories);
     IEnumerable<string> GetRoslynAnalyzerPaths();
     void ToggleProjectGeneration(ProjectGenerationFlag preference);
     void ResetPackageInfoCache();

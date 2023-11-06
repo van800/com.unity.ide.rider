@@ -4,6 +4,7 @@ using System.Linq;
 using Moq;
 using Packages.Rider.Editor.ProjectGeneration;
 using Packages.Rider.Editor.Util;
+using UnityEditor;
 using UnityEditor.Compilation;
 
 namespace Packages.Rider.Editor.Tests
@@ -166,7 +167,7 @@ namespace Packages.Rider.Editor.Tests
         public SynchronizerBuilder WithResponseFileData(Assembly assembly, string responseFile, string[] defines = null, string[] errors = null, string[] fullPathReferences = null, string[] otherArguments = null, bool _unsafe = false)
         {
             assembly.compilerOptions.ResponseFiles = new[] { responseFile };
-            m_AssemblyProvider.Setup(x => x.ParseResponseFile(responseFile, ProjectDirectory.NormalizePath(), It.IsAny<string[]>())).Returns(new ResponseFileData
+            m_AssemblyProvider.Setup(x => x.ParseResponseFile(responseFile, ProjectDirectory.NormalizePath(), It.IsAny<ApiCompatibilityLevel>())).Returns(new ResponseFileData
             {
                 Defines = defines ?? new string[0],
                 Errors = errors ?? new string[0],
