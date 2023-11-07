@@ -47,7 +47,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
     private string[] m_ProjectSupportedExtensions = Array.Empty<string>();
 
-    // Note that ProjectDirectory can be assumed to be the reults of Path.GetFullPath
+    // Note that ProjectDirectory can be assumed to be the result of Path.GetFullPath
     public string ProjectDirectory { get; }
     public string ProjectDirectoryWithSlash { get; }
 
@@ -57,6 +57,11 @@ namespace Packages.Rider.Editor.ProjectGeneration
     private readonly IGUIDGenerator m_GUIDGenerator;
 
     private readonly Dictionary<string, string> m_ProjectGuids = new Dictionary<string, string>();
+
+    // If we have multiple projects, the same assembly references are reused for each. Caching the normalised paths and
+    // names is actually cheaper than recalculating each time, in terms of both time and memory allocations
+    private readonly Dictionary<string, string> m_NormalisedPaths = new Dictionary<string, string>();
+    private readonly Dictionary<string, string> m_AssemblyNames = new Dictionary<string, string>();
 
     internal static bool isRiderProjectGeneration; // workaround to https://github.cds.internal.unity3d.com/unity/com.unity.ide.rider/issues/28
 
@@ -135,6 +140,8 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
       OnGeneratedCSProjectFiles(types);
       m_AssemblyNameProvider.ResetCaches();
+      m_AssemblyNames.Clear();
+      m_NormalisedPaths.Clear();
       m_ProjectGuids.Clear();
       RiderScriptEditorData.instance.hasChanges = false;
       RiderScriptEditorData.instance.InvalidateSavedCompilationDefines();
@@ -555,12 +562,8 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
       foreach (var reference in binaryReferences)
       {
-        // TODO: References should be mostly the same across all projects. Amortise the cost of this normalisation
-        // Note that references from response files will be rooted and normalised
-        // Everything else is project relative, unix format
-        var fullReference = Path.IsPathRooted(reference) ? reference : Path.GetFullPath(reference);
-        var escapedFullPath = SecurityElement.Escape(fullReference).NormalizePath();
-        var assemblyName = FileSystemUtil.FileNameWithoutExtension(escapedFullPath);  // We had this from Assembly!
+        var escapedFullPath = GetNormalisedAssemblyPath(reference);
+        var assemblyName = GetAssemblyNameFromPath(reference);
         projectBuilder
           .Append("    <Reference Include=\"").Append(assemblyName).AppendLine("\">")
           .Append("      <HintPath>").Append(escapedFullPath).AppendLine("</HintPath>")
@@ -765,21 +768,16 @@ namespace Packages.Rider.Editor.ProjectGeneration
 #else
         .Concat(assembly.CompilerOptions.RoslynAnalyzerDllPaths)
 #endif
-        .Select(MakeAbsolutePath)
+        .Select(GetNormalisedAssemblyPath)
         .Distinct()
         .ToArray();
 #else
       return otherResponseFilesData["analyzer"].Concat(otherResponseFilesData["a"])
         .SelectMany(x=>x.Split(';'))
         .Distinct()
-        .Select(MakeAbsolutePath)
+        .Select(GetNormalisedAssemblyPath)
         .ToArray();
 #endif
-    }
-
-    private static string MakeAbsolutePath(string path)
-    {
-      return Path.IsPathRooted(path) ? path : Path.GetFullPath(path);
     }
 
     private IEnumerable<string> GetRoslynAnalyzerRulesetPaths(ProjectPart assembly, ILookup<string, string> otherResponseFilesData)
@@ -790,8 +788,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
         paths.Add(assembly.CompilerOptions.RoslynAnalyzerRulesetPath);
 #endif
 
-
-      return paths.Select(path => MakeAbsolutePath(path).NormalizePath());
+      return paths.Select(GetNormalisedAssemblyPath);
     }
 
     private static void AppendWarningAsError(StringBuilder stringBuilder,
@@ -946,6 +943,29 @@ namespace Packages.Rider.Editor.ProjectGeneration
       }
 
       return guid;
+    }
+
+    private string GetNormalisedAssemblyPath(string path)
+    {
+      if (!m_NormalisedPaths.TryGetValue(path, out var normalisedPath))
+      {
+        normalisedPath = Path.IsPathRooted(path) ? path : Path.GetFullPath(path);
+        normalisedPath = SecurityElement.Escape(normalisedPath).NormalizePath();
+        m_NormalisedPaths.Add(path, normalisedPath);
+      }
+
+      return normalisedPath;
+    }
+
+    private string GetAssemblyNameFromPath(string path)
+    {
+      if (!m_AssemblyNames.TryGetValue(path, out var name))
+      {
+        name = FileSystemUtil.FileNameWithoutExtension(path);
+        m_AssemblyNames.Add(path, name);
+      }
+
+      return name;
     }
   }
 
