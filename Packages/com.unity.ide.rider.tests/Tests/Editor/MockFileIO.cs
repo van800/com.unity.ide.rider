@@ -15,16 +15,21 @@ namespace Packages.Rider.Editor.Tests
         public int ReadTimes { get; private set; }
         public int ExistTimes { get; private set; }
 
-        public bool Exists(string fileName)
+        public bool Exists(string path)
         {
             ++ExistTimes;
-            return fileToContent.ContainsKey(fileName);
+            return fileToContent.ContainsKey(path);
         }
 
-        public string ReadAllText(string fileName)
+        public TextReader GetReader(string path)
+        {
+            return new StringReader(fileToContent[path]);
+        }
+
+        public string ReadAllText(string path)
         {
             ++ReadTimes;
-            return fileToContent[fileName];
+            return fileToContent[path];
         }
 
         public void WriteAllText(string path, string content)

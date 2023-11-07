@@ -7,14 +7,19 @@ using Packages.Rider.Editor.Util;
 namespace Packages.Rider.Editor.ProjectGeneration {
   class FileIOProvider : IFileIO
   {
-    public bool Exists(string fileName)
+    public bool Exists(string path)
     {
-      return File.Exists(fileName);
+      return File.Exists(path);
     }
 
-    public string ReadAllText(string fileName)
+    public TextReader GetReader(string path)
     {
-      return File.ReadAllText(fileName);
+      return new StreamReader(path);
+    }
+
+    public string ReadAllText(string path)
+    {
+      return File.ReadAllText(path);
     }
 
     public void WriteAllText(string path, string content)

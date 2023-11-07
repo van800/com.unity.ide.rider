@@ -143,6 +143,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
       m_AssemblyNames.Clear();
       m_NormalisedPaths.Clear();
       m_ProjectGuids.Clear();
+      _buffer = null;
       RiderScriptEditorData.instance.hasChanges = false;
       RiderScriptEditorData.instance.InvalidateSavedCompilationDefines();
     }
@@ -520,19 +521,48 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
     private void SyncFileIfNotChanged(string path, string newContents)
     {
+      if (HasChanged(path, newContents))
+        m_FileIOProvider.WriteAllText(path, newContents);
+    }
+
+    private static char[] _buffer = null;
+
+    private bool HasChanged(string path, string newContents)
+    {
       try
       {
-        if (m_FileIOProvider.Exists(path) && newContents == m_FileIOProvider.ReadAllText(path))
+        if (!m_FileIOProvider.Exists(path))
+          return true;
+
+        const int bufferSize = 100 * 1024; // 100kb - big enough to read most project files in a single read
+
+        if (_buffer == null)
+          _buffer = new char[bufferSize];
+
+        using (var reader = m_FileIOProvider.GetReader(path))
         {
-          return;
+          int read, offset = 0;
+          do
+          {
+            read = reader.ReadBlock(_buffer, 0, _buffer.Length);
+            for (var i = 0; i < read; i++)
+            {
+              if (_buffer[i] != newContents[offset + i])
+                return true;
+            }
+
+            offset += read;
+          } while (read > 0);
+
+          var isSame = offset == newContents.Length;
+          return !isSame;
         }
       }
       catch (Exception exception)
       {
         Debug.LogException(exception);
+        return true;
       }
-
-      m_FileIOProvider.WriteAllText(path, newContents);
     }
 
     private string ProjectText(StringBuilder projectBuilder, ProjectPart assembly, AssemblyUsage assemblyUsage)
