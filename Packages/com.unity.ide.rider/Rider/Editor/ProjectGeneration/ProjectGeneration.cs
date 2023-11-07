@@ -277,11 +277,14 @@ namespace Packages.Rider.Editor.ProjectGeneration
         }
       }
 
-      SyncSolution(projectParts, types);
+      var stringBuilder = new StringBuilder();
+      SyncSolution(stringBuilder, projectParts, types);
+      stringBuilder.Clear();
 
       foreach (var projectPart in projectParts)
       {
-        SyncProject(projectPart, assemblyUsage, types);
+        SyncProject(stringBuilder, projectPart, assemblyUsage, types);
+        stringBuilder.Clear();
       }
     }
 
@@ -397,13 +400,11 @@ namespace Packages.Rider.Editor.ProjectGeneration
       return assetsByAssemblyName;
     }
 
-    private void SyncProject(ProjectPart island,
-      AssemblyUsage assemblyUsage,
-      Type[] types)
+    private void SyncProject(StringBuilder stringBuilder, ProjectPart island, AssemblyUsage assemblyUsage, Type[] types)
     {
       SyncProjectFileIfNotChanged(
         ProjectFile(island),
-        ProjectText(island, assemblyUsage),
+        ProjectText(stringBuilder, island, assemblyUsage),
         types);
     }
 
@@ -534,10 +535,9 @@ namespace Packages.Rider.Editor.ProjectGeneration
       m_FileIOProvider.WriteAllText(path, newContents);
     }
 
-    private string ProjectText(ProjectPart assembly, AssemblyUsage assemblyUsage)
+    private string ProjectText(StringBuilder projectBuilder, ProjectPart assembly, AssemblyUsage assemblyUsage)
     {
       var responseFilesData = assembly.GetResponseFileData(m_AssemblyNameProvider, ProjectDirectory);
-      var projectBuilder = new StringBuilder();
 
       ProjectHeader(projectBuilder, assembly, responseFilesData);
 
@@ -814,14 +814,13 @@ namespace Packages.Rider.Editor.ProjectGeneration
         stringBuilder.Append("    <WarningsNotAsErrors>").CompatibleAppendJoin(';', notWarningIds) .AppendLine("</WarningsNotAsErrors>");
     }
 
-    private void SyncSolution(List<ProjectPart> islands, Type[] types)
+    private void SyncSolution(StringBuilder stringBuilder, List<ProjectPart> islands, Type[] types)
     {
-      SyncSolutionFileIfNotChanged(SolutionFile(), SolutionText(islands), types);
+      SyncSolutionFileIfNotChanged(SolutionFile(), SolutionText(stringBuilder, islands), types);
     }
 
-    private string SolutionText(List<ProjectPart> islands)
+    private string SolutionText(StringBuilder stringBuilder, List<ProjectPart> islands)
     {
-      var stringBuilder = new StringBuilder();
       stringBuilder
         .AppendLine()
         .AppendLine("Microsoft Visual Studio Solution File, Format Version 11.00")
