@@ -29,8 +29,10 @@ namespace Packages.Rider.Editor
         // todo: make ProjectGeneration lazy
         var projectGeneration = new ProjectGeneration.ProjectGeneration();
         m_RiderScriptEditor = new RiderScriptEditor(new Discovery(), projectGeneration);
+        // preserve the order here, otherwise on startup, project generation Sync would happen multiple times
         CodeEditor.Register(m_RiderScriptEditor);
         InitializeInternal(CurrentEditor);
+        // end of "preserve the order here"
       }
       catch (Exception e)
       {
