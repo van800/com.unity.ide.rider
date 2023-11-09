@@ -148,9 +148,7 @@ namespace Packages.Rider.Editor.Tests
             public void DefaultSyncSettings_WhenSynced_CreatesSolutionFileFromDefaultTemplate()
             {
                 var solutionGUID = "FAE04EC0-301F-11D3-BF4B-00C04F79EFBC";
-                var projectGUID = "ProjectGUID";
                 var synchronizer = m_Builder
-                    .WithProjectGuid(projectGUID, m_Builder.Assembly)
                     .Build();
 
                 // solutionguid, solutionname, projectguid
@@ -159,15 +157,15 @@ namespace Packages.Rider.Editor.Tests
                     @"",
                     @"Microsoft Visual Studio Solution File, Format Version 11.00",
                     @"# Visual Studio 2010",
-                    @"Project(""{{{0}}}"") = ""{2}"", ""{2}.csproj"", ""{{{1}}}""",
+                    @"Project(""{{{0}}}"") = ""{1}"", ""{1}.csproj"", ""{{2c24a770-9be1-a718-c8a6-8cab2edf7848}}""",
                     @"EndProject",
                     @"Global",
                     @"    GlobalSection(SolutionConfigurationPlatforms) = preSolution",
                     @"        Debug|Any CPU = Debug|Any CPU",
                     @"    EndGlobalSection",
                     @"    GlobalSection(ProjectConfigurationPlatforms) = postSolution",
-                    @"        {{{1}}}.Debug|Any CPU.ActiveCfg = Debug|Any CPU",
-                    @"        {{{1}}}.Debug|Any CPU.Build.0 = Debug|Any CPU",
+                    @"        {{2c24a770-9be1-a718-c8a6-8cab2edf7848}}.Debug|Any CPU.ActiveCfg = Debug|Any CPU",
+                    @"        {{2c24a770-9be1-a718-c8a6-8cab2edf7848}}.Debug|Any CPU.Build.0 = Debug|Any CPU",
                     @"    EndGlobalSection",
                     @"    GlobalSection(SolutionProperties) = preSolution",
                     @"        HideSolutionNode = FALSE",
@@ -179,7 +177,6 @@ namespace Packages.Rider.Editor.Tests
                 var solutionTemplate = string.Format(
                     solutionExpected,
                     solutionGUID,
-                    projectGUID,
                     m_Builder.Assembly.name);
 
                 synchronizer.Sync();

@@ -193,7 +193,7 @@ namespace Packages.Rider.Editor
     /// <param name="editorInstallationPath"></param>
     public void Initialize(string editorInstallationPath)
     {
-      var prevEditorBuildNumber = RiderScriptEditorData.instance.prevEditorBuildNumber;
+      var prevEditorVersion = RiderScriptEditorData.instance.prevEditorBuildNumber.ToVersion();
       
       RiderScriptEditorData.instance.Invalidate(editorInstallationPath, true);
 
@@ -206,8 +206,8 @@ namespace Packages.Rider.Editor
       }
       
       // previous editor was Rider with a different version
-      // need to load new Editor plugin 
-      if (prevEditorBuildNumber.ToVersion() != RiderScriptEditorData.instance.editorBuildNumber.ToVersion()) // in Unity 2019.3 any change in preference causes `Initialize` call
+      // need to load new Editor plugin
+      if (prevEditorVersion != null && prevEditorVersion != RiderScriptEditorData.instance.editorBuildNumber.ToVersion()) // in Unity 2019.3 any change in preference causes `Initialize` call
       {
 #if UNITY_2019_3_OR_NEWER
         EditorUtility.RequestScriptReload(); // EditorPlugin would get loaded

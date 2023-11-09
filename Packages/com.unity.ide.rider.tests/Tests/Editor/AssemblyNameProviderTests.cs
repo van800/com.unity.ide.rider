@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using Packages.Rider.Editor.ProjectGeneration;
@@ -30,6 +28,7 @@ namespace Packages.Rider.Editor.Tests
         public void SetUp()
         {
             m_AssemblyNameProvider.ResetProjectGenerationFlag();
+            m_AssemblyNameProvider.ResetCaches();
         }
 
         [Test]
@@ -46,7 +45,7 @@ namespace Packages.Rider.Editor.Tests
                 m_AssemblyNameProvider.ToggleProjectGeneration(ProjectGenerationFlag.None);
             }
             var editorAssemblies = CompilationPipeline.GetAssemblies(AssembliesType.Editor);
-            var collectedAssemblies = m_AssemblyNameProvider.GetAssemblies(s => true).ToList();
+            var collectedAssemblies = m_AssemblyNameProvider.GetAllAssemblies();
 
             var names = collectedAssemblies.Select(assembly => assembly.name);
 
@@ -65,7 +64,7 @@ namespace Packages.Rider.Editor.Tests
         public void EditorAssemblies_WillIncludeRootNamespace()
         {
             var editorAssemblies = CompilationPipeline.GetAssemblies(AssembliesType.Editor);
-            var collectedAssemblies = m_AssemblyNameProvider.GetAssemblies(s => true).ToList();
+            var collectedAssemblies = m_AssemblyNameProvider.GetAllAssemblies();
 
             var editorTestAssembly = editorAssemblies.Single(a => a.name == "Unity.Rider.EditorTests");
             Assert.AreEqual("Packages.Rider.Editor.Tests", editorTestAssembly.rootNamespace);
@@ -80,7 +79,7 @@ namespace Packages.Rider.Editor.Tests
         {
             var playerAssemblies = CompilationPipeline.GetAssemblies(AssembliesType.Player);
 
-            var collectedAssemblies = m_AssemblyNameProvider.GetAssemblies(s => true).ToList();
+            var collectedAssemblies = m_AssemblyNameProvider.GetAllAssemblies();
 
             foreach (Assembly playerAssembly in playerAssemblies)
             {
@@ -95,7 +94,7 @@ namespace Packages.Rider.Editor.Tests
 
             m_AssemblyNameProvider.ToggleProjectGeneration(ProjectGenerationFlag.PlayerAssemblies);
 
-            var collectedAssemblies = m_AssemblyNameProvider.GetAssemblies(s => true).ToList();
+            var collectedAssemblies = m_AssemblyNameProvider.GetAllAssemblies();
 
             foreach (Assembly playerAssembly in playerAssemblies)
             {

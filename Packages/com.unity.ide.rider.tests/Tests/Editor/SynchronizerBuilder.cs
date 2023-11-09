@@ -4,6 +4,7 @@ using System.Linq;
 using Moq;
 using Packages.Rider.Editor.ProjectGeneration;
 using Packages.Rider.Editor.Util;
+using UnityEditor;
 using UnityEditor.Compilation;
 
 namespace Packages.Rider.Editor.Tests
@@ -18,10 +19,9 @@ namespace Packages.Rider.Editor.Tests
 
         IGenerator m_Synchronizer;
         Mock<IAssemblyNameProvider> m_AssemblyProvider = new Mock<IAssemblyNameProvider>();
-        public const string ProjectDirectory = "/FullPath/Example";
+        public static string ProjectDirectory = Path.GetFullPath("/FullPath/Example");
 
         MockFileIO m_FileIoMock = new MockFileIO();
-        Mock<IGUIDGenerator> m_GUIDGenerator = new Mock<IGUIDGenerator>();
 
         public string ReadFile(string fileName) => m_FileIoMock.ReadAllText(fileName);
         public static string ProjectFilePath(Assembly assembly) => Path.Combine(ProjectDirectory, $"{assembly.name}.csproj").NormalizePath();
@@ -49,11 +49,12 @@ namespace Packages.Rider.Editor.Tests
         public SynchronizerBuilder()
         {
             WithAssemblyData();
+            m_AssemblyProvider.Setup(x => x.GetProjectName("Assembly-CSharp", It.IsAny<string[]>())).Returns("Assembly-CSharp");
         }
 
         internal IGenerator Build()
         {
-            return m_Synchronizer = new ProjectGeneration.ProjectGeneration(ProjectDirectory, m_AssemblyProvider.Object, m_FileIoMock, m_GUIDGenerator.Object);
+            return m_Synchronizer = new ProjectGeneration.ProjectGeneration(ProjectDirectory, m_AssemblyProvider.Object, m_FileIoMock, new GUIDProvider());
         }
 
         public SynchronizerBuilder WithSolutionText(string solutionText)
@@ -67,19 +68,14 @@ namespace Packages.Rider.Editor.Tests
             return this;
         }
 
-        public SynchronizerBuilder WithProjectGuid(string projectGuid, Assembly assembly)
-        {
-            m_GUIDGenerator.Setup(x => x.ProjectGuid(Path.GetFileName(ProjectDirectory) + assembly.name)).Returns(projectGuid);
-            return this;
-        }
-
         public SynchronizerBuilder WithAssemblies(Assembly[] assemblies)
         {
             m_Assemblies = assemblies;
-            m_AssemblyProvider.Setup(x => x.GetAssemblies(It.IsAny<Func<string, bool>>())).Returns(m_Assemblies);
+            m_AssemblyProvider.Setup(x => x.GetAllAssemblies()).Returns(m_Assemblies);
             foreach (var assembly in assemblies)
             {
                 m_AssemblyProvider.Setup(x => x.GetProjectName(assembly.name, assembly.defines)).Returns(assembly.name);
+                m_AssemblyProvider.Setup(x => x.GetNamedAssembly(assembly.name)).Returns(assembly);
             }
             return this;
         }
@@ -106,9 +102,9 @@ namespace Packages.Rider.Editor.Tests
                 rootNamespace
             );
 
-            var builder = WithAssembly(assembly);
+            var builder = WithAssemblies(new []{assembly}.Concat(assembly.assemblyReferences).ToArray());
             foreach (var assemblyReference in assembly.assemblyReferences)
-            {   
+            {
                 builder.WithNameForDefines(assemblyReference.defines, assemblyReference.name, assemblyReference.name);
             }
 
@@ -171,7 +167,7 @@ namespace Packages.Rider.Editor.Tests
         public SynchronizerBuilder WithResponseFileData(Assembly assembly, string responseFile, string[] defines = null, string[] errors = null, string[] fullPathReferences = null, string[] otherArguments = null, bool _unsafe = false)
         {
             assembly.compilerOptions.ResponseFiles = new[] { responseFile };
-            m_AssemblyProvider.Setup(x => x.ParseResponseFile(responseFile, ProjectDirectory.NormalizePath(), It.IsAny<string[]>())).Returns(new ResponseFileData
+            m_AssemblyProvider.Setup(x => x.ParseResponseFile(responseFile, ProjectDirectory.NormalizePath(), It.IsAny<ApiCompatibilityLevel>())).Returns(new ResponseFileData
             {
                 Defines = defines ?? new string[0],
                 Errors = errors ?? new string[0],
@@ -184,7 +180,7 @@ namespace Packages.Rider.Editor.Tests
 
         public SynchronizerBuilder WithPackageInfo(string assetPath)
         {
-            m_AssemblyProvider.Setup(x => x.FindForAssetPath(assetPath)).Returns(default(UnityEditor.PackageManager.PackageInfo));
+            m_AssemblyProvider.Setup(x => x.GetPackageInfoForAssetPath(assetPath)).Returns(default(UnityEditor.PackageManager.PackageInfo));
             return this;
         }
 
