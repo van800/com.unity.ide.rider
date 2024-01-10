@@ -347,3 +347,41 @@ promotion:test:trigger:{{ test.name }}:
 {% endfor %}
 {% endfor %}
 {% endfor %}
+
+# Code Coverage job
+{% for test in testables -%}
+{% for editor in editors -%}
+{% for platform in platforms -%}
+coverage:{{ test.name }}:{{ platform.os }}:{{ editor.version }}:
+  name : Test Coverage for {{ test.name }} for {{ editor.version }} on {{ platform.os }}
+  agent:
+    type: {{ images[platform.os].type }}
+    image: {{ images[platform.os].image }}
+    flavor: {{ images[platform.os].flavor }}
+  variables:
+{% if platform.os == "linux" -%}  
+    PATH: /home/bokken/bin:/home/bokken/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin:/home/bokken/.npm-global/bin
+    DISPLAY: ":0"
+{% endif -%}
+{% for v in template_environment_variables -%}
+    {{ v[0] }}: {{ v[1]}}
+{% endfor -%}
+  commands:
+{% if platform.os == "linux" -%}
+      - pip install unity-downloader-cli --user --upgrade --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
+{% else -%}
+      - pip install unity-downloader-cli --upgrade --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
+{% endif -%}
+      - npm install upm-ci-utils@stable --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm -g
+      - unity-downloader-cli --source-file unity_revision.txt {% for component in platform.components %}-c {{ component }} {% endfor %}--wait --published-only
+      - upm-ci project test -u .Editor --project-path {{ test.path }} --platform editmode --enable-code-coverage --code-coverage-options "generateAdditionalMetrics;generateHtmlReport;assemblyFilters:+Unity.Rider*" --extra-utr-arg="--coverage-results-path={{ platform.yamato_source_dir }}/upm-ci~/test-results/CoverageResults --coverage-upload-options=\"hostUrl:https://codecov.unity3d.com;reports:upm-ci~/test-results/CoverageResults/**/*.xml;name:{{ platform.os }}_{{ editor.version }};verbose\""
+  artifacts:
+    logs.zip:
+      paths:
+        - "upm-ci~/test-results/**/*"
+  dependencies:
+  - .yamato/base.yml#editor:priming:{{ editor.version }}:{{ platform.os }}
+  - .yamato/package-test.yml#pack:{{ test.name }}
+{% endfor -%}
+{% endfor -%}
+{% endfor -%}

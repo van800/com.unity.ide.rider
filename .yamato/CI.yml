@@ -13,17 +13,17 @@ editors:
 platforms:
   - name: win
     type: Unity::VM
-    image: package-ci/win10:stable
+    image: package-ci/win10:v4
     flavor: b1.large
     envsetup: echo
   - name: mac
     type: Unity::VM::osx
-    image: package-ci/macos-13:v4.29.0
+    image: package-ci/macos-13:v4
     flavor: m1.mac
     envsetup: echo
   - name: linux
     type: Unity::VM
-    image: package-ci/ubuntu:stable
+    image: package-ci/ubuntu-22.04:v4
     flavor: b1.large
     envsetup: npm config set prefix '~/npm-global'
 
@@ -33,7 +33,7 @@ pack:
   name: Pack
   agent:
     type: Unity::VM
-    image: package-ci/win10:stable
+    image: package-ci/win10:v4
     flavor: b1.large
   commands:
     - npm install upm-ci-utils@latest -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -81,7 +81,7 @@ run_vetting_test_project_{{ editor.version }}:
   name: Run vetting tests on {{ editor.version }}
   agent:
     type: Unity::VM
-    image: package-ci/ubuntu:stable
+    image: package-ci/ubuntu-22.04:v4
     flavor: b1.large
   variables:
     PATH: /home/bokken/bin:/home/bokken/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin:/home/bokken/.npm-global/bin::/home/bokken/npm-global/bin
@@ -171,7 +171,7 @@ publish_release:
 {% endfor %}
   agent:
     type: Unity::VM
-    image: package-ci/win10:stable
+    image: package-ci/win10:v4
     flavor: b1.large
   variables:
     UPMCI_ENABLE_PACKAGE_SIGNING: 1
