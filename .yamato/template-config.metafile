@@ -24,18 +24,21 @@ platforms:
       - linux
       - macos
       - windows
+    yamato_source_dir: ${YAMATO_SOURCE_DIR}
   - os: windows
     components:
       - editor
       - linux
       - macos
       - windows
+    yamato_source_dir: "%YAMATO_SOURCE_DIR%"
   - os: linux
     components:
       - editor
       - linux
       - macos
       - windows
+    yamato_source_dir: ${YAMATO_SOURCE_DIR}
 
 testables:
   # Add any package and/or project folders here - upm ci will automatically grab both packages referenced in the project

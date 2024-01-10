@@ -16,7 +16,7 @@ publish:{{ test.name }}:
   name: Publish {{ test.name }} to Candidates
   agent:
     type: Unity::VM
-    image: package-ci/win10:stable
+    image: package-ci/win10:v4
     flavor: b1.large
   variables:
     {% for v in template_environment_variables %}
@@ -68,7 +68,7 @@ promote:{{ test.name }}:
   name: Promote {{ test.name }} to Production
   agent:
     type: Unity::VM
-    image: package-ci/win10:stable
+    image: package-ci/win10:v4
     flavor: b1.large
   variables:
     UPMCI_PROMOTION: 1
