@@ -16,15 +16,15 @@ template_environment_variables:
 images:
   windows:
     type: Unity::VM
-    image: package-ci/win10:stable
+    image: package-ci/win10:v4
     flavor: b1.large
   linux:
     type: Unity::VM
-    image: package-ci/ubuntu:stable
+    image: package-ci/ubuntu-22.04:v4
     flavor: b1.large
   macos:
     type: Unity::VM::osx
-    image: buildfarm/mac:stable
+    image: package-ci/macos-13:v4
     flavor: m1.mac
 scripting_backends:
   - mono
