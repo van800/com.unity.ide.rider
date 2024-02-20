@@ -1,6 +1,19 @@
 # Code Editor Package for Rider
 
 
+## [3.0.27] - 2023-11-30
+
+- Restore the ability to select Rider installation from the custom location
+- Fix possible extra project regeneration on moving focus from Rider to Unity
+- Improve performance of code generation for very large projects
+
+
+## [3.0.26] - 2023-10-04
+
+ - https://github.com/JetBrains/resharper-unity/issues/2421
+- https://github.com/JetBrains/resharper-unity/issues/2422
+
+
 ## [3.0.25] - 2023-08-18
 
 - unification of functionality to  search JetBrains installations and open solution and file in Rider
