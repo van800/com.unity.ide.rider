@@ -3,7 +3,9 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Rider.Editor.Util;
+using UnityEditor;
 using UnityEngine;
+using UnityEngine.Assemblies;
 using Debug = UnityEngine.Debug;
 
 namespace Packages.Rider.Editor
@@ -15,7 +17,7 @@ namespace Packages.Rider.Editor
         var assembly = EditorPluginInterop.EditorPluginAssembly;
         if (EditorPluginInterop.EditorPluginIsLoadedFromAssets(assembly))
         {
-          Debug.LogError($"Please delete {assembly.Location}. Unity 2019.2+ loads it directly from Rider installation. To disable this, open Rider's settings, search and uncheck 'Automatically install and update Rider's Unity editor plugin'.");
+          Debug.LogError($"Please delete {assembly.GetLoadedAssemblyPath()}. Unity 2019.2+ loads it directly from Rider installation. To disable this, open Rider's settings, search and uncheck 'Automatically install and update Rider's Unity editor plugin'.");
           return;
         }
         
@@ -43,8 +45,8 @@ namespace Packages.Rider.Editor
           
           if (dllFile.Exists)
           {
-            var bytes = File.ReadAllBytes(dllFile.FullName); 
-            assembly = AppDomain.CurrentDomain.Load(bytes); // doesn't lock assembly on disk
+            var bytes = File.ReadAllBytes(dllFile.FullName);
+            assembly = CurrentAssemblies.LoadFromBytes(bytes); // doesn't lock assembly on disk
             if (PluginSettings.SelectedLoggingLevel >= LoggingLevel.TRACE)
               Debug.Log($"Rider EditorPlugin loaded from {dllFile.FullName}");
           
@@ -85,7 +87,7 @@ namespace Packages.Rider.Editor
           return;
         }
 
-        var assembly = AppDomain.CurrentDomain.Load(AssemblyName.GetAssemblyName(dllFile.FullName));
+        var assembly = CurrentAssemblies.LoadFromPath(dllFile.FullName);
         if (PluginSettings.SelectedLoggingLevel >= LoggingLevel.TRACE)
           Debug.Log($"Rider EditorPlugin loaded from {dllFile.FullName}");
 

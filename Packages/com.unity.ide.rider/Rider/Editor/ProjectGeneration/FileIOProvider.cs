@@ -29,21 +29,11 @@ namespace Packages.Rider.Editor.ProjectGeneration {
       LastWriteTracker.UpdateLastWriteIfNeeded(path);
     }
 
-    internal static string GetPhysicalPath(string path)
-    {
-#if UNITY_2021_2_OR_NEWER
-      var absolutePath = FileUtil.GetPhysicalPath(path);
-#else
-      var absolutePath = Path.GetFullPath(path);
-#endif
-      return absolutePath;
-    }
-
     public string EscapedRelativePathFor(string file, string rootDirectoryFullPath)
     {
       // We have to normalize the path, because the PackageManagerRemapper assumes
       // dir seperators will be os specific.
-      var absolutePath = GetPhysicalPath(file.NormalizePath());
+      var absolutePath = FileUtil.GetPhysicalPath(file.NormalizePath());
       var path = SkipPathPrefix(absolutePath, rootDirectoryFullPath);
       return SecurityElement.Escape(path);
     }

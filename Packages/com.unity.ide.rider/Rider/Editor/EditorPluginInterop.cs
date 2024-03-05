@@ -3,8 +3,9 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using Packages.Rider.Editor.ProjectGeneration;
+using UnityEditor;
 using Debug = UnityEngine.Debug;
+using UnityEngine.Assemblies;
 
 namespace Packages.Rider.Editor
 {
@@ -23,7 +24,7 @@ namespace Packages.Rider.Editor
       {
         if (ourEditorPluginAssembly != null)
           return ourEditorPluginAssembly;
-        var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+        var assemblies = CurrentAssemblies.GetLoadedAssemblies();
         ourEditorPluginAssembly = assemblies.FirstOrDefault(a =>
         {
           try
@@ -100,7 +101,7 @@ namespace Packages.Rider.Editor
         if (method == null) return false;
         var assetFilePath = path;
         if (!string.IsNullOrEmpty(path))
-          assetFilePath = FileIOProvider.GetPhysicalPath(path);
+          assetFilePath = FileUtil.GetPhysicalPath(path);
         
         openResult = (bool) method.Invoke(handlerInstance, new object[] {assetFilePath, line, column});
       }
@@ -117,7 +118,7 @@ namespace Packages.Rider.Editor
     {
       if (assembly == null)
         return false;
-      var location = assembly.Location;
+      var location = assembly.GetLoadedAssemblyPath();
       var currentDir = Directory.GetCurrentDirectory();
       return location.StartsWith(currentDir, StringComparison.InvariantCultureIgnoreCase);
     }
