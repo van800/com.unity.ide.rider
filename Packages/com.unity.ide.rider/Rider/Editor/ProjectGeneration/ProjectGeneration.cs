@@ -47,7 +47,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
     private string[] m_ProjectSupportedExtensions = Array.Empty<string>();
 
-    // Note that ProjectDirectory can be assumed to be the result of Path.GetFullPath
+    // Note that ProjectDirectory can be assumed to be the result of GetPhysicalPath
     public string ProjectDirectory { get; }
     public string ProjectDirectoryWithSlash { get; }
 
@@ -75,7 +75,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
     public ProjectGeneration(string projectDirectory, IAssemblyNameProvider assemblyNameProvider, IFileIO fileIoProvider, IGUIDGenerator guidGenerator)
     {
-      ProjectDirectory = Path.GetFullPath(projectDirectory.NormalizePath());
+      ProjectDirectory = FileUtil.GetPhysicalPath(projectDirectory.NormalizePath());
       ProjectDirectoryWithSlash = ProjectDirectory + Path.DirectorySeparatorChar;
       m_ProjectName = Path.GetFileName(ProjectDirectory);
       m_AssemblyNameProvider = assemblyNameProvider;
@@ -978,7 +978,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
     {
       if (!m_NormalisedPaths.TryGetValue(path, out var normalisedPath))
       {
-        normalisedPath = Path.IsPathRooted(path) ? path : Path.GetFullPath(path);
+        normalisedPath = Path.IsPathRooted(path) ? path : FileUtil.GetPhysicalPath(path);
         normalisedPath = SecurityElement.Escape(normalisedPath).NormalizePath();
         m_NormalisedPaths.Add(path, normalisedPath);
       }
