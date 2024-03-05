@@ -1,7 +1,7 @@
-codeeditor: rider
+fcodeeditor: rider
 
 editors:
-  - version: trunk
+  - version: main
 platforms:
   - name: win
     type: Unity::VM
