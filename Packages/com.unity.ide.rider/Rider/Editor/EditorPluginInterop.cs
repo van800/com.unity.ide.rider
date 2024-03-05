@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using Packages.Rider.Editor.ProjectGeneration;
 using Debug = UnityEngine.Debug;
 
 namespace Packages.Rider.Editor
@@ -99,7 +100,7 @@ namespace Packages.Rider.Editor
         if (method == null) return false;
         var assetFilePath = path;
         if (!string.IsNullOrEmpty(path))
-          assetFilePath = Path.GetFullPath(path);
+          assetFilePath = FileIOProvider.GetPhysicalPath(path);
         
         openResult = (bool) method.Invoke(handlerInstance, new object[] {assetFilePath, line, column});
       }

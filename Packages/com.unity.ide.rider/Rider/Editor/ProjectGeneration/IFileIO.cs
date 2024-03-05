@@ -10,7 +10,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
     string ReadAllText(string path);
     void WriteAllText(string path, string content);
 
-    // rootDirectoryFullPath is assumed to be the result of Path.GetFullPath
+    // rootDirectoryFullPath is assumed to be the result of GetPhysicalPath
     // Passing the directory with a trailing slash (Path.DirectorySeparatorChar) will avoid an allocation
     string EscapedRelativePathFor(string path, string rootDirectoryFullPath);
   }
