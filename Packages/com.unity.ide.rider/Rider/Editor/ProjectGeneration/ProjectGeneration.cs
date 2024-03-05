@@ -75,7 +75,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
     public ProjectGeneration(string projectDirectory, IAssemblyNameProvider assemblyNameProvider, IFileIO fileIoProvider, IGUIDGenerator guidGenerator)
     {
-      ProjectDirectory = FileUtil.GetPhysicalPath(projectDirectory.NormalizePath());
+      ProjectDirectory = Path.GetFullPath(FileUtil.GetPhysicalPath(projectDirectory));
       ProjectDirectoryWithSlash = ProjectDirectory + Path.DirectorySeparatorChar;
       m_ProjectName = Path.GetFileName(ProjectDirectory);
       m_AssemblyNameProvider = assemblyNameProvider;
