@@ -25,7 +25,7 @@
 - unification of functionality to  search JetBrains installations and open solution and file in Rider
 
 
-## [3.0.22] - 2023-05-2
+## [3.0.22] - 2023-05-02
 
 - RIDER-82999 Unity's plugin SyncAll does not regenerate project files, and instead does basically nothing.
 - #2401 Compilation issue with Unity 2021.3.0f1
