@@ -1,5 +1,9 @@
 # Code Editor Package for Rider
 
+## [4.0.0] - 2024-03-08
+
+ - support for Unity CorCLR
+
 
 ## [3.0.28] - 2024-02-20
 
