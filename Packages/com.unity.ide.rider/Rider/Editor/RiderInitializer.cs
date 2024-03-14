@@ -37,7 +37,13 @@ namespace Packages.Rider.Editor
           if (SystemInfo.operatingSystemFamily == OperatingSystemFamily.MacOSX)
             relPath = "Contents/plugins/rider-unity/EditorPlugin";
           var baseDir = Path.Combine(editorPath, relPath);
-          var dllFile = new FileInfo(Path.Combine(baseDir, $"{EditorPluginInterop.EditorPluginAssemblyName}.dll"));
+          
+          // prepare for the future,
+          // when such assembly would appear in the Rider installation, it would "just work" with older Rider package
+          var dllFile = new FileInfo(Path.Combine(baseDir, $"{EditorPluginInterop.EditorPluginAssemblyNameCor}.dll"));
+          
+          if (!dllFile.Exists) 
+            dllFile = new FileInfo(Path.Combine(baseDir, $"{EditorPluginInterop.EditorPluginAssemblyName}.dll"));
 
           if (!dllFile.Exists)
             dllFile = new FileInfo(Path.Combine(baseDir,
