@@ -3,13 +3,16 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using UnityEditor;
 using Debug = UnityEngine.Debug;
+using UnityEngine.Assemblies;
 
 namespace Packages.Rider.Editor
 {
   internal static class EditorPluginInterop
   {
     private static string EditorPluginAssemblyNamePrefix = "JetBrains.Rider.Unity.Editor.Plugin.";
+    public static readonly string EditorPluginAssemblyNameCor = $"{EditorPluginAssemblyNamePrefix}CorCLR.Repacked";
     public static readonly string EditorPluginAssemblyName = $"{EditorPluginAssemblyNamePrefix}Net46.Repacked";
     public static readonly string EditorPluginAssemblyNameFallback = $"{EditorPluginAssemblyNamePrefix}Full.Repacked";
     private static string ourEntryPointTypeName = "JetBrains.Rider.Unity.Editor.PluginEntryPoint";
@@ -22,7 +25,7 @@ namespace Packages.Rider.Editor
       {
         if (ourEditorPluginAssembly != null)
           return ourEditorPluginAssembly;
-        var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+        var assemblies = CurrentAssemblies.GetLoadedAssemblies();
         ourEditorPluginAssembly = assemblies.FirstOrDefault(a =>
         {
           try
@@ -99,7 +102,7 @@ namespace Packages.Rider.Editor
         if (method == null) return false;
         var assetFilePath = path;
         if (!string.IsNullOrEmpty(path))
-          assetFilePath = Path.GetFullPath(path);
+          assetFilePath = FileUtil.GetPhysicalPath(path);
         
         openResult = (bool) method.Invoke(handlerInstance, new object[] {assetFilePath, line, column});
       }
@@ -116,7 +119,7 @@ namespace Packages.Rider.Editor
     {
       if (assembly == null)
         return false;
-      var location = assembly.Location;
+      var location = assembly.GetLoadedAssemblyPath();
       var currentDir = Directory.GetCurrentDirectory();
       return location.StartsWith(currentDir, StringComparison.InvariantCultureIgnoreCase);
     }

@@ -1,5 +1,15 @@
 # Code Editor Package for Rider
 
+## [4.0.0] - 2024-03-08
+
+ - support for Unity CorCLR
+
+
+## [3.0.28] - 2024-02-20
+
+- fix RIDER-103933 "PlayerSettings.suppressCommonWarnings" is not supported in Unity 2019.4.40f
+- fix https://github.com/JetBrains/resharper-unity/issues/2431 and [RIDER-104221](https://youtrack.jetbrains.com/issue/RIDER-104221)
+
 
 ## [3.0.27] - 2023-11-30
 
@@ -19,7 +29,7 @@
 - unification of functionality to  search JetBrains installations and open solution and file in Rider
 
 
-## [3.0.22] - 2023-05-2
+## [3.0.22] - 2023-05-02
 
 - RIDER-82999 Unity's plugin SyncAll does not regenerate project files, and instead does basically nothing.
 - #2401 Compilation issue with Unity 2021.3.0f1

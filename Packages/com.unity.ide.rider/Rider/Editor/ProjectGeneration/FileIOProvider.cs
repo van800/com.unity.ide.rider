@@ -3,6 +3,7 @@ using System.IO;
 using System.Security;
 using System.Text;
 using Packages.Rider.Editor.Util;
+using UnityEditor;
 
 namespace Packages.Rider.Editor.ProjectGeneration {
   class FileIOProvider : IFileIO
@@ -32,9 +33,8 @@ namespace Packages.Rider.Editor.ProjectGeneration {
     {
       // We have to normalize the path, because the PackageManagerRemapper assumes
       // dir seperators will be os specific.
-      var absolutePath = Path.GetFullPath(file.NormalizePath());
+      var absolutePath = FileUtil.GetPhysicalPath(file.NormalizePath());
       var path = SkipPathPrefix(absolutePath, rootDirectoryFullPath);
-
       return SecurityElement.Escape(path);
     }
 
