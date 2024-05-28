@@ -23,7 +23,7 @@ platforms:
     envsetup: echo
   - name: linux
     type: Unity::VM
-    image: package-ci/ubuntu:stable
+    image: package-ci/ubuntu-22.04:v4
     flavor: b1.large
     envsetup: npm config set prefix '~/npm-global'
 
@@ -81,7 +81,7 @@ run_vetting_test_project_{{ editor.version }}:
   name: Run vetting tests on {{ editor.version }}
   agent:
     type: Unity::VM
-    image: package-ci/ubuntu:stable
+    image: package-ci/ubuntu-22.04:v4
     flavor: b1.large
   variables:
     PATH: /home/bokken/bin:/home/bokken/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin:/home/bokken/.npm-global/bin::/home/bokken/npm-global/bin
@@ -150,7 +150,7 @@ prepare_release:
         - next/master
   agent:
     type: Unity::VM
-    image: cds-ops/ubuntu-18.04-agent:stable
+    image: package-ci/ubuntu-22.04:v4
     flavor: b1.large
   commands:
     - git clone git@github.cds.internal.unity3d.com:nicklas/Nicklas-CI.git /tmp/Nicklas-CI
@@ -206,7 +206,7 @@ create_pull_request:
     - .yamato/CI.yml#pack
   agent:
     type: Unity::VM
-    image: cds-ops/ubuntu-18.04-agent:latest
+    image: package-ci/ubuntu-22.04:v4
     flavor: b1.large
   commands:
     - git clone git@github.cds.internal.unity3d.com:nicklas/Nicklas-CI.git /tmp/Nicklas-CI
