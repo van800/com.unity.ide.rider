@@ -291,14 +291,6 @@ namespace Packages.Rider.Editor
         {
           m_RiderScriptEditor.m_Initiliazer.Initialize(path);
         }
-
-        // can't switch to non-deprecated api, because UnityEditor.Build.BuildPipelineInterfaces.processors is internal
-#pragma warning disable 618
-        EditorUserBuildSettings.activeBuildTargetChanged += () =>
-#pragma warning restore 618
-        {
-          RiderScriptEditorData.instance.hasChanges = true;
-        };
       }
     }
 
