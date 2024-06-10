@@ -53,7 +53,7 @@ commit_ci_release:
             - "/.*/"
         targets:
           only:
-            - next/master
+            - next/master-3.0
   dependencies:
   {% for editor in editors %}
   {% for platform in platforms %}
@@ -68,7 +68,7 @@ commit_ci:
       only:
         - "/.*/"
       except:
-        - next/master
+        - next/master-3.0
         - publish-release
   dependencies:
   {% for editor in editors %}
@@ -147,7 +147,7 @@ prepare_release:
   triggers:
     branches:
       only:
-        - next/master
+        - next/master-3.0
   agent:
     type: Unity::VM
     image: package-ci/ubuntu-22.04:v4
@@ -178,7 +178,7 @@ publish_release:
   commands:
     - npm install upm-ci-utils@latest -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
     - upm-ci project publish
-    - git push origin HEAD:refs/heads/master -f
+    - git push origin HEAD:refs/heads/master-3.0 -f
 
 
 prepare_promotion:
