@@ -1,6 +1,7 @@
 using System.IO;
 using NUnit.Framework;
 using Unity.CodeEditor;
+using UnityEditor;
 
 namespace Packages.Rider.Editor.Tests
 {
@@ -35,7 +36,7 @@ namespace Packages.Rider.Editor.Tests
         
         protected static string MakeAbsolutePath(string path)
         {
-            return Path.IsPathRooted(path) ? path : Path.GetFullPath(path);
+            return Path.IsPathRooted(path) ? path : FileUtil.GetPhysicalPath(path);
         }
     }
 }

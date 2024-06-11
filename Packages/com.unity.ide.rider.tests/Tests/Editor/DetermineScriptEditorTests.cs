@@ -5,6 +5,7 @@ using Moq;
 using NUnit.Framework;
 using Packages.Rider.Editor.ProjectGeneration;
 using Unity.CodeEditor;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
 
@@ -17,7 +18,7 @@ namespace Packages.Rider.Editor.Tests
         [Test]
         public void OSXPathDiscovery()
         {
-            var path = new FileInfo(@"Packages/com.unity.ide.rider.tests/Tests/Data/DetermineScriptEditorTests/Rider.app").FullName;
+            var path = new FileInfo(FileUtil.GetPhysicalPath("Packages/com.unity.ide.rider.tests/Tests/Data/DetermineScriptEditorTests/Rider.app")).FullName;
             Discover(path);
         }
         
@@ -26,7 +27,7 @@ namespace Packages.Rider.Editor.Tests
         [Test]
         public void WindowsPathDiscovery()
         {
-            var path = new FileInfo(@"Packages\com.unity.ide.rider.tests\Tests\Data\DetermineScriptEditorTests\191.7141.355\bin\rider64.exe").FullName;
+            var path = new FileInfo(FileUtil.GetPhysicalPath(@"Packages\com.unity.ide.rider.tests\Tests\Data\DetermineScriptEditorTests\191.7141.355\bin\rider64.exe")).FullName;
             Discover(path);
         }
 
@@ -34,7 +35,7 @@ namespace Packages.Rider.Editor.Tests
         [Test]
         public void LinuxPathDiscovery()
         {
-            var path = new FileInfo(@"Packages/com.unity.ide.rider.tests/Tests/Data/DetermineScriptEditorTests/191.7141.355/bin/rider.sh").FullName;
+            var path = new FileInfo(FileUtil.GetPhysicalPath("Packages/com.unity.ide.rider.tests/Tests/Data/DetermineScriptEditorTests/191.7141.355/bin/rider.sh")).FullName;
             Discover(path);
         }
 
