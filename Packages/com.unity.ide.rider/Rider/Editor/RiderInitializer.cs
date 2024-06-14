@@ -40,15 +40,7 @@ namespace Packages.Rider.Editor
           
           // prepare for the future,
           // when such assembly would appear in the Rider installation, it would "just work" with older Rider package
-          var dllFile = new FileInfo(Path.Combine(baseDir, $"{EditorPluginInterop.EditorPluginAssemblyNameCor}.dll"));
-          
-          if (!dllFile.Exists) 
-            dllFile = new FileInfo(Path.Combine(baseDir, $"{EditorPluginInterop.EditorPluginAssemblyName}.dll"));
-
-          if (!dllFile.Exists)
-            dllFile = new FileInfo(Path.Combine(baseDir,
-              $"{EditorPluginInterop.EditorPluginAssemblyNameFallback}.dll"));
-          
+          var dllFile = new FileInfo(Path.Combine(baseDir, $"{EditorPluginInterop.EditorPluginAssemblyName}.dll"));
           if (dllFile.Exists)
           {
             var bytes = File.ReadAllBytes(dllFile.FullName);
