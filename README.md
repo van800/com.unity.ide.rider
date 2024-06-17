@@ -7,3 +7,12 @@ Refer to [Changelog](/Packages/com.unity.ide.rider/CHANGELOG.md)
 
 # Contributing
 This project welcomes contributions and suggestions. Please have a look at our [Guidelines](/Packages/com.unity.ide.rider/CONTRIBUTING.md) for contributing.
+
+# Release workflow 
+We have 2 release streams, one for `4.0.x` targeting U7, and we have `3.0.x` for LTS versions
+The `4.0.x` stream has only the pack job and the rest of the release process has to be done manually by copying in the source code. The `3.0.x` stayed the same, meaning:
+- Creating a `3.0.x` branch targeting `next/master-3.0` with PR comments equal to what we want to have the CHANGELOG
+- As soon as this branch lands the `Prepare Release` job will be triggered result in updating the CHANGELOG, the package version and creating a `publish-release` branch targeting `master-3.0`
+- This branch triggers `Prepare Promotion` jobs with results in creating new release PRs for all LTS versions 
+
+ 
