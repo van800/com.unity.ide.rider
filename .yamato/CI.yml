@@ -190,7 +190,7 @@ prepare_promotion:
     image: dotnet-qa/win10-dotnet-6:latest
     flavor: b1.large
   commands:
-    - if NOT "%GIT_BRANCH%" == "master" echo %GIT_BRANCH% && exit 1
+    - if NOT "%GIT_BRANCH%" == "master-3.0" echo %GIT_BRANCH% && exit 1
     - git clone git@github.cds.internal.unity3d.com:nicklas/Nicklas-CI.git C:\buildslave\Nicklas-CI
     - py -3 C:\buildslave\Nicklas-CI\prepare_promotion.py C:\buildslave\unity\build upm-ci~/packages/packages.json
 
