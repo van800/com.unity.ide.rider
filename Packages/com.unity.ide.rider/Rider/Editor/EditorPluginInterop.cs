@@ -3,6 +3,8 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using UnityEditor.Build.Reporting;
+using UnityEditor.UnityLinker;
 using Debug = UnityEngine.Debug;
 
 namespace Packages.Rider.Editor
@@ -146,6 +148,26 @@ namespace Packages.Rider.Editor
         if (ex.InnerException != null) 
           Debug.LogException(ex.InnerException);
       }
+    }
+
+    public static string GenerateAdditionalLinkXmlFile(BuildReport report, UnityLinkerBuildPipelineData data, bool preserveUnityEngineDlls, bool preservePlayerDlls)
+    {
+      try
+      {
+        var assembly = EditorPluginAssembly;
+        if (assembly == null) return null;
+        var type = assembly.GetType(ourEntryPointTypeName);
+        if (type == null) return null;
+        var method = type.GetMethod(nameof(GenerateAdditionalLinkXmlFile), BindingFlags.NonPublic | BindingFlags.Static);
+        if (method == null) return null;
+        return method.Invoke(null, new object[]{report, data, preserveUnityEngineDlls, preservePlayerDlls}) as string;
+      }
+      catch (Exception e)
+      {
+        Debug.LogError($"Unable to do {nameof(GenerateAdditionalLinkXmlFile)} to Rider from dll\n{e}");
+      }
+
+      return string.Empty;
     }
   }
 }

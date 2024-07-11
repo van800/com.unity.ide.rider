@@ -1,0 +1,73 @@
+﻿using JetBrains.Annotations;
+using UnityEditor;
+using UnityEditor.Build.Reporting;
+
+namespace Packages.Rider.Editor.Debugger
+{
+  public class RiderDebuggerProvider
+  {
+    private const string UnityProjectIl2CPPDebugFlagSettingsName = "unity_project_il2cpp_debug_flag";
+    private const string UnityProjectUseDebugLinkDuringTheBuild = "unity_project_use_debug_link_flag";
+
+    private Il2CppDebugSupport m_Il2CppDebugSupportFlag =
+      (Il2CppDebugSupport)EditorPrefs.GetInt(UnityProjectIl2CPPDebugFlagSettingsName,
+        (int)Il2CppDebugSupport.PreserveUnityEngineDlls);
+
+    private bool m_useDebugLinkDuringTheBuild = EditorPrefs.GetBool(UnityProjectUseDebugLinkDuringTheBuild, true);
+
+    private RiderDebuggerProvider()
+    {
+    }
+
+    public static readonly RiderDebuggerProvider Instance = new RiderDebuggerProvider();
+
+    public Il2CppDebugSupport Il2CppDebugSupport
+    {
+      get => m_Il2CppDebugSupportFlag;
+      private set
+      {
+        EditorPrefs.SetInt(UnityProjectIl2CPPDebugFlagSettingsName, (int)value);
+        m_Il2CppDebugSupportFlag = value;
+      }
+    }
+
+    public void ToggleIl2CppSupport(Il2CppDebugSupport preference)
+    {
+      if (Il2CppDebugSupport.HasFlag(preference))
+        Il2CppDebugSupport ^= preference;
+      else
+        Il2CppDebugSupport |= preference;
+    }
+
+    public bool UseDebugLinkDuringTheBuild
+    {
+      get => m_useDebugLinkDuringTheBuild;
+      private set
+      {
+        EditorPrefs.SetBool(UnityProjectUseDebugLinkDuringTheBuild, value);
+        m_useDebugLinkDuringTheBuild = value;
+      }
+    }
+    public void ToggleUseDebugLinkDuringTheBuild(bool value)
+    {
+      if (UseDebugLinkDuringTheBuild != value)
+        UseDebugLinkDuringTheBuild = value;
+    }
+
+    public static bool IsIl2CppScriptingBackend([CanBeNull] BuildReport report)
+    {
+      if(report != null)
+        return PlayerSettings.GetScriptingBackend(report.summary.platformGroup) == ScriptingImplementation.IL2CPP;
+
+      return PlayerSettings.GetScriptingBackend(EditorUserBuildSettings.selectedBuildTargetGroup) == ScriptingImplementation.IL2CPP;
+    }
+
+    public static bool IsScriptDebuggingEnable([CanBeNull] BuildReport report)
+    {
+      if(report != null)
+        return report.summary.options.HasFlag(BuildOptions.AllowDebugging);
+
+      return EditorUserBuildSettings.allowDebugging;
+    }
+  }
+}
