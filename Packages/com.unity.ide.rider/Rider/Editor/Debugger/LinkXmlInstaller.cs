@@ -17,9 +17,9 @@ namespace Packages.Rider.Editor.Debugger
       if (!RiderScriptEditor.IsRiderSelectedAsExternalScriptEditor())
         return string.Empty;
       
-      if (!IsScriptDebuggingEnable(report))
+      if (!RiderDebuggerProvider.IsScriptDebuggingEnable(report))
         return string.Empty;
-      if (!IsIl2CppScriptingBackend(report))
+      if (!RiderDebuggerProvider.IsIl2CppScriptingBackend(report))
         return string.Empty;
       
       var il2CppDebugSupport = RiderDebuggerProvider.Instance.Il2CppDebugSupport;
@@ -41,22 +41,6 @@ namespace Packages.Rider.Editor.Debugger
       }
       
       return string.Empty;
-    }
-
-    private static bool IsIl2CppScriptingBackend([CanBeNull] BuildReport report)
-    {
-      if(report != null)
-          return PlayerSettings.GetScriptingBackend(report.summary.platformGroup) == ScriptingImplementation.IL2CPP;
-
-      return PlayerSettings.GetScriptingBackend(EditorUserBuildSettings.selectedBuildTargetGroup) == ScriptingImplementation.IL2CPP;
-    }
-
-    private static bool IsScriptDebuggingEnable([CanBeNull] BuildReport report)
-    {
-      if(report != null)
-        return report.summary.options.HasFlag(BuildOptions.AllowDebugging);
-
-      return EditorUserBuildSettings.allowDebugging;
     }
 
 
