@@ -17,7 +17,7 @@ namespace Packages.Rider.Editor.Debugger
 
     public string GenerateAdditionalLinkXmlFile(BuildReport report, UnityLinkerBuildPipelineData data)
     {
-      if (!RiderScriptEditor.IsRiderSelectedAsExternalScriptEditor())
+      if (!RiderScriptEditor.IsRiderOrFleetInstallation(RiderScriptEditor.CurrentEditor))
         return string.Empty;
      
       if (!RiderDebuggerProvider.IsScriptDebuggingEnable(report))

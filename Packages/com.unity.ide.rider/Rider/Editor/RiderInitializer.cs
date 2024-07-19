@@ -43,7 +43,6 @@ namespace Packages.Rider.Editor
           
           if (dllFile.Exists)
           {
-            Debug.LogError(dllFile);
             var bytes = File.ReadAllBytes(dllFile.FullName); 
             assembly = AppDomain.CurrentDomain.Load(bytes); // doesn't lock assembly on disk
             if (PluginSettings.SelectedLoggingLevel >= LoggingLevel.TRACE)
@@ -70,7 +69,6 @@ namespace Packages.Rider.Editor
           return;
         }
         var dllPath = File.ReadLines(file.FullName).FirstOrDefault();
-        // Debug.LogError(dllPath);
 
         if (dllPath == null)
         {

@@ -146,17 +146,14 @@ namespace Packages.Rider.Editor
       EditorGUILayout.Space();
       EditorGUILayout.BeginHorizontal();
       var style = GUI.skin.label;
-      const string text = "Il2cpp Debug support";
+      const string text = "IL2CPP Debug support";
       EditorGUILayout.LabelField(text, style, GUILayout.Width(style.CalcSize(new GUIContent(text)).x));
      
       EditorGUILayout.EndHorizontal();
       EditorGUI.indentLevel++;
       
-      
       DebugSettingsButton(Il2CppDebugSupport.PreserveUnityEngineDlls, "Preserve all Unity Engine assemblies", "");
       DebugSettingsButton(Il2CppDebugSupport.PreservePlayerDlls, "Preserve all user assemblies", "");
-    
-      
       
       EditorGUILayout.BeginHorizontal();
 
@@ -172,9 +169,9 @@ namespace Packages.Rider.Editor
         }
       }
 
-
       EditorGUILayout.EndHorizontal();
       EditorGUILayout.Space();
+      
 
       EditorGUILayout.BeginVertical(EditorStyles.helpBox);
       {
@@ -538,12 +535,6 @@ namespace Packages.Rider.Editor
       {
         m_ProjectGeneration.Sync();
       }
-    }
-
-    public static bool IsRiderSelectedAsExternalScriptEditor()
-    {
-      return IsRiderOrFleetInstallation(CurrentEditor)
-             || RiderPathUtil.IsRiderDevEditor(CurrentEditor);
     }
   }
 }
