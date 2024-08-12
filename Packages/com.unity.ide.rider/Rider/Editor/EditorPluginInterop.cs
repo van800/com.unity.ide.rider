@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
+using System.Threading;
 using UnityEditor;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
@@ -123,8 +123,7 @@ namespace Packages.Rider.Editor
       return location.StartsWith(currentDir, StringComparison.InvariantCultureIgnoreCase);
     }
 
-
-    internal static void InitEntryPoint(Assembly assembly)
+    internal static void InitEntryPoint(CancellationToken token, Assembly assembly)
     {
       try
       {
@@ -137,10 +136,11 @@ namespace Packages.Rider.Editor
         else
             DisableSyncSolutionOnceCallBack();
         
-        var type = assembly.GetType("JetBrains.Rider.Unity.Editor.AfterUnity56.EntryPoint");
-        if (type == null) 
-          type = assembly.GetType("JetBrains.Rider.Unity.Editor.UnitTesting.EntryPoint"); // oldRider
-        RuntimeHelpers.RunClassConstructor(type.TypeHandle);
+        var type = assembly.GetType("JetBrains.Rider.Unity.Editor.PluginEntryPoint");
+        var method = type.GetMethod("EnsureInitialised", BindingFlags.NonPublic | BindingFlags.Static);
+        if (method == null) Debug.LogError($"EnsureInitialised of {type} was not found.");
+        object[] parameters = { token };
+        method?.Invoke(null, parameters);
       }
       catch (TypeInitializationException ex)
       {

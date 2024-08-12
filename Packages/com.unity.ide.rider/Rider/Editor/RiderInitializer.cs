@@ -1,7 +1,7 @@
-using System;
 using System.IO;
 using System.Linq;
-using System.Reflection;
+using System.Threading;
+using JetBrains.Annotations;
 using Rider.Editor.Util;
 using UnityEditor;
 using UnityEngine;
@@ -12,6 +12,16 @@ namespace Packages.Rider.Editor
 {
     internal class RiderInitializer
     {
+      [Unity.Scripting.LifecycleManagement.BeforeAssemblyUnloading] 
+      [UsedImplicitly]
+      static void CleanupResources()
+      {
+        CancellationTokenSource.Cancel();
+      }
+
+      private static readonly CancellationTokenSource CancellationTokenSource = new();
+      private static readonly CancellationToken Token = CancellationTokenSource.Token;
+      
       public void Initialize(string editorPath)
       {
         var assembly = EditorPluginInterop.EditorPluginAssembly;
@@ -48,7 +58,7 @@ namespace Packages.Rider.Editor
             if (PluginSettings.SelectedLoggingLevel >= LoggingLevel.TRACE)
               Debug.Log($"Rider EditorPlugin loaded from {dllFile.FullName}");
           
-            EditorPluginInterop.InitEntryPoint(assembly);
+            EditorPluginInterop.InitEntryPoint(Token, assembly);
           }
           else
           {
@@ -89,7 +99,7 @@ namespace Packages.Rider.Editor
         if (PluginSettings.SelectedLoggingLevel >= LoggingLevel.TRACE)
           Debug.Log($"Rider EditorPlugin loaded from {dllFile.FullName}");
 
-        EditorPluginInterop.InitEntryPoint(assembly);
+        EditorPluginInterop.InitEntryPoint(Token, assembly);
       }
     }
 }
