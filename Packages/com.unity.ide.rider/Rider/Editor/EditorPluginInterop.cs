@@ -114,15 +114,6 @@ namespace Packages.Rider.Editor
       return openResult;
     }
 
-    public static bool EditorPluginIsLoadedFromAssets(Assembly assembly)
-    {
-      if (assembly == null)
-        return false;
-      var location = assembly.GetLoadedAssemblyPath();
-      var currentDir = Directory.GetCurrentDirectory();
-      return location.StartsWith(currentDir, StringComparison.InvariantCultureIgnoreCase);
-    }
-
     internal static void InitEntryPoint(CancellationToken token, Assembly assembly)
     {
       try
@@ -138,7 +129,7 @@ namespace Packages.Rider.Editor
         
         var type = assembly.GetType("JetBrains.Rider.Unity.Editor.PluginEntryPoint");
         var method = type.GetMethod("EnsureInitialised", BindingFlags.NonPublic | BindingFlags.Static);
-        if (method == null) Debug.LogError($"EnsureInitialised of {type} was not found.");
+        if (method == null) Debug.LogError($"EnsureInitialised method of {type} was not found.");
         object[] parameters = { token };
         method?.Invoke(null, parameters);
       }
