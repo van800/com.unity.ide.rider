@@ -1,8 +1,6 @@
 using System;
-using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
 using UnityEditor;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
@@ -40,24 +38,6 @@ namespace Packages.Rider.Editor
         });
         return ourEditorPluginAssembly;
       }
-    }
-
-    private static void DisableSyncSolutionOnceCallBack()
-    {
-      // RiderScriptableSingleton.Instance.CsprojProcessedOnce = true;
-      // Otherwise EditorPlugin regenerates all on every AppDomain reload
-      var assembly = EditorPluginAssembly;
-      if (assembly == null) return;
-      var type = assembly.GetType("JetBrains.Rider.Unity.Editor.Utils.RiderScriptableSingleton");
-      if (type == null) return;
-      var baseType = type.BaseType;
-      if (baseType == null) return;
-      var instance = baseType.GetProperty("Instance");
-      if (instance == null) return;
-      var instanceVal = instance.GetValue(null);
-      var member = type.GetProperty("CsprojProcessedOnce");
-      if (member==null) return;
-      member.SetValue(instanceVal, true);
     }
     
     public static string LogPath
@@ -112,24 +92,6 @@ namespace Packages.Rider.Editor
       }
 
       return openResult;
-    }
-
-    internal static void InitEntryPoint(CancellationToken token, Assembly assembly)
-    {
-      try
-      {
-        var type = assembly.GetType("JetBrains.Rider.Unity.Editor.PluginEntryPoint");
-        var method = type.GetMethod("EnsureInitialised", BindingFlags.NonPublic | BindingFlags.Static);
-        if (method == null) Debug.LogError($"EnsureInitialised method of {type} was not found.");
-        object[] parameters = { token };
-        method?.Invoke(null, parameters);
-      }
-      catch (TypeInitializationException ex)
-      {
-        Debug.LogException(ex);
-        if (ex.InnerException != null) 
-          Debug.LogException(ex.InnerException);
-      }
     }
   }
 }

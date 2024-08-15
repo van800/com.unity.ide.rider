@@ -1,9 +1,10 @@
+using System;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using JetBrains.Annotations;
 using Rider.Editor.Util;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.Assemblies;
 using Debug = UnityEngine.Debug;
@@ -52,7 +53,7 @@ namespace Packages.Rider.Editor
             if (PluginSettings.SelectedLoggingLevel >= LoggingLevel.TRACE)
               Debug.Log($"Rider EditorPlugin loaded from {dllFile.FullName}");
           
-            EditorPluginInterop.InitEntryPoint(Token, assembly);
+            InitEntryPoint(Token, assembly);
           }
           else
           {
@@ -93,7 +94,25 @@ namespace Packages.Rider.Editor
         if (PluginSettings.SelectedLoggingLevel >= LoggingLevel.TRACE)
           Debug.Log($"Rider EditorPlugin loaded from {dllFile.FullName}");
 
-        EditorPluginInterop.InitEntryPoint(Token, assembly);
+        InitEntryPoint(Token, assembly);
+      }
+
+      private static void InitEntryPoint(CancellationToken token, Assembly assembly)
+      {
+        try
+        {
+          var type = assembly.GetType("JetBrains.Rider.Unity.Editor.PluginEntryPoint");
+          var method = type.GetMethod("Initialize", BindingFlags.NonPublic | BindingFlags.Static);
+          if (method == null) Debug.LogError($"Initialize method of {type} was not found.");
+          object[] parameters = { token };
+          method?.Invoke(null, parameters);
+        }
+        catch (TypeInitializationException ex)
+        {
+          Debug.LogException(ex);
+          if (ex.InnerException != null) 
+            Debug.LogException(ex.InnerException);
+        }
       }
     }
 }
