@@ -118,15 +118,6 @@ namespace Packages.Rider.Editor
     {
       try
       {
-        var version = RiderScriptEditorData.instance.editorBuildNumber;
-        if (version != null)
-        {
-          if (version.Major < 192)
-            DisableSyncSolutionOnceCallBack(); // is require for Rider prior to 2019.2
-        }
-        else
-            DisableSyncSolutionOnceCallBack();
-        
         var type = assembly.GetType("JetBrains.Rider.Unity.Editor.PluginEntryPoint");
         var method = type.GetMethod("EnsureInitialised", BindingFlags.NonPublic | BindingFlags.Static);
         if (method == null) Debug.LogError($"EnsureInitialised method of {type} was not found.");
