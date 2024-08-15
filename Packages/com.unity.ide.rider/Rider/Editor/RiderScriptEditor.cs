@@ -176,7 +176,6 @@ namespace Packages.Rider.Editor
     public static void SyncIfNeeded(bool checkProjectFiles)
     {
       AssetDatabase.Refresh();
-      m_ProjectGeneration.SyncIfNeeded(new string[] { }, new string[] { }, checkProjectFiles);
     }
     
     [UsedImplicitly]
