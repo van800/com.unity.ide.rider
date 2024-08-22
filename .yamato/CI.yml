@@ -118,14 +118,13 @@ run_feature_test_project_{{ platform.name }}_{{ editor.version }}:
     - pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
 {% endif -%}
     - {{ platform.envsetup }}
-    - unity-downloader-cli -u {{editor.version}} -c editor -c linux -c macos -c windows --fast --wait --published-only
-    - npm install upm-ci-utils@latest -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-    - upm-ci project test -u .Editor --project-path . --platform editmode
+    - unity-downloader-cli -u {{editor.version}} -c editor --fast --wait --published-only
+    - git clone git@github.cds.internal.unity3d.com:unity/utr.git
+    - utr/utr --suite=editor --editor-location=.Editor --testproject=. --artifacts_path=build/logs
   artifacts:
     logs:
       paths:
-        - "upm-ci~/test-results/**/*"
-        - "upm-ci~/utr/**/*"
+        - "build/logs/**"
   dependencies:
     - .yamato/CI.yml#pack
   {% endfor %}
