@@ -5,12 +5,12 @@ editors:
 platforms:
   - name: win
     type: Unity::VM
-    image: package-ci/win10:stable
+    image: package-ci/win10:v4
     flavor: b1.large
     envsetup: echo
   - name: mac
     type: Unity::VM::osx
-    image: package-ci/macos-13:v4.29.0
+    image: package-ci/macos-13:v4
     flavor: m1.mac
     envsetup: echo
   - name: linux
@@ -25,7 +25,7 @@ pack:
   name: Pack
   agent:
     type: Unity::VM
-    image: package-ci/win10:stable
+    image: package-ci/win10:v4
     flavor: b1.large
   commands:
     - npm install upm-ci-utils@latest -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -118,14 +118,13 @@ run_feature_test_project_{{ platform.name }}_{{ editor.version }}:
     - pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
 {% endif -%}
     - {{ platform.envsetup }}
-    - unity-downloader-cli -u {{editor.version}} -c editor -c linux -c macos -c windows --fast --wait --published-only
-    - npm install upm-ci-utils@latest -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-    - upm-ci project test -u .Editor --project-path . --platform editmode
+    - unity-downloader-cli -u {{editor.version}} -c editor --fast --wait --published-only
+    - git clone git@github.cds.internal.unity3d.com:unity/utr.git
+    - utr/utr --suite=editor --editor-location=.Editor --testproject=. --artifacts_path=build/logs
   artifacts:
     logs:
       paths:
-        - "upm-ci~/test-results/**/*"
-        - "upm-ci~/utr/**/*"
+        - "build/logs/**"
   dependencies:
     - .yamato/CI.yml#pack
   {% endfor %}

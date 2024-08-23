@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using UnityEditor;
+using UnityEngine;
 using Debug = UnityEngine.Debug;
 using UnityEngine.Assemblies;
 
