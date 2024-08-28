@@ -113,6 +113,10 @@ namespace Packages.Rider.Editor
           if (ex.InnerException != null) 
             Debug.LogException(ex.InnerException);
         }
+        catch (Exception ex)
+        {
+          Debug.LogException(ex);
+        }
       }
     }
 }
