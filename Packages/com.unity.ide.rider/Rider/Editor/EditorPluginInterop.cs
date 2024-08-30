@@ -1,8 +1,6 @@
 using System;
-using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using UnityEditor;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
@@ -40,24 +38,6 @@ namespace Packages.Rider.Editor
         });
         return ourEditorPluginAssembly;
       }
-    }
-
-    private static void DisableSyncSolutionOnceCallBack()
-    {
-      // RiderScriptableSingleton.Instance.CsprojProcessedOnce = true;
-      // Otherwise EditorPlugin regenerates all on every AppDomain reload
-      var assembly = EditorPluginAssembly;
-      if (assembly == null) return;
-      var type = assembly.GetType("JetBrains.Rider.Unity.Editor.Utils.RiderScriptableSingleton");
-      if (type == null) return;
-      var baseType = type.BaseType;
-      if (baseType == null) return;
-      var instance = baseType.GetProperty("Instance");
-      if (instance == null) return;
-      var instanceVal = instance.GetValue(null);
-      var member = type.GetProperty("CsprojProcessedOnce");
-      if (member==null) return;
-      member.SetValue(instanceVal, true);
     }
     
     public static string LogPath
@@ -112,42 +92,6 @@ namespace Packages.Rider.Editor
       }
 
       return openResult;
-    }
-
-    public static bool EditorPluginIsLoadedFromAssets(Assembly assembly)
-    {
-      if (assembly == null)
-        return false;
-      var location = assembly.GetLoadedAssemblyPath();
-      var currentDir = Directory.GetCurrentDirectory();
-      return location.StartsWith(currentDir, StringComparison.InvariantCultureIgnoreCase);
-    }
-
-
-    internal static void InitEntryPoint(Assembly assembly)
-    {
-      try
-      {
-        var version = RiderScriptEditorData.instance.editorBuildNumber;
-        if (version != null)
-        {
-          if (version.Major < 192)
-            DisableSyncSolutionOnceCallBack(); // is require for Rider prior to 2019.2
-        }
-        else
-            DisableSyncSolutionOnceCallBack();
-        
-        var type = assembly.GetType("JetBrains.Rider.Unity.Editor.AfterUnity56.EntryPoint");
-        if (type == null) 
-          type = assembly.GetType("JetBrains.Rider.Unity.Editor.UnitTesting.EntryPoint"); // oldRider
-        RuntimeHelpers.RunClassConstructor(type.TypeHandle);
-      }
-      catch (TypeInitializationException ex)
-      {
-        Debug.LogException(ex);
-        if (ex.InnerException != null) 
-          Debug.LogException(ex.InnerException);
-      }
     }
   }
 }

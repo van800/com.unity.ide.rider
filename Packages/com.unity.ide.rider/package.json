@@ -5,7 +5,9 @@
   "version": "4.0.0",
   "unity": "2024.1",
   "dependencies": {
-    "com.unity.ext.nunit": "1.0.6"
+    "com.unity.ext.nunit": "3.0.0",
+    "com.unity.modules.imgui": "1.0.0",
+    "com.unity.modules.jsonserialize": "1.0.0"
   },
   "relatedPackages": {
     "com.unity.ide.rider.tests": "4.0.0"
