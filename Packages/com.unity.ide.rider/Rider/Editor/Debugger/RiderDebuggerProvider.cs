@@ -8,6 +8,8 @@ namespace Packages.Rider.Editor.Debugger
   {
     private const string UnityProjectIl2CPPDebugFlagSettingsName = "unity_project_il2cpp_debug_flag";
     private const string UnityProjectUseDebugLinkDuringTheBuild = "unity_project_use_debug_link_flag";
+    private const int RequiredRiderVersion = 243;
+    public const string RequiredRiderVersionName = "2024.3";
 
     private Il2CppDebugSupport m_Il2CppDebugSupportFlag =
       (Il2CppDebugSupport)EditorPrefs.GetInt(UnityProjectIl2CPPDebugFlagSettingsName,
@@ -68,6 +70,11 @@ namespace Packages.Rider.Editor.Debugger
         return report.summary.options.HasFlag(BuildOptions.AllowDebugging);
 
       return EditorUserBuildSettings.allowDebugging;
+    }
+
+    public static bool IsSupportedRiderVersion()
+    {
+      return RiderScriptEditorData.instance != null && RiderScriptEditorData.instance.editorBuildNumber != null  && RiderScriptEditorData.instance.editorBuildNumber.Major >= RequiredRiderVersion;
     }
   }
 }

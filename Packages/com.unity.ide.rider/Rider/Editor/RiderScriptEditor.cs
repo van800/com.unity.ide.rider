@@ -146,7 +146,20 @@ namespace Packages.Rider.Editor
       EditorGUILayout.Space();
       EditorGUILayout.BeginHorizontal();
       var style = GUI.skin.label;
-      const string text = "IL2CPP Debug support";
+      var text = "IL2CPP Debug support";
+
+      if (!RiderDebuggerProvider.IsIl2CppScriptingBackend(null))
+      {
+        GUI.enabled = false;
+        text = "IL2CPP Debug support (requires IL2CPP scripting backend)";
+      }
+        
+      if (!RiderDebuggerProvider.IsSupportedRiderVersion())
+      {
+        GUI.enabled = false;
+        text = $"IL2CPP Debug support (requires Rider {RiderDebuggerProvider.RequiredRiderVersionName} or later)";
+      }
+      
       EditorGUILayout.LabelField(text, style, GUILayout.Width(style.CalcSize(new GUIContent(text)).x));
      
       EditorGUILayout.EndHorizontal();
@@ -208,6 +221,8 @@ namespace Packages.Rider.Editor
       
       EditorGUI.indentLevel--;
       EditorGUILayout.Space();
+
+      GUI.enabled = true;
     }
 
     private static void DebugSettingsButton(Il2CppDebugSupport preference, string guiMessage, string toolTip)
