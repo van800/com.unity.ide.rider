@@ -1,3 +1,4 @@
+#if UNITY_2019_3_OR_NEWER
 using System;
 using System.IO;
 using System.Linq;
@@ -19,14 +20,14 @@ namespace Packages.Rider.Editor.Debugger
     {
       if (!RiderScriptEditor.IsRiderOrFleetInstallation(RiderScriptEditor.CurrentEditor))
         return string.Empty;
-     
+
       if (!RiderDebuggerProvider.IsScriptDebuggingEnable(report))
         return string.Empty;
       if (!RiderDebuggerProvider.IsIl2CppScriptingBackend(report))
         return string.Empty;
 
       var debugLinkXmlPaths = FindLinkDebugXmlFilePaths();
-      
+
       if (debugLinkXmlPaths.Length == 0)
         return string.Empty;
 
@@ -35,7 +36,7 @@ namespace Packages.Rider.Editor.Debugger
 
       //create a file in the random folder in the TEMP directory
       var filePath = Path.Combine(CreateRandomFolderInTempDirectory(), "linker.xml");
-      
+
       var linker = new XElement("linker");
       var doc = new XDocument(new XDeclaration("1.0", "utf-8", "yes"), linker);
       MergeXMLFiles(debugLinkXmlPaths, linker);
@@ -74,7 +75,7 @@ namespace Packages.Rider.Editor.Debugger
         catch (Exception e)
         {
           Debug.LogError(filePath);
-          UnityEngine.Debug.LogException(e);
+          Debug.LogException(e);
         }
       }
     }
@@ -93,24 +94,34 @@ namespace Packages.Rider.Editor.Debugger
     }
 
     //Unity Editor 2019 IUnityLinkerProcessor interface methods
-    public void OnBeforeRun(BuildReport report, UnityLinkerBuildPipelineData data) {}
-    public void OnAfterRun(BuildReport report, UnityLinkerBuildPipelineData data) {}
+    public void OnBeforeRun(BuildReport report, UnityLinkerBuildPipelineData data)
+    {
+    }
+
+    public void OnAfterRun(BuildReport report, UnityLinkerBuildPipelineData data)
+    {
+    }
 
     public static void GenerateTemplateDebugLinkXml()
     {
-      var filePath = EditorUtility.SaveFilePanel($"Save {DebugLinkFileName}", Application.dataPath, DebugLinkFileName, "xml");
-      
-      if(string.IsNullOrEmpty(filePath))
+      var filePath =
+        EditorUtility.SaveFilePanel($"Save {DebugLinkFileName}", Application.dataPath, DebugLinkFileName, "xml");
+
+      if (string.IsNullOrEmpty(filePath))
         return;
 
       var linker = new XElement("linker");
       var doc = new XDocument(new XDeclaration("1.0", "utf-8", "yes"), linker);
       linker.Add(new XComment($"Preserve Unity Engine assemblies"));
-      linker.Add(new XElement("assembly", new XAttribute("fullname", "UnityEngine"), new XAttribute("preserve", "all")));
-      linker.Add(new XElement("assembly", new XAttribute("fullname", "UnityEngine.CoreModule"), new XAttribute("preserve", "all")));
+      linker.Add(new XElement("assembly", new XAttribute("fullname", "UnityEngine"),
+        new XAttribute("preserve", "all")));
+      linker.Add(new XElement("assembly", new XAttribute("fullname", "UnityEngine.CoreModule"),
+        new XAttribute("preserve", "all")));
       linker.Add(new XComment($"Preserve users assemblies"));
-      linker.Add(new XElement("assembly", new XAttribute("fullname", "Assembly-CSharp"), new XAttribute("preserve", "all")));
+      linker.Add(new XElement("assembly", new XAttribute("fullname", "Assembly-CSharp"),
+        new XAttribute("preserve", "all")));
       doc.Save(filePath);
     }
   }
 }
+#endif

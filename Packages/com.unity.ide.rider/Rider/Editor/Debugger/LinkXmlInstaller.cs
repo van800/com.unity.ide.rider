@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if UNITY_2019_3_OR_NEWER
+using System;
 using JetBrains.Annotations;
 using UnityEditor;
 using UnityEditor.Build;
@@ -49,3 +50,4 @@ namespace Packages.Rider.Editor.Debugger
     public void OnAfterRun(BuildReport report, UnityLinkerBuildPipelineData data) {}
   }
 }
+#endif

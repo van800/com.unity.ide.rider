@@ -138,9 +138,12 @@ namespace Packages.Rider.Editor
       RegenerateProjectFiles();
       EditorGUI.indentLevel--;
 
+#if UNITY_2019_3_OR_NEWER
       DrawDebuggerOptions();
+#endif
     }
 
+#if UNITY_2019_3_OR_NEWER
     private void DrawDebuggerOptions()
     {
       EditorGUILayout.Space();
@@ -201,7 +204,7 @@ namespace Packages.Rider.Editor
           const string learnMoreText = "Learn more: ";
           EditorGUILayout.LabelField(learnMoreText, style,
             GUILayout.Width(m_InfoLabelStyle.CalcSize(new GUIContent(learnMoreText)).x+13
-              ));
+            ));
           if (PluginSettings.LinkButton("Unity managed code stripping documentation"))
           {
             Application.OpenURL("https://docs.unity3d.com/Manual/ManagedCodeStripping.html#LinkXMLAnnotation");
@@ -224,6 +227,7 @@ namespace Packages.Rider.Editor
 
       GUI.enabled = true;
     }
+#endif
 
     private static void DebugSettingsButton(Il2CppDebugSupport preference, string guiMessage, string toolTip)
     {

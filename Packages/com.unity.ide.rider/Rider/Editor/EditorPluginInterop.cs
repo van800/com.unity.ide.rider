@@ -4,7 +4,6 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using UnityEditor.Build.Reporting;
-using UnityEditor.UnityLinker;
 using Debug = UnityEngine.Debug;
 
 namespace Packages.Rider.Editor
@@ -150,7 +149,7 @@ namespace Packages.Rider.Editor
       }
     }
 
-    public static string GenerateAdditionalLinkXmlFile(BuildReport report, UnityLinkerBuildPipelineData data, bool preserveUnityEngineDlls, bool preservePlayerDlls)
+    public static string GenerateAdditionalLinkXmlFile(BuildReport report, object data, bool preserveUnityEngineDlls, bool preservePlayerDlls)
     {
       try
       {
