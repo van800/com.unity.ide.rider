@@ -86,7 +86,7 @@ namespace Packages.Rider.Editor.Debugger
       var assetsPaths = AssetDatabase.FindAssets(DebugLinkFileName)
         .Select(AssetDatabase.GUIDToAssetPath)
         .Where(p => Path.GetExtension(p) == ".xml")
-        .Select(p => Path.Combine(projectPath!, p))
+        .Select(p => Path.Combine(projectPath, p))
         .ToArray();
 
       return assetsPaths;
