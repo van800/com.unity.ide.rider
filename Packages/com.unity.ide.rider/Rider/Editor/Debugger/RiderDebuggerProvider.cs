@@ -1,5 +1,6 @@
 ﻿using JetBrains.Annotations;
 using UnityEditor;
+using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 
 namespace Packages.Rider.Editor.Debugger
@@ -58,10 +59,18 @@ namespace Packages.Rider.Editor.Debugger
 
     public static bool IsIl2CppScriptingBackend([CanBeNull] BuildReport report)
     {
-      if(report != null)
-        return PlayerSettings.GetScriptingBackend(report.summary.platformGroup) == ScriptingImplementation.IL2CPP;
+#if UNITY_6000_0_OR_NEWER
+      var summaryPlatformGroup = NamedBuildTarget.FromBuildTargetGroup(report == null 
+        ? EditorUserBuildSettings.selectedBuildTargetGroup
+        : report.summary.platformGroup);
+#else
+      var summaryPlatformGroup = report == null 
+        ? EditorUserBuildSettings.selectedBuildTargetGroup
+        : report.summary.platformGroup;
+#endif
 
-      return PlayerSettings.GetScriptingBackend(EditorUserBuildSettings.selectedBuildTargetGroup) == ScriptingImplementation.IL2CPP;
+      return PlayerSettings.GetScriptingBackend(summaryPlatformGroup) == ScriptingImplementation.IL2CPP;
+
     }
 
     public static bool IsScriptDebuggingEnable([CanBeNull] BuildReport report)
