@@ -59,7 +59,7 @@ namespace Packages.Rider.Editor.Debugger
 
     public static bool IsIl2CppScriptingBackend([CanBeNull] BuildReport report)
     {
-#if UNITY_6000_0_OR_NEWER
+#if UNITY_2023_1_OR_NEWER
       var summaryPlatformGroup = NamedBuildTarget.FromBuildTargetGroup(report == null 
         ? EditorUserBuildSettings.selectedBuildTargetGroup
         : report.summary.platformGroup);
