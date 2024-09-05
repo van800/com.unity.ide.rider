@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace Packages.Rider.Editor.Debugger
 {
-  public class RiderDebugLinkXmlProcessor : IUnityLinkerProcessor
+  internal class RiderDebugLinkXmlProcessor : IUnityLinkerProcessor
   {
     public const string DebugLinkFileName = "debug_link";
     public int callbackOrder { get; }

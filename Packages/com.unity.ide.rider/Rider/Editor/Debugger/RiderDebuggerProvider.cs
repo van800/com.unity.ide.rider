@@ -5,7 +5,7 @@ using UnityEditor.Build.Reporting;
 
 namespace Packages.Rider.Editor.Debugger
 {
-  public class RiderDebuggerProvider
+  internal class RiderDebuggerProvider
   {
     private const string UnityProjectIl2CPPDebugFlagSettingsName = "unity_project_il2cpp_debug_flag";
     private const string UnityProjectUseDebugLinkDuringTheBuild = "unity_project_use_debug_link_flag";

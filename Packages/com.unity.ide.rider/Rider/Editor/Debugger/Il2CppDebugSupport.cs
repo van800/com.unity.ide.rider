@@ -3,7 +3,7 @@
 namespace Packages.Rider.Editor.Debugger
 {
   [Flags]
-  public enum Il2CppDebugSupport
+  internal enum Il2CppDebugSupport
   {
     None = 0,
     PreserveUnityEngineDlls = 1 << 0,
