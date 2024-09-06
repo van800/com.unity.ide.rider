@@ -1,5 +1,28 @@
 # Code Editor Package for Rider
 
+## [3.0.32] - 2024-09-06
+
+1. [RIDER-114406] Adds Active scene, this.gameobject to the debug nodes for the Unity IL2cpp builds:
+> - Add options to the preference to provide ability which dll will be preserved during the stripping process for UnityEngine and Player dll's
+> - This functionality will be executed using IUnityLinkerProcessor, which will generate a temporary link.xml file and include dll's labeled as "ManagedEngineAPI" as UnityEngine dll's and dll's labeled as "ManagedLibrary" as Player.
+
+![image](https://media.github.cds.internal.unity3d.com/user/6347/files/b854a11c-cb32-4a61-bad7-ec3ec2eef8d7)
+
+2. [RIDER-114973] Add debug_link.xml support to the Rider Unity package:
+> If a Unity project includes a debug_link.xml file, the Rider package will use its content during the IL2CPP debug build to prevent code stripping. Essentially, it functions like a link.xml file (as described in the [Unity Manual](https://docs.unity3d.com/Manual/ManagedCodeStripping.html)), but it is specifically used for debug builds.
+
+
+New settings screen:
+
+![image](https://media.github.cds.internal.unity3d.com/user/6347/files/5f7ecd2a-d851-4bc3-bef2-2311b40360e6)
+
+
+
+
+## [3.0.32] - 2024-08-30
+
+- Improved IL2CPP debugging by generating a custom link.xml during debug builds. [RIDER-114406](https://youtrack.jetbrains.com/issue/RIDER-114406/Add-Active-scene-this.gameobject-to-the-debug-nodes-for-the-Unity-IL2cpp-builds)
+-	Added support for debug_link.xml files, a debug-only version of link.xml. [RIDER-114973](https://youtrack.jetbrains.com/issue/RIDER-114973/Add-debuglink.xml-support-to-the-Rider-Unity-package)
 
 ## [3.0.28] - 2024-02-20
 
