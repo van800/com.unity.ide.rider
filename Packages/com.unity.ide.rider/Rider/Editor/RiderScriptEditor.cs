@@ -175,7 +175,9 @@ namespace Packages.Rider.Editor
 
       var debugLinkSupportLabelText = $"Support {RiderDebugLinkXmlProcessor.DebugLinkFileName}.xml";
       var newValue = EditorGUILayout.Toggle(debugLinkSupportLabelText, m_RiderDebuggerProvider.UseDebugLinkDuringTheBuild);
-      m_RiderDebuggerProvider.ToggleUseDebugLinkDuringTheBuild(newValue);
+      
+      if(newValue != m_RiderDebuggerProvider.UseDebugLinkDuringTheBuild)
+        m_RiderDebuggerProvider.ToggleUseDebugLinkDuringTheBuild(newValue);
 
       if (m_RiderDebuggerProvider.UseDebugLinkDuringTheBuild)
       {

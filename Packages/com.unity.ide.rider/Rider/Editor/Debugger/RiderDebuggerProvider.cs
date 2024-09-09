@@ -29,8 +29,11 @@ namespace Packages.Rider.Editor.Debugger
       get => m_Il2CppDebugSupportFlag;
       private set
       {
-        EditorPrefs.SetInt(UnityProjectIl2CPPDebugFlagSettingsName, (int)value);
-        m_Il2CppDebugSupportFlag = value;
+        if (m_Il2CppDebugSupportFlag != value)
+        {
+          EditorPrefs.SetInt(UnityProjectIl2CPPDebugFlagSettingsName, (int)value);
+          m_Il2CppDebugSupportFlag = value;
+        }
       }
     }
 

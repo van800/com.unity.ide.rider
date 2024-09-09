@@ -154,11 +154,11 @@ namespace Packages.Rider.Editor
       try
       {
         var assembly = EditorPluginAssembly;
-        if (assembly == null) return null;
+        if (assembly == null) return string.Empty;
         var type = assembly.GetType(ourEntryPointTypeName);
-        if (type == null) return null;
+        if (type == null) return string.Empty;
         var method = type.GetMethod(nameof(GenerateAdditionalLinkXmlFile), BindingFlags.NonPublic | BindingFlags.Static);
-        if (method == null) return null;
+        if (method == null) return string.Empty;
         return method.Invoke(null, new object[]{report, data, preserveUnityEngineDlls, preservePlayerDlls}) as string;
       }
       catch (Exception e)
