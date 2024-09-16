@@ -1,5 +1,9 @@
 # Code Editor Package for Rider
 
+## [3.0.33] - 2024-08-30
+
+- Improve UI performance
+
 ## [3.0.32] - 2024-08-30
 
 - Improved IL2CPP debugging by generating a custom link.xml during debug builds. [RIDER-114406](https://youtrack.jetbrains.com/issue/RIDER-114406/Add-Active-scene-this.gameobject-to-the-debug-nodes-for-the-Unity-IL2cpp-builds)
