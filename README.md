@@ -14,5 +14,3 @@ The `4.0.x` stream has only the pack job and the rest of the release process has
 - Creating a `3.0.x` branch targeting `next/master-3.0` with PR comments equal to what we want to have the CHANGELOG
 - As soon as this branch lands the `Prepare Release` job will be triggered result in updating the CHANGELOG, the package version and creating a `publish-release` branch targeting `master-3.0`
 - This branch triggers `Prepare Promotion` jobs with results in creating new release PRs for all LTS versions 
-
- 
