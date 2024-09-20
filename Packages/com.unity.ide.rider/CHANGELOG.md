@@ -1,5 +1,9 @@
 # Code Editor Package for Rider
 
+## [4.0.1] - 2024-09-20
+
+ - ignored tests not compatible for Unity CorCLR
+
 ## [4.0.0] - 2024-03-08
 
  - support for Unity CorCLR

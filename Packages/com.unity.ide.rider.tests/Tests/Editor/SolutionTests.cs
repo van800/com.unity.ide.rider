@@ -127,6 +127,11 @@ namespace Packages.Rider.Editor.Tests
             [Test, TestCaseSource(nameof(s_ExtensionsRequireReSync))]
             public void AfterSync_WillResync_WhenAffectedFileTypes(string fileExtension)
             {
+                if (fileExtension == "cginc")
+                {
+                    Assert.Ignore("Ignoring test for extension 'cginc' case https://jira.unity3d.com/browse/UUM-82617");
+                }
+
                 var synchronizer = m_Builder.Build();
 
                 Assert.True(synchronizer.SyncIfNeeded(new[] { $"reimport.{fileExtension}" }, new string[0]), "Before sync has been called, we should allow SyncIfNeeded");

@@ -332,6 +332,7 @@ namespace Packages.Rider.Editor.Tests
             }
 
             [Test]
+            [Ignore("https://jira.unity3d.com/browse/UUM-82617")]
             public void NonCSharpFiles_AddedToNonCompileItems()
             {
                 var nonCompileItems = new[]
@@ -488,6 +489,11 @@ namespace Packages.Rider.Editor.Tests
             [Test, TestCaseSource(nameof(s_BuiltinSupportedExtensionsForAssets))]
             public void BuiltinSupportedExtensions_InsideAssetFolder_WillBeAddedToNonCompileItems(string fileExtension)
             {
+                if (fileExtension == "cginc")
+                {
+                    Assert.Ignore("Ignoring test for extension 'cginc' case https://jira.unity3d.com/browse/UUM-82617");
+                }
+
                 var nonCompileItem = new[] { $"anotherFile.{fileExtension}" };
                 var synchronizer = m_Builder
                     .WithAssetFiles(files: nonCompileItem)
