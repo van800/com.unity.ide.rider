@@ -140,46 +140,6 @@ run_feature_test_project_{{ platform.name }}_{{ editor.version }}:
   {% endfor %}
 
 
-# CI pipeline
-
-prepare_release:
-  name: Prepare release
-  triggers:
-    branches:
-      only:
-        - next/master-3.0
-  agent:
-    type: Unity::VM
-    image: package-ci/ubuntu-22.04:v4
-    flavor: b1.large
-  commands:
-    - git clone git@github.cds.internal.unity3d.com:nicklas/Nicklas-CI.git /tmp/Nicklas-CI
-    - python3 /tmp/Nicklas-CI/prepare_release.py
-    - git push origin HEAD:refs/heads/publish-release -f
-
-
-publish_release:
-  name: Publish release
-  triggers:
-    branches:
-      only:
-        - publish-release
-  dependencies:
-    - .yamato/CI.yml#pack
-{% for editor in editors %}
-    - .yamato/CI.yml#run_vetting_test_project_{{ editor.version }}
-{% endfor %}
-  agent:
-    type: Unity::VM
-    image: package-ci/win10:stable
-    flavor: b1.large
-  variables:
-    UPMCI_ENABLE_PACKAGE_SIGNING: 1
-  commands:
-    - npm install upm-ci-utils@latest -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-    - upm-ci project publish
-    - git push origin HEAD:refs/heads/master-3.0 -f
-
 
 prepare_promotion:
   name: Prepare promotion
