@@ -1,4 +1,3 @@
-
 publish_release:
   name: Publish release
   triggers:
@@ -19,14 +18,10 @@ publish_release:
   commands:
     - npm install upm-ci-utils@latest -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
     - upm-ci package publish --package-path Packages/com.unity.ide.rider
-    - git push origin HEAD:refs/heads/master-3.0 -f # should we create a PR and merge ourselves?
+    - git push origin HEAD:refs/heads/master-3.0 -f 
 
-validate_release:
+manual_release_validation:
   name: Validate package for release
-  triggers:
-    branches:
-      only:
-        - next/master-3.0
   agent:
     type: Unity::VM
     image: package-ci/ubuntu-22.04:v4
@@ -35,4 +30,4 @@ validate_release:
     - dotnet run ../ReleaseTools/PrepareRelease.csproj %VERSION%
     - git push origin HEAD:refs/heads/publish-release -f
   variables:
-    VERSION: ""
+    VERSION: "*"
