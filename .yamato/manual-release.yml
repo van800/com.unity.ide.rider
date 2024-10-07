@@ -1,0 +1,89 @@
+editors:
+  - version: 2019.2
+  - version: 2019.4
+  - version: 2020.3
+  - version: 2021.3
+  - version: 2022.3
+  - version: 2023.2
+  - version: trunk
+platforms:
+  - name: win
+    type: Unity::VM
+    image: package-ci/win10:stable
+    flavor: b1.large
+    envsetup: echo
+  - name: mac
+    type: Unity::VM::osx
+    image: package-ci/macos-13:v4.29.0
+    flavor: m1.mac
+    envsetup: echo
+  - name: linux
+    type: Unity::VM
+    image: package-ci/ubuntu-22.04:v4
+    flavor: b1.large
+    envsetup: npm config set prefix '~/npm-global'
+
+---
+
+publish_release:
+  name: Publish release
+  dependencies:
+    - .yamato/manual-release.yml#manual_release_validation
+    - .yamato/CI.yml#pack
+    {% for editor in editors %}
+    - .yamato/CI.yml#run_vetting_test_project_{{ editor.version }}
+    {% endfor %}
+  agent:
+    type: Unity::VM
+    image: package-ci/win10:stable
+    flavor: b1.large
+  variables:
+    UPMCI_ENABLE_PACKAGE_SIGNING: 1
+  commands:
+    - npm install upm-ci-utils@latest -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+    - upm-ci package publish --package-path Packages/com.unity.ide.rider
+    - git push origin HEAD:refs/heads/master-3.0 -f 
+
+manual_release_validation:
+  name: Validate package for release
+  agent:
+    type: Unity::VM
+    image: package-ci/ubuntu-22.04:v4
+    flavor: b1.large
+  commands:
+    - dotnet run ../ReleaseTools/PrepareRelease.csproj %VERSION%
+  variables:
+    VERSION: "*"
+
+# TODO: create a new tool and update instead of using Nicklas-CI tool
+prepare_promotion:
+  name: Prepare promotion
+  dependencies:
+    - .yamato/CI.yml#pack
+  agent:
+    type: Unity::VM
+    image: dotnet-qa/win10-dotnet-6:latest
+    flavor: b1.large
+  commands:
+    - if NOT "%GIT_BRANCH%" == "master-3.0" echo %GIT_BRANCH% && exit 1
+    - git clone git@github.cds.internal.unity3d.com:nicklas/Nicklas-CI.git C:\buildslave\Nicklas-CI
+    - py -3 C:\buildslave\Nicklas-CI\prepare_promotion.py C:\buildslave\unity\build upm-ci~/packages/packages.json
+
+# TODO: create a new tool and update instead of using Nicklas-CI tool
+create_pull_request:
+  name: Create Git Pull Request
+  triggers:
+    branches:
+      only:
+       - master-3.0
+  dependencies:
+    - .yamato/CI.yml#prepare_promotion
+    - .yamato/CI.yml#pack
+  agent:
+    type: Unity::VM
+    image: package-ci/ubuntu-22.04:v4
+    flavor: b1.large
+  commands:
+    - git clone git@github.cds.internal.unity3d.com:nicklas/Nicklas-CI.git /tmp/Nicklas-CI
+    - python3 /tmp/Nicklas-CI/create_pullrequest.py simon.ferquel upm-ci~/packages/packages.json
+    - python3 /tmp/Nicklas-CI/start_katana.py "Simon Ferquel <simon.ferquel@unity3d.com>" upm-ci~/packages/packages.json
