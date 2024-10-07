@@ -36,7 +36,7 @@ namespace ReleaseTools
         private static void CompareVersionInPackageJson()
         {
             string[] jsonPaths =
-                ["../Packages/com.unity.ide.rider/package.json", "../Packages/com.unity.ide.rider.tests/package.json"];
+                ["Packages/com.unity.ide.rider/package.json", "Packages/com.unity.ide.rider.tests/package.json"];
             foreach (var jsonPath in jsonPaths)
             {
                 var jsonPackageFile = File.ReadAllText(jsonPath);
@@ -58,7 +58,7 @@ namespace ReleaseTools
 
         private static void CheckIfChangelogIsCorrect()
         {
-            const string changeLogPath = "../Packages/com.unity.ide.rider/CHANGELOG.md";
+            const string changeLogPath = "Packages/com.unity.ide.rider/CHANGELOG.md";
             var pattern = $@"^## \[{Regex.Escape(_releaseVersion)}\] -";
 
             if (IsNullOrEmpty(changeLogPath))
