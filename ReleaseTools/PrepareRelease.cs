@@ -27,6 +27,7 @@ namespace ReleaseTools
         {
             const string validateVersionPattern = @"^\d+\.\d+\.\d+$";
 
+            Console.WriteLine($"Release version: {_releaseVersion}");
             if (!Regex.IsMatch(_releaseVersion, validateVersionPattern))
             {
                 throw new Exception($"Version {validateVersionPattern} is in the wrong format");
