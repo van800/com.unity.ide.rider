@@ -25,35 +25,26 @@ platforms:
 
 ---
 
-publish_release:
-  name: Publish release
+manual_release:
+  name: Manual internal release
   dependencies:
-    - .yamato/manual-release.yml#manual_release_validation
     - .yamato/CI.yml#pack
     {% for editor in editors %}
     - .yamato/CI.yml#run_vetting_test_project_{{ editor.version }}
     {% endfor %}
   agent:
     type: Unity::VM
-    image: package-ci/win10:stable
-    flavor: b1.large
-  variables:
-    UPMCI_ENABLE_PACKAGE_SIGNING: 1
-  commands:
-    - npm install upm-ci-utils@latest -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-    - upm-ci package publish --package-path Packages/com.unity.ide.rider
-    - git push origin HEAD:refs/heads/master-3.0 -f 
-
-manual_release_validation:
-  name: Validate package for release
-  agent:
-    type: Unity::VM
     image: package-ci/ubuntu-22.04:v4
     flavor: b1.large
   commands:
-    - dotnet run --project ReleaseTools/ReleaseTools.csproj %VERSION%
+    - dotnet run --project ReleaseTools/ReleaseTools.csproj $VERSION
+    - npm install upm-ci-utils@latest -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+    - upm-ci package publish --package-path Packages/com.unity.ide.rider
+    - git push origin HEAD:refs/heads/master-3.0 -f 
   variables:
     VERSION: "*"
+    UPMCI_ENABLE_PACKAGE_SIGNING: 1
+
 
 # TODO: create a new tool and update instead of using Nicklas-CI tool
 prepare_promotion:

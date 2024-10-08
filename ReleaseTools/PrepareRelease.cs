@@ -27,6 +27,7 @@ namespace ReleaseTools
         {
             const string validateVersionPattern = @"^\d+\.\d+\.\d+$";
 
+            Console.WriteLine($"Release version: {_releaseVersion}");
             if (!Regex.IsMatch(_releaseVersion, validateVersionPattern))
             {
                 throw new Exception($"Version {validateVersionPattern} is in the wrong format");
@@ -36,7 +37,7 @@ namespace ReleaseTools
         private static void CompareVersionInPackageJson()
         {
             string[] jsonPaths =
-                ["../Packages/com.unity.ide.rider/package.json", "../Packages/com.unity.ide.rider.tests/package.json"];
+                ["Packages/com.unity.ide.rider/package.json", "Packages/com.unity.ide.rider.tests/package.json"];
             foreach (var jsonPath in jsonPaths)
             {
                 var jsonPackageFile = File.ReadAllText(jsonPath);
@@ -58,7 +59,7 @@ namespace ReleaseTools
 
         private static void CheckIfChangelogIsCorrect()
         {
-            const string changeLogPath = "../Packages/com.unity.ide.rider/CHANGELOG.md";
+            const string changeLogPath = "Packages/com.unity.ide.rider/CHANGELOG.md";
             var pattern = $@"^## \[{Regex.Escape(_releaseVersion)}\] -";
 
             if (IsNullOrEmpty(changeLogPath))
