@@ -51,7 +51,7 @@ manual_release_validation:
     image: package-ci/ubuntu-22.04:v4
     flavor: b1.large
   commands:
-    - dotnet run --project ReleaseTools/ReleaseTools.csproj %VERSION%
+    - dotnet run --project ReleaseTools/ReleaseTools.csproj $VERSION
   variables:
     VERSION: "*"
 
