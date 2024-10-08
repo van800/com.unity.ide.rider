@@ -34,10 +34,10 @@ manual_release:
     {% endfor %}
   agent:
     type: Unity::VM
-    image: package-ci/win10:stable
+    image: package-ci/ubuntu-22.04:v4
     flavor: b1.large
   commands:
-    - dotnet run --project ReleaseTools/ReleaseTools.csproj %VERSION%
+    - dotnet run --project ReleaseTools/ReleaseTools.csproj $VERSION
     - npm install upm-ci-utils@latest -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
     - upm-ci package publish --package-path Packages/com.unity.ide.rider
     - git push origin HEAD:refs/heads/master-3.0 -f 
