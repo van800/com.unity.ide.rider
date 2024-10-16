@@ -1,5 +1,6 @@
 # Code Editor Package for Rider
 ## [3.0.34] - 2024-10-16
+
 - Bump Unity minimum supported version
 
 ## [3.0.33] - 2024-08-30
