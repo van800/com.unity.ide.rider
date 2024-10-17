@@ -10,7 +10,7 @@ editors:
 platforms:
   - name: win
     type: Unity::VM
-    image: package-ci/win10:stable
+    image: package-ci/win10:v4
     flavor: b1.large
     envsetup: echo
   - name: mac
