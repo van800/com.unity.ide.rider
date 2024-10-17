@@ -25,37 +25,37 @@ publish_dry_run_ide_rider:
       browsable: onNonSuccess
   dependencies:
   - path: .yamato/wrench/package-pack-jobs.yml#package_pack_-_ide_rider
-  - path: .yamato/wrench/validation-jobs.yml#validate_-_ide_rider_-_2019_2_-_macos
+  - path: .yamato/wrench/validation-jobs.yml#validate_-_ide_rider_-_2019_4_-_macos
     specific_options:
       UTR:
-        location: results/UTR/validate-ide.rider-2019.2-macos
+        location: results/UTR/validate-ide.rider-2019.4-macos
         unzip: true
       pvp-results:
-        location: results/pvp/validate-ide.rider-2019.2-macos
+        location: results/pvp/validate-ide.rider-2019.4-macos
         unzip: true
-  - path: .yamato/wrench/validation-jobs.yml#validate_-_ide_rider_-_2019_2_-_ubuntu
+  - path: .yamato/wrench/validation-jobs.yml#validate_-_ide_rider_-_2019_4_-_ubuntu
     specific_options:
       UTR:
-        location: results/UTR/validate-ide.rider-2019.2-ubuntu
+        location: results/UTR/validate-ide.rider-2019.4-ubuntu
         unzip: true
       pvp-results:
-        location: results/pvp/validate-ide.rider-2019.2-ubuntu
+        location: results/pvp/validate-ide.rider-2019.4-ubuntu
         unzip: true
-  - path: .yamato/wrench/validation-jobs.yml#validate_-_ide_rider_-_2019_2_-_windows
+  - path: .yamato/wrench/validation-jobs.yml#validate_-_ide_rider_-_2019_4_-_windows
     specific_options:
       UTR:
-        location: results/UTR/validate-ide.rider-2019.2-windows
+        location: results/UTR/validate-ide.rider-2019.4-windows
         unzip: true
       pvp-results:
-        location: results/pvp/validate-ide.rider-2019.2-windows
+        location: results/pvp/validate-ide.rider-2019.4-windows
         unzip: true
-  - path: .yamato/wrench/validation-jobs.yml#validate_-_ide_rider_-_2019_2_6f1_-_windows
+  - path: .yamato/wrench/validation-jobs.yml#validate_-_ide_rider_-_2019_4_6f1_-_windows
     specific_options:
       UTR:
-        location: results/UTR/validate-ide.rider-2019.2.6f1-windows
+        location: results/UTR/validate-ide.rider-2019.4.6f1-windows
         unzip: true
       pvp-results:
-        location: results/pvp/validate-ide.rider-2019.2.6f1-windows
+        location: results/pvp/validate-ide.rider-2019.4.6f1-windows
         unzip: true
   - path: .yamato/wrench/validation-jobs.yml#validate_-_ide_rider_-_2021_3_-_macos
     specific_options:
@@ -163,37 +163,37 @@ publish_ide_rider:
       browsable: onNonSuccess
   dependencies:
   - path: .yamato/wrench/package-pack-jobs.yml#package_pack_-_ide_rider
-  - path: .yamato/wrench/validation-jobs.yml#validate_-_ide_rider_-_2019_2_-_macos
+  - path: .yamato/wrench/validation-jobs.yml#validate_-_ide_rider_-_2019_4_-_macos
     specific_options:
       UTR:
-        location: results/UTR/validate-ide.rider-2019.2-macos
+        location: results/UTR/validate-ide.rider-2019.4-macos
         unzip: true
       pvp-results:
-        location: results/pvp/validate-ide.rider-2019.2-macos
+        location: results/pvp/validate-ide.rider-2019.4-macos
         unzip: true
-  - path: .yamato/wrench/validation-jobs.yml#validate_-_ide_rider_-_2019_2_-_ubuntu
+  - path: .yamato/wrench/validation-jobs.yml#validate_-_ide_rider_-_2019_4_-_ubuntu
     specific_options:
       UTR:
-        location: results/UTR/validate-ide.rider-2019.2-ubuntu
+        location: results/UTR/validate-ide.rider-2019.4-ubuntu
         unzip: true
       pvp-results:
-        location: results/pvp/validate-ide.rider-2019.2-ubuntu
+        location: results/pvp/validate-ide.rider-2019.4-ubuntu
         unzip: true
-  - path: .yamato/wrench/validation-jobs.yml#validate_-_ide_rider_-_2019_2_-_windows
+  - path: .yamato/wrench/validation-jobs.yml#validate_-_ide_rider_-_2019_4_-_windows
     specific_options:
       UTR:
-        location: results/UTR/validate-ide.rider-2019.2-windows
+        location: results/UTR/validate-ide.rider-2019.4-windows
         unzip: true
       pvp-results:
-        location: results/pvp/validate-ide.rider-2019.2-windows
+        location: results/pvp/validate-ide.rider-2019.4-windows
         unzip: true
-  - path: .yamato/wrench/validation-jobs.yml#validate_-_ide_rider_-_2019_2_6f1_-_windows
+  - path: .yamato/wrench/validation-jobs.yml#validate_-_ide_rider_-_2019_4_6f1_-_windows
     specific_options:
       UTR:
-        location: results/UTR/validate-ide.rider-2019.2.6f1-windows
+        location: results/UTR/validate-ide.rider-2019.4.6f1-windows
         unzip: true
       pvp-results:
-        location: results/pvp/validate-ide.rider-2019.2.6f1-windows
+        location: results/pvp/validate-ide.rider-2019.4.6f1-windows
         unzip: true
   - path: .yamato/wrench/validation-jobs.yml#validate_-_ide_rider_-_2021_3_-_macos
     specific_options:

@@ -1,7 +1,6 @@
 codeeditor: rider
 
 editors:
-  - version: 2019.2
   - version: 2019.4
   - version: 2020.3
   - version: 2021.3
@@ -11,7 +10,7 @@ editors:
 platforms:
   - name: win
     type: Unity::VM
-    image: package-ci/win10:stable
+    image: package-ci/win10:v4
     flavor: b1.large
     envsetup: echo
   - name: mac
