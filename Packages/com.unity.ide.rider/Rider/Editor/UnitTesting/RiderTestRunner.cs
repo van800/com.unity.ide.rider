@@ -53,12 +53,12 @@ namespace Packages.Rider.Editor.UnitTesting
     /// <summary>
     /// Is called by Rider Unity plugin via reflections
     /// </summary>
-    /// <param name="testMode"></param>
-    /// <param name="assemblyNames"></param>
-    /// <param name="testNames"></param>
-    /// <param name="categoryNames"></param>
-    /// <param name="groupNames"></param>
-    /// <param name="buildTarget"></param>
+    /// <param name="testMode">The mode in which the tests are run (e.g., normal, debug).</param>
+    /// <param name="assemblyNames">An array of assembly names containing the tests to execute.</param>
+    /// <param name="testNames">An array of specific test names to be executed.</param>
+    /// <param name="categoryNames">An array of category names to filter the tests.</param>
+    /// <param name="groupNames">An array of group names for organizing the tests.</param>
+    /// <param name="buildTarget">The build target for which the tests are executed (nullable).</param>
     [UsedImplicitly]
     public static void RunTests(int testMode, string[] assemblyNames, string[] testNames, string[] categoryNames, string[] groupNames, int? buildTarget)
     {
