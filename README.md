@@ -10,6 +10,13 @@ This project welcomes contributions and suggestions. Please have a look at our [
 
 # Release workflow 
 We have 2 release streams, one for `4.0.x` targeting U7, and we have `3.0.x` for LTS versions
-The `4.0.x` stream has only the pack job and the rest of the release process has to be done manually by copying in the source code. The `3.0.x` stayed the same, meaning:
+The `4.0.x` stream has only the pack job and the rest of the release process has to be done manually by copying in the source code of U7. 
+
+The `3.0.x` stayed the same, meaning:
 - Creating a feature branch targeting `next/master-3.0` 
-- Once the work has laneded in `next/master-3.0`, we should create a `release/x.y.z` with the new release version, the `package.json` and the changelog needs to be updated manually before the release can be kicked off.
+- Once the work has laneded in `next/master-3.0`, we will create a `release/x.y.z` with the new release version, the `package.json` and the changelog needs to be updated manually before the release can be kicked off.
+- Create a new release stream in [PackageWorks](https://package-works.prd.cds.internal.unity3d.com/project?id=4779)
+- Once the `release/x.y.z` is created the CI will trigger automatically to publish the new version in the internal artifactory. 
+- Go to PackageWorks and trigger the promotio, this will create the branches to update the editor manifest in the different supported LTSs
+- Once the PRs have landed we need to manually update the local-test-references and create a promotion PR in the [RM-PackagePromotion](https://github.cds.internal.unity3d.com/unity/rm-package-promotion)
+- Once the package is promoted we can merge `next/master-3.0` into `master-3.0` 
