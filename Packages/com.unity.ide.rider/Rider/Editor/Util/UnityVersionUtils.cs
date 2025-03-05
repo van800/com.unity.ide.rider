@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Packages.Rider.Editor.Util
 {
-  public class UnityVersionUtils
+  internal class UnityVersionUtils
   {
     private static string UnityApplicationVersion => Application.unityVersion;
 
