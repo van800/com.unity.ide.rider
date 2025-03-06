@@ -1,30 +1,39 @@
 {
-  "project_path": "Tools/CI/Wrench-Template",
-  "schema_version": 0.5,
+  "schema_version": 0.7,
   "packages": {
     "com.unity.ide.rider": {
       "directory": "Packages/com.unity.ide.rider/",
       "prePackCommands": [],
-      "preTestCommands": {},
+      "preTestCommands": {
+        "MacOS": [],
+        "Ubuntu": [],
+        "Windows": []
+      },
       "InternalOnly": false,
       "NeverPublish": false,
       "MaxEditorVersion": "",
       "coverageEnabled": false,
       "coverageCommands": [
         "generateAdditionalMetrics;generateHtmlReport;assemblyFilters:ASSEMBLY_NAME;pathReplacePatterns:@*,,**/PackageCache/,;sourcePaths:YAMATO_SOURCE_DIR/Packages;"
-      ]
+      ],
+      "dependantsToIgnoreInPreviewApv": {}
     },
     "com.unity.ide.rider.tests": {
       "directory": "Packages/com.unity.ide.rider.tests/",
       "prePackCommands": [],
-      "preTestCommands": {},
+      "preTestCommands": {
+        "MacOS": [],
+        "Ubuntu": [],
+        "Windows": []
+      },
       "InternalOnly": false,
       "NeverPublish": false,
       "MaxEditorVersion": "",
       "coverageEnabled": false,
       "coverageCommands": [
         "generateAdditionalMetrics;generateHtmlReport;assemblyFilters:ASSEMBLY_NAME;pathReplacePatterns:@*,,**/PackageCache/,;sourcePaths:YAMATO_SOURCE_DIR/Packages;"
-      ]
+      ],
+      "dependantsToIgnoreInPreviewApv": {}
     }
   },
   "releasing_packages": [
@@ -39,6 +48,7 @@
   },
   "publishing_job": ".yamato/wrench/promotion-jobs.yml#publish_ide_rider",
   "branch_pattern": "ReleaseSlash",
-  "wrench_version": "0.10.14.0",
-  "pvp_exemption_path": ".yamato/wrench/pvp-exemptions.json"
+  "wrench_version": "0.10.43.0",
+  "pvp_exemption_path": ".yamato/wrench/pvp-exemptions.json",
+  "cs_project_path": "Tools/CI/Wrench-Template/Rider.Cookbook.csproj"
 }
