@@ -18,6 +18,16 @@ public class RiderSettings : AnnotatedSettingsBase
         }
     };
 
+    // You can either use a platform.json file or specify custom yamato VM images for each package in code.
+    private readonly Dictionary<SystemType, Platform> ImageOverrides = new()
+    {
+        {
+            SystemType.Ubuntu,
+            new Platform(new Agent("package-ci/ubuntu-20.04:default", FlavorType.BuildLarge, ResourceType.Vm),
+                SystemType.Ubuntu)
+        }
+    };
+
     public RiderSettings()
     {
         Wrench = new WrenchSettings(
