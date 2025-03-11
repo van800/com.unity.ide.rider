@@ -1,6 +1,11 @@
-﻿using RecipeEngine.Api.Settings;
+﻿using RecipeEngine.Api.Artifacts;
+using RecipeEngine.Api.Commands;
+using RecipeEngine.Api.Dependencies;
+using RecipeEngine.Api.Platforms;
+using RecipeEngine.Api.Settings;
 using RecipeEngine.Modules.Wrench.Models;
 using RecipeEngine.Modules.Wrench.Settings;
+using RecipeEngine.Platforms;
 
 namespace Rider.Cookbook.Settings;
 
