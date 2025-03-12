@@ -1,6 +1,11 @@
-﻿using RecipeEngine.Api.Settings;
+﻿using RecipeEngine.Api.Artifacts;
+using RecipeEngine.Api.Commands;
+using RecipeEngine.Api.Dependencies;
+using RecipeEngine.Api.Platforms;
+using RecipeEngine.Api.Settings;
 using RecipeEngine.Modules.Wrench.Models;
 using RecipeEngine.Modules.Wrench.Settings;
+using RecipeEngine.Platforms;
 
 namespace Rider.Cookbook.Settings;
 
@@ -15,6 +20,16 @@ public class RiderSettings : AnnotatedSettingsBase
         {
             "com.unity.ide.rider",
             new PackageOptions() { ReleaseOptions = new ReleaseOptions() { IsReleasing = true } }
+        }
+    };
+
+    // You can either use a platform.json file or specify custom yamato VM images for each package in code.
+    private readonly Dictionary<SystemType, Platform> ImageOverrides = new()
+    {
+        {
+            SystemType.Ubuntu,
+            new Platform(new Agent("package-ci/ubuntu-20.04:default", FlavorType.BuildLarge, ResourceType.Vm),
+                SystemType.Ubuntu)
         }
     };
 
