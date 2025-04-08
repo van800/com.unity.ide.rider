@@ -1,4 +1,8 @@
 # Code Editor Package for Rider
+## [3.0.36] - 2025-04-08
+
+- fix RIDER-124592 Avoid affecting "Strip Engine Code" while IL2CPP debug enabled
+
 ## [3.0.35] - 2025-03-05
 
 - fix RIDER-120306 RootNamespace is not generated for a csproj without cs files
@@ -43,7 +47,7 @@
 - unification of functionality to  search JetBrains installations and open solution and file in Rider
 
 
-## [3.0.22] - 2023-05-02
+## [3.0.22] - 2023-05-2
 
 - RIDER-82999 Unity's plugin SyncAll does not regenerate project files, and instead does basically nothing.
 - #2401 Compilation issue with Unity 2021.3.0f1
