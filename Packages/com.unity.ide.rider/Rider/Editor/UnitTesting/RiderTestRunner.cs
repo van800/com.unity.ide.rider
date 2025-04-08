@@ -26,16 +26,36 @@ namespace Packages.Rider.Editor.UnitTesting
     /// <summary>
     /// Is called by Rider Unity plugin via reflections
     /// </summary>
-    /// <param name="sessionId"></param>
-    /// <param name="testMode"></param>
-    /// <param name="assemblyNames"></param>
-    /// <param name="testNames"></param>
-    /// <param name="categoryNames"></param>
-    /// <param name="groupNames"></param>
-    /// <param name="buildTarget"></param>
-    /// <param name="callbacksHandlerCodeBase"></param>
-    /// <param name="callbacksHandlerTypeName"></param>
-    /// <param name="callbacksHandlerDependencies"></param>
+    /// <param name="sessionId">
+    /// Session ID of the Test Run
+    /// </param>
+    /// <param name="testMode">
+    /// Test mode to use
+    /// </param>
+    /// <param name="assemblyNames">
+    /// Names of assemblies containing the tests
+    /// </param>
+    /// <param name="testNames">
+    /// Name of the tests to be run
+    /// </param>
+    /// <param name="categoryNames">
+    /// Categories used for the test run
+    /// </param>
+    /// <param name="groupNames">
+    /// Groups used for the test run
+    /// </param>
+    /// <param name="buildTarget">
+    /// Targeted build platform
+    /// </param>
+    /// <param name="callbacksHandlerCodeBase">
+    /// Callbacks handler code to use
+    /// </param>
+    /// <param name="callbacksHandlerTypeName">
+    /// Callbacks handler type name
+    /// </param>
+    /// <param name="callbacksHandlerDependencies">
+    /// Dependecies of the callbacks handler
+    /// </param>
     [UsedImplicitly]
     public static void RunTestsWithSyncCallbacks(string sessionId, int testMode, string[] assemblyNames, 
       string[] testNames, string[] categoryNames, string[] groupNames, int? buildTarget,  
@@ -53,12 +73,24 @@ namespace Packages.Rider.Editor.UnitTesting
     /// <summary>
     /// Is called by Rider Unity plugin via reflections
     /// </summary>
-    /// <param name="testMode"></param>
-    /// <param name="assemblyNames"></param>
-    /// <param name="testNames"></param>
-    /// <param name="categoryNames"></param>
-    /// <param name="groupNames"></param>
-    /// <param name="buildTarget"></param>
+    /// <param name="testMode">
+    /// Test mode to use
+    /// </param>
+    /// <param name="assemblyNames">
+    /// Names of assemblies containing the tests
+    ///  </param>
+    /// <param name="testNames">
+    /// Name of the tests to be run
+    /// </param>
+    /// <param name="categoryNames">
+    /// Categories used for the test run
+    /// </param>
+    /// <param name="groupNames">
+    /// Groups used for the test run
+    /// </param>
+    /// <param name="buildTarget">
+    /// Targeted build platform
+    /// </param>
     [UsedImplicitly]
     public static void RunTests(int testMode, string[] assemblyNames, string[] testNames, string[] categoryNames, string[] groupNames, int? buildTarget)
     {

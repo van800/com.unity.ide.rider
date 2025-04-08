@@ -1,3 +1,5 @@
+JetBrains Rider Editor copyright © 2025 Unity Technologies
+
 MIT License
 
 Copyright (c) 2019 Unity Technologies Copyright (c) 2019 JetBrains s.r.o. All rights reserved.
