@@ -1,6 +1,11 @@
 # Code Editor Package for Rider
 
+## [4.0.3] - 2025-04-10
+
+- Minor fixes
+
 ## [4.0.1] - 2024-09-07
+
 - Ingore failing tests, not compatible with CoreCLR (SCP-1302)
 
 ## [4.0.0] - 2024-03-08
