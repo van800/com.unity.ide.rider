@@ -132,8 +132,36 @@ namespace Packages.Rider.Editor
 #endif
       SettingsButton(ProjectGenerationFlag.Unknown, "Packages from unknown sources", "");
       SettingsButton(ProjectGenerationFlag.PlayerAssemblies, "Player projects", "For each player project generate an additional csproj with the name 'project-player.csproj'");
-      RegenerateProjectFiles();
+      
       EditorGUI.indentLevel--;
+      
+      EditorGUILayout.Space(10);
+      EditorGUILayout.LabelField("Project Output", EditorStyles.boldLabel);
+      EditorGUI.indentLevel++;
+
+      PluginSettings.ExperimentalFeaturesEnabled = EditorGUILayout.Toggle(
+        new GUIContent(
+          "Experimental features",
+          "Enable experimental features that may not be fully stable."),
+        PluginSettings.ExperimentalFeaturesEnabled);
+
+      if (PluginSettings.ExperimentalFeaturesEnabled)
+      {
+        EditorGUI.indentLevel++;
+
+        PluginSettings.UseUnityOutputPath = EditorGUILayout.Toggle(
+          new GUIContent(
+            "Real OutputPath (ScriptAssemblies)",
+            "Set OutputPath of generated .csproj files to 'Library/ScriptAssemblies'.\n" +
+            "Fixes Rider IL Viewer, but may affect other Rider/Unity features.\n"+
+            "Doesn't apply to Player projects."),
+          PluginSettings.UseUnityOutputPath);
+
+        EditorGUI.indentLevel--;
+      }
+
+      EditorGUI.indentLevel--;
+      RegenerateProjectFiles();
     }
 
     private void RegenerateProjectFiles()

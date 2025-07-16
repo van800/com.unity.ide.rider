@@ -74,7 +74,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
         // TODO: It might be worth using the app's copy of Assembly and updating output path when we need it
         // But that requires tracking editor and player assemblies separately
         var outputPath = type == AssembliesType.Editor
-          ? $@"Temp\Bin\Debug\{compilationPipelineAssembly.name}\"
+          ? GetEditorOutputPath(compilationPipelineAssembly)
           : $@"Temp\Bin\Debug\{compilationPipelineAssembly.name}\Player\";
         assemblies[i] = new Assembly(
           compilationPipelineAssembly.name,
@@ -93,6 +93,13 @@ namespace Packages.Rider.Editor.ProjectGeneration
       }
 
       return assemblies;
+    }
+
+    private static string GetEditorOutputPath(Assembly compilationPipelineAssembly)
+    {
+      return PluginSettings.UseUnityOutputPath
+        ? @"Library\ScriptAssemblies\"
+        : $@"Temp\Bin\Debug\{compilationPipelineAssembly.name}\";
     }
 
     public Assembly GetNamedAssembly(string name)

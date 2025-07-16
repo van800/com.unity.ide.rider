@@ -16,6 +16,18 @@ namespace Packages.Rider.Editor
       get => EditorPrefs.GetBool("Rider_LogEventsCollectorEnabled", true);
       private set => EditorPrefs.SetBool("Rider_LogEventsCollectorEnabled", value);
     }
+    
+    public static bool ExperimentalFeaturesEnabled
+    {
+      get => EditorPrefs.GetBool("Rider_ExperimentalFeaturesEnabled", false);
+      set => EditorPrefs.SetBool("Rider_ExperimentalFeaturesEnabled", value);
+    }
+
+    public static bool UseUnityOutputPath
+    {
+      get => ExperimentalFeaturesEnabled && EditorPrefs.GetBool("Rider_UseUnityScriptAssembliesOutputPath", false);
+      set => EditorPrefs.SetBool("Rider_UseUnityScriptAssembliesOutputPath", value);
+    }
 
     /// <summary>
     /// Preferences menu layout
