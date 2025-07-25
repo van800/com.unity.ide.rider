@@ -128,19 +128,19 @@ namespace Packages.Rider.Editor.ProjectGeneration
       var extension = Path.GetExtension(asset);
       return extension == ".asmdef" || extension == ".asmref" || Path.GetFileName(asset) == "csc.rsp";
     }
-    
+
     private bool IsAdditionalFile(string[] assets)
     {
-#if UNITY_2020_2_OR_NEWER
+#if UNITY_2022_2_OR_NEWER
       if (!assets.Any()) return false;
       foreach (var assembly in m_AssemblyNameProvider.GetAllAssemblies())
       {
-        if (assembly.compilerOptions.AdditionalCompilerArguments == null) continue;
-        if (assembly.compilerOptions.AdditionalCompilerArguments.Any(assets.Contains))
+        if (assembly.compilerOptions.RoslynAdditionalFilePaths != null &&
+            assembly.compilerOptions.RoslynAdditionalFilePaths.Any(assets.Contains))
           return true;
       }
       return false;
-#else 
+#else
       return false;
 #endif
     }
