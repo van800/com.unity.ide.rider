@@ -13,14 +13,13 @@ package_pack_-_ide_rider:
     timeout: 20
     retries: 10
   - command: upm-ci package pack --package-path Packages/com.unity.ide.rider.tests
-  - command: cp upm-ci~/packages/packages.json upm-ci~/packages/com.unity.ide.rider.tests_packages.json
-  - command: rm upm-ci~/packages/packages.json
+  - command: mv upm-ci~/packages/packages.json upm-ci~/packages/com.unity.ide.rider.tests_packages.json
   - command: mkdir -p upm-ci~/temp/packages
   - command: mv upm-ci~/packages/* upm-ci~/temp/packages
   - command: upm-ci package pack --package-path Packages/com.unity.ide.rider
   - command: cp upm-ci~/packages/packages.json upm-ci~/packages/com.unity.ide.rider_packages.json
   - command: mv upm-ci~/temp/packages/* upm-ci~/packages
-  - command: curl https://artifactory.prd.it.unity3d.com/artifactory/stevedore-unity-internal/wrench-localapv/1-2-59_594aea2e5eb3a7468ad88458b5c5da2e5e72af0d2267db7b025602fb69e57bd7.zip -o wrench-localapv.zip
+  - command: curl https://artifactory.prd.it.unity3d.com/artifactory/stevedore-unity-internal/wrench-localapv/1-2-68_53c92d3b34ce3f4b652c9785dd1530bdc5885f6523465d6969c3be91f9ccaaf1.zip -o wrench-localapv.zip
   - command: 7z x -aoa wrench-localapv.zip
   - command: pip install semver requests --index-url https://artifactory-slo.bf.unity3d.com/artifactory/api/pypi/pypi/simple
   - command: python PythonScripts/PackageJsonCondersor.py
@@ -34,7 +33,7 @@ package_pack_-_ide_rider:
     UPMCI_ACK_LARGE_PACKAGE: 1
   metadata:
     Job Maintainers: '#rm-packageworks'
-    Wrench: 0.10.44.0
+    Wrench: 0.12.1.0
 
 # Pack JetBrains Rider Editor Tests
 package_pack_-_ide_rider_tests:
@@ -59,5 +58,5 @@ package_pack_-_ide_rider_tests:
     UPMCI_ACK_LARGE_PACKAGE: 1
   metadata:
     Job Maintainers: '#rm-packageworks'
-    Wrench: 0.10.44.0
+    Wrench: 0.12.1.0
 
