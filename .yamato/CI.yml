@@ -15,7 +15,7 @@ platforms:
     envsetup: echo
   - name: mac
     type: Unity::VM::osx
-    image: package-ci/macos-13:v4.29.0
+    image: package-ci/macos-13:v4
     flavor: m1.mac
     envsetup: echo
   - name: linux
@@ -30,7 +30,7 @@ pack:
   name: Pack
   agent:
     type: Unity::VM
-    image: package-ci/win10:stable
+    image: package-ci/win10:v4
     flavor: b1.large
   commands:
     - npm install upm-ci-utils@latest -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm

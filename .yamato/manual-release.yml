@@ -8,12 +8,12 @@ editors:
 platforms:
   - name: win
     type: Unity::VM
-    image: package-ci/win10:stable
+    image: package-ci/win10:v4
     flavor: b1.large
     envsetup: echo
   - name: mac
     type: Unity::VM::osx
-    image: package-ci/macos-13:v4.29.0
+    image: package-ci/macos-13:v4
     flavor: m1.mac
     envsetup: echo
   - name: linux
