@@ -13,7 +13,7 @@ platforms:
     envsetup: echo
   - name: mac
     type: Unity::VM::osx
-    image: package-ci/macos-13:v4.29.0
+    image: package-ci/macos-13:v4.76.0
     flavor: m1.mac
     envsetup: echo
   - name: linux
