@@ -22,24 +22,6 @@ public class RiderSettings : AnnotatedSettingsBase
             new PackageOptions() { ReleaseOptions = new ReleaseOptions() { IsReleasing = true } }
         }
     };
-    
-    private readonly Dictionary<SystemType, Platform> ImageOverrides = new()
-    {
-        {
-            SystemType.Windows,
-            new Platform(new Agent("package-ci/win10:default", FlavorType.BuildLarge, ResourceType.Vm), SystemType.Windows)
-        },
-        {
-            SystemType.MacOS,
-            new Platform(new Agent("package-ci/macos-13:default", FlavorType.BuildExtraLarge, ResourceType.VmOsx),
-                SystemType.MacOS)
-        },
-        {
-            SystemType.Ubuntu,
-            new Platform(new Agent("package-ci/ubuntu-18.04:v4", FlavorType.BuildLarge, ResourceType.Vm),
-                SystemType.Ubuntu)
-        }
-    };
 
     public RiderSettings()
     {
@@ -47,8 +29,6 @@ public class RiderSettings : AnnotatedSettingsBase
             PackagesRootPaths,
             PackageOptions
         );
-
-         Wrench.Packages["com.unity.ide.rider"].EditorPlatforms = ImageOverrides;
     }
 
     public WrenchSettings Wrench { get; private set; }
