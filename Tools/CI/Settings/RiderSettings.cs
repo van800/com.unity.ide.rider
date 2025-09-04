@@ -28,7 +28,7 @@ public class RiderSettings : AnnotatedSettingsBase
         Wrench = new WrenchSettings(
             PackagesRootPaths,
             PackageOptions
-        );      
+        );
     }
 
     public WrenchSettings Wrench { get; private set; }
