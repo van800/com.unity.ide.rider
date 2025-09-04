@@ -33,7 +33,7 @@ package_pack_-_ide_rider:
     UPMCI_ACK_LARGE_PACKAGE: 1
   metadata:
     Job Maintainers: '#rm-packageworks'
-    Wrench: 0.12.1.0
+    Wrench: 0.12.3.0
 
 # Pack JetBrains Rider Editor Tests
 package_pack_-_ide_rider_tests:
@@ -58,5 +58,5 @@ package_pack_-_ide_rider_tests:
     UPMCI_ACK_LARGE_PACKAGE: 1
   metadata:
     Job Maintainers: '#rm-packageworks'
-    Wrench: 0.12.1.0
+    Wrench: 0.12.3.0
 

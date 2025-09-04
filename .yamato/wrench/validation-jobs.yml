@@ -58,10 +58,10 @@ validate_-_ide_rider_-_2021_3_-_macos:
   - path: .yamato/wrench/package-pack-jobs.yml#package_pack_-_ide_rider
   variables:
     UPMPVP_ACK_UPMPVP_DOES_NO_API_VALIDATION: 1
-    UPMPVP_CONTEXT_WRENCH: 0.12.1.0
+    UPMPVP_CONTEXT_WRENCH: 0.12.3.0
   metadata:
     Job Maintainers: '#rm-packageworks'
-    Wrench: 0.12.1.0
+    Wrench: 0.12.3.0
   labels:
   - Packages:ide.rider
 
@@ -122,10 +122,10 @@ validate_-_ide_rider_-_2021_3_-_ubuntu:
   - path: .yamato/wrench/package-pack-jobs.yml#package_pack_-_ide_rider
   variables:
     UPMPVP_ACK_UPMPVP_DOES_NO_API_VALIDATION: 1
-    UPMPVP_CONTEXT_WRENCH: 0.12.1.0
+    UPMPVP_CONTEXT_WRENCH: 0.12.3.0
   metadata:
     Job Maintainers: '#rm-packageworks'
-    Wrench: 0.12.1.0
+    Wrench: 0.12.3.0
   labels:
   - Packages:ide.rider
 
@@ -186,10 +186,10 @@ validate_-_ide_rider_-_2021_3_-_windows:
   - path: .yamato/wrench/package-pack-jobs.yml#package_pack_-_ide_rider
   variables:
     UPMPVP_ACK_UPMPVP_DOES_NO_API_VALIDATION: 1
-    UPMPVP_CONTEXT_WRENCH: 0.12.1.0
+    UPMPVP_CONTEXT_WRENCH: 0.12.3.0
   metadata:
     Job Maintainers: '#rm-packageworks'
-    Wrench: 0.12.1.0
+    Wrench: 0.12.3.0
   labels:
   - Packages:ide.rider
 
@@ -250,10 +250,10 @@ validate_-_ide_rider_-_2022_3_-_macos:
   - path: .yamato/wrench/package-pack-jobs.yml#package_pack_-_ide_rider
   variables:
     UPMPVP_ACK_UPMPVP_DOES_NO_API_VALIDATION: 1
-    UPMPVP_CONTEXT_WRENCH: 0.12.1.0
+    UPMPVP_CONTEXT_WRENCH: 0.12.3.0
   metadata:
     Job Maintainers: '#rm-packageworks'
-    Wrench: 0.12.1.0
+    Wrench: 0.12.3.0
   labels:
   - Packages:ide.rider
 
@@ -314,10 +314,10 @@ validate_-_ide_rider_-_2022_3_-_ubuntu:
   - path: .yamato/wrench/package-pack-jobs.yml#package_pack_-_ide_rider
   variables:
     UPMPVP_ACK_UPMPVP_DOES_NO_API_VALIDATION: 1
-    UPMPVP_CONTEXT_WRENCH: 0.12.1.0
+    UPMPVP_CONTEXT_WRENCH: 0.12.3.0
   metadata:
     Job Maintainers: '#rm-packageworks'
-    Wrench: 0.12.1.0
+    Wrench: 0.12.3.0
   labels:
   - Packages:ide.rider
 
@@ -378,10 +378,10 @@ validate_-_ide_rider_-_2022_3_-_windows:
   - path: .yamato/wrench/package-pack-jobs.yml#package_pack_-_ide_rider
   variables:
     UPMPVP_ACK_UPMPVP_DOES_NO_API_VALIDATION: 1
-    UPMPVP_CONTEXT_WRENCH: 0.12.1.0
+    UPMPVP_CONTEXT_WRENCH: 0.12.3.0
   metadata:
     Job Maintainers: '#rm-packageworks'
-    Wrench: 0.12.1.0
+    Wrench: 0.12.3.0
   labels:
   - Packages:ide.rider
 
@@ -442,10 +442,10 @@ validate_-_ide_rider_-_6000_0_-_macos:
   - path: .yamato/wrench/package-pack-jobs.yml#package_pack_-_ide_rider
   variables:
     UPMPVP_ACK_UPMPVP_DOES_NO_API_VALIDATION: 1
-    UPMPVP_CONTEXT_WRENCH: 0.12.1.0
+    UPMPVP_CONTEXT_WRENCH: 0.12.3.0
   metadata:
     Job Maintainers: '#rm-packageworks'
-    Wrench: 0.12.1.0
+    Wrench: 0.12.3.0
   labels:
   - Packages:ide.rider
 
@@ -453,7 +453,7 @@ validate_-_ide_rider_-_6000_0_-_macos:
 validate_-_ide_rider_-_6000_0_-_ubuntu:
   name: Validate - ide.rider - 6000.0 - ubuntu
   agent:
-    image: package-ci/ubuntu-20.04:default
+    image: package-ci/ubuntu-22.04:v4
     type: Unity::VM
     flavor: b1.large
   commands:
@@ -506,10 +506,10 @@ validate_-_ide_rider_-_6000_0_-_ubuntu:
   - path: .yamato/wrench/package-pack-jobs.yml#package_pack_-_ide_rider
   variables:
     UPMPVP_ACK_UPMPVP_DOES_NO_API_VALIDATION: 1
-    UPMPVP_CONTEXT_WRENCH: 0.12.1.0
+    UPMPVP_CONTEXT_WRENCH: 0.12.3.0
   metadata:
     Job Maintainers: '#rm-packageworks'
-    Wrench: 0.12.1.0
+    Wrench: 0.12.3.0
   labels:
   - Packages:ide.rider
 
@@ -570,10 +570,10 @@ validate_-_ide_rider_-_6000_0_-_windows:
   - path: .yamato/wrench/package-pack-jobs.yml#package_pack_-_ide_rider
   variables:
     UPMPVP_ACK_UPMPVP_DOES_NO_API_VALIDATION: 1
-    UPMPVP_CONTEXT_WRENCH: 0.12.1.0
+    UPMPVP_CONTEXT_WRENCH: 0.12.3.0
   metadata:
     Job Maintainers: '#rm-packageworks'
-    Wrench: 0.12.1.0
+    Wrench: 0.12.3.0
   labels:
   - Packages:ide.rider
 
@@ -634,10 +634,10 @@ validate_-_ide_rider_-_6000_2_-_macos:
   - path: .yamato/wrench/package-pack-jobs.yml#package_pack_-_ide_rider
   variables:
     UPMPVP_ACK_UPMPVP_DOES_NO_API_VALIDATION: 1
-    UPMPVP_CONTEXT_WRENCH: 0.12.1.0
+    UPMPVP_CONTEXT_WRENCH: 0.12.3.0
   metadata:
     Job Maintainers: '#rm-packageworks'
-    Wrench: 0.12.1.0
+    Wrench: 0.12.3.0
   labels:
   - Packages:ide.rider
 
@@ -645,7 +645,7 @@ validate_-_ide_rider_-_6000_2_-_macos:
 validate_-_ide_rider_-_6000_2_-_ubuntu:
   name: Validate - ide.rider - 6000.2 - ubuntu
   agent:
-    image: package-ci/ubuntu-20.04:default
+    image: package-ci/ubuntu-22.04:v4
     type: Unity::VM
     flavor: b1.large
   commands:
@@ -698,10 +698,10 @@ validate_-_ide_rider_-_6000_2_-_ubuntu:
   - path: .yamato/wrench/package-pack-jobs.yml#package_pack_-_ide_rider
   variables:
     UPMPVP_ACK_UPMPVP_DOES_NO_API_VALIDATION: 1
-    UPMPVP_CONTEXT_WRENCH: 0.12.1.0
+    UPMPVP_CONTEXT_WRENCH: 0.12.3.0
   metadata:
     Job Maintainers: '#rm-packageworks'
-    Wrench: 0.12.1.0
+    Wrench: 0.12.3.0
   labels:
   - Packages:ide.rider
 
@@ -762,10 +762,10 @@ validate_-_ide_rider_-_6000_2_-_windows:
   - path: .yamato/wrench/package-pack-jobs.yml#package_pack_-_ide_rider
   variables:
     UPMPVP_ACK_UPMPVP_DOES_NO_API_VALIDATION: 1
-    UPMPVP_CONTEXT_WRENCH: 0.12.1.0
+    UPMPVP_CONTEXT_WRENCH: 0.12.3.0
   metadata:
     Job Maintainers: '#rm-packageworks'
-    Wrench: 0.12.1.0
+    Wrench: 0.12.3.0
   labels:
   - Packages:ide.rider
 
@@ -826,10 +826,10 @@ validate_-_ide_rider_-_6000_3_-_macos:
   - path: .yamato/wrench/package-pack-jobs.yml#package_pack_-_ide_rider
   variables:
     UPMPVP_ACK_UPMPVP_DOES_NO_API_VALIDATION: 1
-    UPMPVP_CONTEXT_WRENCH: 0.12.1.0
+    UPMPVP_CONTEXT_WRENCH: 0.12.3.0
   metadata:
     Job Maintainers: '#rm-packageworks'
-    Wrench: 0.12.1.0
+    Wrench: 0.12.3.0
   labels:
   - Packages:ide.rider
 
@@ -837,7 +837,7 @@ validate_-_ide_rider_-_6000_3_-_macos:
 validate_-_ide_rider_-_6000_3_-_ubuntu:
   name: Validate - ide.rider - 6000.3 - ubuntu
   agent:
-    image: package-ci/ubuntu-20.04:default
+    image: package-ci/ubuntu-22.04:v4
     type: Unity::VM
     flavor: b1.large
   commands:
@@ -890,10 +890,10 @@ validate_-_ide_rider_-_6000_3_-_ubuntu:
   - path: .yamato/wrench/package-pack-jobs.yml#package_pack_-_ide_rider
   variables:
     UPMPVP_ACK_UPMPVP_DOES_NO_API_VALIDATION: 1
-    UPMPVP_CONTEXT_WRENCH: 0.12.1.0
+    UPMPVP_CONTEXT_WRENCH: 0.12.3.0
   metadata:
     Job Maintainers: '#rm-packageworks'
-    Wrench: 0.12.1.0
+    Wrench: 0.12.3.0
   labels:
   - Packages:ide.rider
 
@@ -954,10 +954,10 @@ validate_-_ide_rider_-_6000_3_-_windows:
   - path: .yamato/wrench/package-pack-jobs.yml#package_pack_-_ide_rider
   variables:
     UPMPVP_ACK_UPMPVP_DOES_NO_API_VALIDATION: 1
-    UPMPVP_CONTEXT_WRENCH: 0.12.1.0
+    UPMPVP_CONTEXT_WRENCH: 0.12.3.0
   metadata:
     Job Maintainers: '#rm-packageworks'
-    Wrench: 0.12.1.0
+    Wrench: 0.12.3.0
   labels:
   - Packages:ide.rider
 
@@ -1018,10 +1018,10 @@ validate_-_ide_rider_-_6000_4_-_macos:
   - path: .yamato/wrench/package-pack-jobs.yml#package_pack_-_ide_rider
   variables:
     UPMPVP_ACK_UPMPVP_DOES_NO_API_VALIDATION: 1
-    UPMPVP_CONTEXT_WRENCH: 0.12.1.0
+    UPMPVP_CONTEXT_WRENCH: 0.12.3.0
   metadata:
     Job Maintainers: '#rm-packageworks'
-    Wrench: 0.12.1.0
+    Wrench: 0.12.3.0
   labels:
   - Packages:ide.rider
 
@@ -1029,7 +1029,7 @@ validate_-_ide_rider_-_6000_4_-_macos:
 validate_-_ide_rider_-_6000_4_-_ubuntu:
   name: Validate - ide.rider - 6000.4 - ubuntu
   agent:
-    image: package-ci/ubuntu-20.04:default
+    image: package-ci/ubuntu-22.04:v4
     type: Unity::VM
     flavor: b1.large
   commands:
@@ -1082,10 +1082,10 @@ validate_-_ide_rider_-_6000_4_-_ubuntu:
   - path: .yamato/wrench/package-pack-jobs.yml#package_pack_-_ide_rider
   variables:
     UPMPVP_ACK_UPMPVP_DOES_NO_API_VALIDATION: 1
-    UPMPVP_CONTEXT_WRENCH: 0.12.1.0
+    UPMPVP_CONTEXT_WRENCH: 0.12.3.0
   metadata:
     Job Maintainers: '#rm-packageworks'
-    Wrench: 0.12.1.0
+    Wrench: 0.12.3.0
   labels:
   - Packages:ide.rider
 
@@ -1146,10 +1146,10 @@ validate_-_ide_rider_-_6000_4_-_windows:
   - path: .yamato/wrench/package-pack-jobs.yml#package_pack_-_ide_rider
   variables:
     UPMPVP_ACK_UPMPVP_DOES_NO_API_VALIDATION: 1
-    UPMPVP_CONTEXT_WRENCH: 0.12.1.0
+    UPMPVP_CONTEXT_WRENCH: 0.12.3.0
   metadata:
     Job Maintainers: '#rm-packageworks'
-    Wrench: 0.12.1.0
+    Wrench: 0.12.3.0
   labels:
   - Packages:ide.rider
 
