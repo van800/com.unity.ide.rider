@@ -39,8 +39,7 @@ public class SimpleCSharpScript : MonoBehaviour
         [SetUp]
         public void SetUp()
         {
-            var projectDirectory = Directory.GetParent(Application.dataPath).FullName;
-            m_ProjectGeneration = new ProjectGeneration(projectDirectory);
+            m_ProjectGeneration = new SdkStyleProjectGeneration();
         }
 
         [UnityTearDown]

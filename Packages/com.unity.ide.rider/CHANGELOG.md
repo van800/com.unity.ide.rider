@@ -1,5 +1,9 @@
 # Code Editor Package for Rider
 
+## [3.1.1] - Unreleased
+
+- Switch to the SDK style project format for Unity 6.7+.
+
 ## [3.1.0] - 2026-09-03
 - Unity minimum supported version increase to 6000.0
 

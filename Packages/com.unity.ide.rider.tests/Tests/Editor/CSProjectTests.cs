@@ -48,14 +48,10 @@ namespace Packages.Rider.Editor.Tests
                 var csprojContent = m_Builder.ReadProjectFile(m_Builder.Assembly);
                 var content = new[]
                 {
-                    "<?xml version=\"1.0\" encoding=\"utf-8\"?>",
-                    "<Project ToolsVersion=\"4.0\" DefaultTargets=\"Build\" xmlns=\"http://schemas.microsoft.com/developer/msbuild/2003\">",
+                    "<Project Sdk=\"Microsoft.NET.Sdk\">",
                     "  <PropertyGroup>",
                     $"    <LangVersion>{Helper.GetLangVersion()}</LangVersion>",
-                    "    <_TargetFrameworkDirectories>non_empty_path_generated_by_unity.rider.package</_TargetFrameworkDirectories>",
-                    "    <_FullFrameworkReferenceAssemblyPaths>non_empty_path_generated_by_unity.rider.package</_FullFrameworkReferenceAssemblyPaths>",
                     "    <DisableHandlePackageFileConflicts>true</DisableHandlePackageFileConflicts>",
-                    "    <ResolveNuGetPackages>false</ResolveNuGetPackages>",
                     "  </PropertyGroup>",
                     "  <PropertyGroup>",
                     "    <Configuration Condition=\" '$(Configuration)' == '' \">Debug</Configuration>",
@@ -68,7 +64,76 @@ namespace Packages.Rider.Editor.Tests
                     "    <OutputType>Library</OutputType>",
                     "    <AppDesignerFolder>Properties</AppDesignerFolder>",
                     $"    <AssemblyName>{m_Builder.Assembly.name}</AssemblyName>",
-                    @"    <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>",
+                    "    <!-- hardcoded target framework has no real effect, Unity provides all the BCL dlls anyway. May affect Nuget, need to check later -->",
+                    "    <TargetFramework>netstandard2.1</TargetFramework>",
+                    "    <NoStandardLibraries>true</NoStandardLibraries>",
+                    "    <DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences>",
+                    "    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>",
+                    "    <EnableDefaultItems>false</EnableDefaultItems>",
+                    "    <RestoreProjectStyle>None</RestoreProjectStyle>",
+                    "    <FileAlignment>512</FileAlignment>",
+                    "    <BaseDirectory>.</BaseDirectory>",
+                    "  </PropertyGroup>",
+                    "  <PropertyGroup Condition=\" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' \">",
+                    "    <DebugSymbols>true</DebugSymbols>",
+                    "    <DebugType>full</DebugType>",
+                    "    <Optimize>false</Optimize>",
+                    $"    <OutputPath>{m_Builder.Assembly.outputPath}</OutputPath>",
+                    "    <DefineConstants></DefineConstants>",
+                    "    <ErrorReport>prompt</ErrorReport>",
+                    "    <WarningLevel>4</WarningLevel>",
+                    $"    <NoWarn>{string.Join(",", ProjectGeneration.ProjectGeneration.GetNoWarn(new List<string>()))}</NoWarn>",
+                    "    <AllowUnsafeBlocks>False</AllowUnsafeBlocks>",
+                    "    <TreatWarningsAsErrors>False</TreatWarningsAsErrors>",
+                    "  </PropertyGroup>",
+                    "  <PropertyGroup>",
+                    "    <NoConfig>true</NoConfig>",
+                    "    <NoStdLib>true</NoStdLib>",
+                    "    <AddAdditionalExplicitAssemblyReferences>false</AddAdditionalExplicitAssemblyReferences>",
+                    "    <ImplicitlyExpandNETStandardFacades>false</ImplicitlyExpandNETStandardFacades>",
+                    "    <ImplicitlyExpandDesignTimeFacades>false</ImplicitlyExpandDesignTimeFacades>",
+                    "  </PropertyGroup>",
+                    "  <ItemGroup>",
+                    "    <Compile Include=\"test.cs\" />",
+                    "  </ItemGroup>",
+                    "</Project>",
+                    ""
+                };
+
+                StringAssert.AreEqualIgnoringCase(string.Join(Environment.NewLine, content), csprojContent);
+            }
+            
+            [Test]
+            public void DefaultSyncSettings_WhenSynced_CreatesProjectFileFromDefaultTemplate_LegacyStyle()
+            {
+                var synchronizer = m_Builder.WithLegacyStyleProject().Build();
+
+                synchronizer.Sync();
+
+                var csprojContent = m_Builder.ReadProjectFile(m_Builder.Assembly);
+                var content = new[]
+                {
+                    "<?xml version=\"1.0\" encoding=\"utf-8\"?>",
+                    "<Project ToolsVersion=\"4.0\" DefaultTargets=\"Build\" xmlns=\"http://schemas.microsoft.com/developer/msbuild/2003\">",
+                    "  <PropertyGroup>",
+                    $"    <LangVersion>{Helper.GetLangVersion()}</LangVersion>",
+                    "    <DisableHandlePackageFileConflicts>true</DisableHandlePackageFileConflicts>",
+                    "  </PropertyGroup>",
+                    "  <PropertyGroup>",
+                    "    <Configuration Condition=\" '$(Configuration)' == '' \">Debug</Configuration>",
+                    "    <Platform Condition=\" '$(Platform)' == '' \">AnyCPU</Platform>",
+                    "    <ProductVersion>10.0.20506</ProductVersion>",
+                    "    <SchemaVersion>2.0</SchemaVersion>",
+                    "    <RootNamespace></RootNamespace>",
+                    $"    <ProjectGuid>{{2c24a770-9be1-a718-c8a6-8cab2edf7848}}</ProjectGuid>",
+                    "    <ProjectTypeGuids>{E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>",
+                    "    <OutputType>Library</OutputType>",
+                    "    <AppDesignerFolder>Properties</AppDesignerFolder>",
+                    $"    <AssemblyName>{m_Builder.Assembly.name}</AssemblyName>",
+                    "    <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>",
+                    "    <ResolveNuGetPackages>false</ResolveNuGetPackages>",
+                    "    <_TargetFrameworkDirectories>non_empty_path_generated_by_unity.rider.package</_TargetFrameworkDirectories>",
+                    "    <_FullFrameworkReferenceAssemblyPaths>non_empty_path_generated_by_unity.rider.package</_FullFrameworkReferenceAssemblyPaths>",
                     "    <FileAlignment>512</FileAlignment>",
                     "    <BaseDirectory>.</BaseDirectory>",
                     "  </PropertyGroup>",

@@ -45,7 +45,7 @@ namespace RiderEditor
         static XmlNamespaceManager GetModifiedXmlNamespaceManager(XmlDocument projectXml)
         {
             var xmlNamespaces = new XmlNamespaceManager(projectXml.NameTable);
-            xmlNamespaces.AddNamespace("msb", "http://schemas.microsoft.com/developer/msbuild/2003");
+            xmlNamespaces.AddNamespace("msb", "");
             return xmlNamespaces;
         }
 

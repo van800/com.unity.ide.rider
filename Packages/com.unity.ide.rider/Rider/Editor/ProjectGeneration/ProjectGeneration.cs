@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace Packages.Rider.Editor.ProjectGeneration
 {
-  internal class ProjectGeneration : IGenerator
+  internal abstract class ProjectGeneration : IGenerator
   {
     private enum ScriptingLanguage
     {
@@ -67,13 +67,10 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
     IAssemblyNameProvider IGenerator.AssemblyNameProvider => m_AssemblyNameProvider;
 
-    public ProjectGeneration()
-      : this(Directory.GetParent(Application.dataPath).FullName) { }
+    protected ProjectGeneration()
+      : this(Directory.GetParent(Application.dataPath).FullName, new AssemblyNameProvider(), new FileIOProvider(), new GUIDProvider()) { }
 
-    public ProjectGeneration(string projectDirectory)
-      : this(projectDirectory, new AssemblyNameProvider(), new FileIOProvider(), new GUIDProvider()) { }
-
-    public ProjectGeneration(string projectDirectory, IAssemblyNameProvider assemblyNameProvider, IFileIO fileIoProvider, IGUIDGenerator guidGenerator)
+    protected ProjectGeneration(string projectDirectory, IAssemblyNameProvider assemblyNameProvider, IFileIO fileIoProvider, IGUIDGenerator guidGenerator)
     {
       ProjectDirectory = Path.GetFullPath(projectDirectory.NormalizePath());
       ProjectDirectoryWithSlash = ProjectDirectory + Path.DirectorySeparatorChar;
@@ -646,10 +643,9 @@ namespace Packages.Rider.Editor.ProjectGeneration
         }
       }
 
-      projectBuilder
-        .AppendLine("  </ItemGroup>")
-        .AppendLine("  <Import Project=\"$(MSBuildToolsPath)\\Microsoft.CSharp.targets\" />")
-        .AppendLine("</Project>");
+      projectBuilder.AppendLine("  </ItemGroup>");
+      AppendProjectFooter(projectBuilder);
+      projectBuilder.AppendLine("</Project>");
 
       return projectBuilder.ToString();
     }
@@ -667,19 +663,13 @@ namespace Packages.Rider.Editor.ProjectGeneration
     private void ProjectHeader(StringBuilder stringBuilder, ProjectPart assembly, List<ResponseFileData> responseFilesData)
     {
       var responseFilesDataArgs = GetOtherArgumentsFromResponseFilesData(responseFilesData);
+      AppendProjectStartTag(stringBuilder);
       stringBuilder
-        .AppendLine("<?xml version=\"1.0\" encoding=\"utf-8\"?>")
-        .AppendLine(
-          "<Project ToolsVersion=\"4.0\" DefaultTargets=\"Build\" xmlns=\"http://schemas.microsoft.com/developer/msbuild/2003\">")
         .AppendLine("  <PropertyGroup>")
         .Append("    <LangVersion>").Append(GetLangVersion(responseFilesDataArgs["langversion"], assembly)).AppendLine("</LangVersion>")
-        .AppendLine(
-          "    <_TargetFrameworkDirectories>non_empty_path_generated_by_unity.rider.package</_TargetFrameworkDirectories>")
-        .AppendLine(
-          "    <_FullFrameworkReferenceAssemblyPaths>non_empty_path_generated_by_unity.rider.package</_FullFrameworkReferenceAssemblyPaths>")
         .AppendLine("    <DisableHandlePackageFileConflicts>true</DisableHandlePackageFileConflicts>")
-        .AppendLine("    <ResolveNuGetPackages>false</ResolveNuGetPackages>");
-
+        ;
+      
       var rulesetPaths = GetRoslynAnalyzerRulesetPaths(assembly, responseFilesDataArgs);
       foreach (var path in rulesetPaths)
         stringBuilder.Append("    <CodeAnalysisRuleSet>").Append(path).AppendLine("</CodeAnalysisRuleSet>");
@@ -697,8 +687,11 @@ namespace Packages.Rider.Editor.ProjectGeneration
           "    <ProjectTypeGuids>{E097FAD1-6243-4DAD-9C02-E9B9EFC3FFC1};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>")
         .AppendLine("    <OutputType>Library</OutputType>")
         .AppendLine("    <AppDesignerFolder>Properties</AppDesignerFolder>")
-        .Append("    <AssemblyName>").Append(assembly.Name).AppendLine("</AssemblyName>")
-        .AppendLine("    <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>")
+        .Append("    <AssemblyName>").Append(assembly.Name).AppendLine("</AssemblyName>");
+
+      AppendProjectProperties(stringBuilder);
+      
+        stringBuilder
         .AppendLine("    <FileAlignment>512</FileAlignment>")
         .AppendLine("    <BaseDirectory>.</BaseDirectory>")
         .AppendLine("  </PropertyGroup>")
@@ -769,6 +762,10 @@ namespace Packages.Rider.Editor.ProjectGeneration
           .AppendLine("  </ItemGroup>");
       }
     }
+
+    protected abstract void AppendProjectStartTag(StringBuilder stringBuilder);
+    protected abstract void AppendProjectFooter(StringBuilder stringBuilder);
+    protected abstract void AppendProjectProperties(StringBuilder stringBuilder);
 
     private static string GetGlobalAnalyzerConfigFile(ProjectPart assembly)
     {
