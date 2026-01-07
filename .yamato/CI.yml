@@ -1,13 +1,7 @@
 codeeditor: rider
 
 editors:
-  - version: 2021.3
-  - version: 2022.3
-  - version: 2023.2
-  - version: 6000.0
-  - version: 6000.1
-  - version: 6000.2
-  - version: 6000.3
+  - version: 6000.5
   - version: trunk
 platforms:
   - name: win
