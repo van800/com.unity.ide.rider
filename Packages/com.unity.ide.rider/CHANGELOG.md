@@ -1,4 +1,8 @@
 # Code Editor Package for Rider
+## [3.1.1] - 2026-03-13
+
+- Normalise paths for additional files for roslyn, fixes RIDER-136169 Roslyn process gets stuck
+
 ## [3.1.0] - 2026-01-02
 
 - Switch to the SDK style project format.
