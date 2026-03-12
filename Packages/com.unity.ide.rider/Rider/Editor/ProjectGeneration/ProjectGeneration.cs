@@ -784,7 +784,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
       return configFile;
     }
 
-    private static string[] GetRoslynAdditionalFiles(ProjectPart assembly, ILookup<string, string> otherResponseFilesData)
+    private string[] GetRoslynAdditionalFiles(ProjectPart assembly, ILookup<string, string> otherResponseFilesData)
     {
       var additionalFilePathsFromCompilationPipeline = Array.Empty<string>();
 #if UNITY_2021_3 // https://github.com/JetBrains/resharper-unity/issues/2401
@@ -799,7 +799,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
 #endif
       return otherResponseFilesData["additionalfile"]
         .SelectMany(x=>x.Split(';'))
-        .Concat(additionalFilePathsFromCompilationPipeline)
+        .Concat(additionalFilePathsFromCompilationPipeline.Select(GetNormalisedAssemblyPath))
         .Distinct().ToArray();
     }
 
