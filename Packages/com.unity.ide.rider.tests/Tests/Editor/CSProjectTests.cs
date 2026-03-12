@@ -511,7 +511,7 @@ namespace Packages.Rider.Editor.Tests
                 synchronizer.Sync();
 
                 var csprojFileContents = m_Builder.ReadProjectFile(m_Builder.Assembly);
-                StringAssert.Contains($"<AdditionalFiles Include=\"Filename.AnalyzerName.additionalfile\" />", csprojFileContents);
+                Assert.That(csprojFileContents, Does.Match(@"<AdditionalFiles Include="".*Filename\.AnalyzerName\.additionalfile"" />"));
             }
 
             [Test]
