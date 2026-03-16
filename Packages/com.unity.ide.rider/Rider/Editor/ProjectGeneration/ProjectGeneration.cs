@@ -643,6 +643,15 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
       projectBuilder
         .AppendLine("  </ItemGroup>")
+        .AppendLine("  <Import Project=\"$(MSBuildToolsPath)\\Microsoft.CSharp.targets\" />")
+        .AppendLine(
+          "  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.")
+        .AppendLine("       Other similar extension points exist, see Microsoft.Common.targets.")
+        .AppendLine("  <Target Name=\"BeforeBuild\">")
+        .AppendLine("  </Target>")
+        .AppendLine("  <Target Name=\"AfterBuild\">")
+        .AppendLine("  </Target>")
+        .AppendLine("  -->")
         .AppendLine("</Project>");
 
       return projectBuilder.ToString();
@@ -662,16 +671,17 @@ namespace Packages.Rider.Editor.ProjectGeneration
     {
       var responseFilesDataArgs = GetOtherArgumentsFromResponseFilesData(responseFilesData);
       stringBuilder
+        .AppendLine("<?xml version=\"1.0\" encoding=\"utf-8\"?>")
         .AppendLine(
-          "<Project Sdk=\"Microsoft.NET.Sdk\">")
+          "<Project ToolsVersion=\"4.0\" DefaultTargets=\"Build\" xmlns=\"http://schemas.microsoft.com/developer/msbuild/2003\">")
         .AppendLine("  <PropertyGroup>")
         .Append("    <LangVersion>").Append(GetLangVersion(responseFilesDataArgs["langversion"], assembly)).AppendLine("</LangVersion>")
+        .AppendLine(
+          "    <_TargetFrameworkDirectories>non_empty_path_generated_by_unity.rider.package</_TargetFrameworkDirectories>")
+        .AppendLine(
+          "    <_FullFrameworkReferenceAssemblyPaths>non_empty_path_generated_by_unity.rider.package</_FullFrameworkReferenceAssemblyPaths>")
         .AppendLine("    <DisableHandlePackageFileConflicts>true</DisableHandlePackageFileConflicts>")
-        .AppendLine("    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>")
-        .AppendLine("    <EnableDefaultItems>false</EnableDefaultItems>")
-        .AppendLine("    <OutputType>Library</OutputType>")
-        .AppendLine("    <RestoreProjectStyle>None</RestoreProjectStyle>")
-        ;
+        .AppendLine("    <ResolveNuGetPackages>false</ResolveNuGetPackages>");
 
       var rulesetPaths = GetRoslynAnalyzerRulesetPaths(assembly, responseFilesDataArgs);
       foreach (var path in rulesetPaths)
@@ -691,10 +701,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
         .AppendLine("    <OutputType>Library</OutputType>")
         .AppendLine("    <AppDesignerFolder>Properties</AppDesignerFolder>")
         .Append("    <AssemblyName>").Append(assembly.Name).AppendLine("</AssemblyName>")
-        .AppendLine("    <!-- hardcoded target framework has no real effect, Unity provides all the BCL dlls anyway. May affect Nuget, need to check later -->")
-        .AppendLine("    <TargetFramework>netstandard2.1</TargetFramework>")
-        .AppendLine("    <NoStandardLibraries>true</NoStandardLibraries>")
-        .AppendLine("    <DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences>")
+        .AppendLine("    <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>")
         .AppendLine("    <FileAlignment>512</FileAlignment>")
         .AppendLine("    <BaseDirectory>.</BaseDirectory>")
         .AppendLine("  </PropertyGroup>")
