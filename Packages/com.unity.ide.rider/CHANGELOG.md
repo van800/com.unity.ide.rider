@@ -1,8 +1,4 @@
 # Code Editor Package for Rider
-## [3.1.0] - 2026-01-02
-
-- Switch to the SDK style project format.
-
 ## [3.0.39] - 2026-01-17
 
 - fix the indent of the LinkButton
