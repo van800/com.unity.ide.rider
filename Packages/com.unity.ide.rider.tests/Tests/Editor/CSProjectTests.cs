@@ -580,7 +580,7 @@ namespace Packages.Rider.Editor.Tests
             {
                 var combined = string.Join(";", paths);
                 const string additionalFileTemplate = @"    <AdditionalFiles Include=""{0}"" />";
-                var expectedOutput = paths.Select(x => string.Format(additionalFileTemplate, MakeAbsolutePath(x))).ToArray();
+                var expectedOutput = paths.Select(x => string.Format(additionalFileTemplate, MakeAbsolutePath(x).NormalizePath())).ToArray();
                 
                 CheckOtherArgument(new[] { $"-additionalfile:{MakeAbsolutePath(combined)}" }, expectedOutput);
                 CheckOtherArgument(new[] { $"/additionalfile:{MakeAbsolutePath(combined)}" }, expectedOutput);
