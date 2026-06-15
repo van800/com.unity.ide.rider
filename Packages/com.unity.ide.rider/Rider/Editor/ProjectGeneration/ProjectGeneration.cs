@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Security;
 using System.Text;
 using Packages.Rider.Editor.Util;
 using UnityEditor;
@@ -994,8 +993,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
     {
       if (!m_NormalisedPaths.TryGetValue(path, out var normalisedPath))
       {
-        normalisedPath = Path.IsPathRooted(path) ? path : Path.GetFullPath(path);
-        normalisedPath = SecurityElement.Escape(normalisedPath).NormalizePath();
+        normalisedPath = FileSystemUtil.GetNormalizedFullPath(path);
         m_NormalisedPaths.Add(path, normalisedPath);
       }
 

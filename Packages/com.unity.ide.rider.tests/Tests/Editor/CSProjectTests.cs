@@ -511,7 +511,8 @@ namespace Packages.Rider.Editor.Tests
                 synchronizer.Sync();
 
                 var csprojFileContents = m_Builder.ReadProjectFile(m_Builder.Assembly);
-                Assert.That(csprojFileContents, Does.Match(@"<AdditionalFiles Include="".*Filename\.AnalyzerName\.additionalfile"" />"));
+                var normalisedPath = FileSystemUtil.GetNormalizedFullPath("Filename.AnalyzerName.additionalfile");
+                StringAssert.Contains($"<AdditionalFiles Include=\"{normalisedPath}\" />", csprojFileContents);
             }
 
             [Test]
@@ -575,7 +576,7 @@ namespace Packages.Rider.Editor.Tests
             {
                 var combined = string.Join(";", paths);
                 const string additionalFileTemplate = @"    <AdditionalFiles Include=""{0}"" />";
-                var expectedOutput = paths.Select(x => string.Format(additionalFileTemplate, x)).ToArray();
+                var expectedOutput = paths.Select(x => string.Format(additionalFileTemplate, FileSystemUtil.GetNormalizedFullPath(x))).ToArray();
 
                 CheckOtherArgument(new[] { $"-additionalfile:{combined}" }, expectedOutput);
                 CheckOtherArgument(new[] { $"/additionalfile:{combined}" }, expectedOutput);
