@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel;
 using System.IO;
+using System.Security;
 using System.Text;
 using JetBrains.Annotations;
 using UnityEngine;
@@ -55,6 +56,13 @@ namespace Packages.Rider.Editor.Util
       }
 
       return path.Substring(indexOfSlash, indexOfDot - indexOfSlash);
+    }
+
+    public static string GetNormalizedFullPath(string path)
+    {
+      var normalisedPath = Path.IsPathRooted(path) ? path : Path.GetFullPath(path);
+      normalisedPath = SecurityElement.Escape(normalisedPath).NormalizePath();
+      return normalisedPath;
     }
     
     public static bool EditorPathExists(string editorPath)
