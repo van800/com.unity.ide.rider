@@ -3,6 +3,7 @@ using System;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Assemblies;
 
 namespace Packages.Rider.Editor.UnitTesting
 {
@@ -88,11 +89,11 @@ namespace Packages.Rider.Editor.UnitTesting
           {
             if (PluginSettings.SelectedLoggingLevel >= LoggingLevel.TRACE) 
               Debug.Log($"Rider Test Runner: loading assembly from {dependency}");
-            Assembly.LoadFrom(dependency);
+            CurrentAssemblies.LoadFromPath(dependency);
           }
         if (PluginSettings.SelectedLoggingLevel >= LoggingLevel.TRACE)
           Debug.Log($"Rider Test Runner: loading assembly from {m_HandlerCodeBase}");
-        var assembly = Assembly.LoadFrom(m_HandlerCodeBase);
+        var assembly = CurrentAssemblies.LoadFromPath(m_HandlerCodeBase);
         var type = assembly.GetType(m_HandlerTypeName);
         if (type == null)
         {

@@ -2,6 +2,7 @@
 ## [3.1.1] - 2026-06-22
 
 - Switch to the SDK style project format.
+- Compatibility with Unity 6000.7 and later.
 
 ## [3.0.40] - 2026-03-13
 
