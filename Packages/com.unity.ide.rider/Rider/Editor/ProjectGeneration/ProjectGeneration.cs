@@ -298,10 +298,158 @@ namespace Packages.Rider.Editor.ProjectGeneration
       SyncSolution(stringBuilder, projectParts, types);
       stringBuilder.Clear();
 
+      // INCREMENTAL PROJECT GENERATION (Bonfire fork): ProjectText (the per-project .csproj XML build)
+      // is the bulk of Sync() cost on large projects (~780 here, ~5s). SyncFileIfNotChanged already skips
+      // unchanged WRITES, but the expensive content BUILD runs for every project every sync. Skip the
+      // build for any project whose inputs (sources/refs/defines/options + a global epoch) are unchanged
+      // since the last sync and whose .csproj still exists. Any input change -> that project regenerates.
+      // Disable with RIDER_DISABLE_INCREMENTAL_PROJECTGEN=1; bump k_IncrementalProjectGenVersion to force
+      // a full regen after changing generation logic.
+      var incremental = !k_DisableIncrementalProjectGen;
+      var oldInputHashes = incremental ? LoadProjectInputHashes() : null;
+      var newInputHashes = incremental ? new Dictionary<string, string>() : null;
+      var globalEpoch = incremental ? ComputeGlobalGenerationEpoch() : null;
+
       foreach (var projectPart in projectParts)
       {
+        if (incremental)
+        {
+          var projectFilePath = ProjectFile(projectPart);
+          var inputHash = ComputeProjectInputHash(projectPart, globalEpoch);
+          newInputHashes[projectFilePath] = inputHash;
+          if (oldInputHashes.TryGetValue(projectFilePath, out var previousHash)
+              && previousHash == inputHash
+              && m_FileIOProvider.Exists(projectFilePath))
+          {
+            continue; // inputs unchanged and file present -> skip the expensive ProjectText build
+          }
+        }
+
         SyncProject(stringBuilder, projectPart, assemblyUsage, types);
         stringBuilder.Clear();
+      }
+
+      if (incremental)
+      {
+        SaveProjectInputHashes(newInputHashes);
+      }
+    }
+
+    // --- INCREMENTAL PROJECT GENERATION (Bonfire fork) ---
+
+    private const string k_IncrementalProjectGenVersion = "1";
+
+    private static readonly bool k_DisableIncrementalProjectGen =
+      Environment.GetEnvironmentVariable("RIDER_DISABLE_INCREMENTAL_PROJECTGEN") == "1";
+
+    private string ProjectInputHashFile()
+    {
+      return Path.Combine(ProjectDirectory, "Library", "RiderProjectGenInputHashes.txt");
+    }
+
+    private Dictionary<string, string> LoadProjectInputHashes()
+    {
+      var result = new Dictionary<string, string>();
+      var path = ProjectInputHashFile();
+      if (!m_FileIOProvider.Exists(path))
+        return result;
+      try
+      {
+        var text = m_FileIOProvider.ReadAllText(path);
+        foreach (var rawLine in text.Split('\n'))
+        {
+          var line = rawLine.TrimEnd('\r');
+          if (line.Length == 0)
+            continue;
+          var tab = line.IndexOf('\t');
+          if (tab <= 0)
+            continue;
+          result[line.Substring(0, tab)] = line.Substring(tab + 1);
+        }
+      }
+      catch (Exception)
+      {
+        return new Dictionary<string, string>(); // corrupt cache -> treat as full regen
+      }
+      return result;
+    }
+
+    private void SaveProjectInputHashes(Dictionary<string, string> hashes)
+    {
+      var sb = new StringBuilder();
+      foreach (var pair in hashes)
+        sb.Append(pair.Key).Append('\t').Append(pair.Value).Append('\n');
+      try
+      {
+        m_FileIOProvider.WriteAllText(ProjectInputHashFile(), sb.ToString());
+      }
+      catch (Exception)
+      {
+        // best-effort: a missing/failed cache just means a full regen next sync
+      }
+    }
+
+    // Global inputs that affect every generated project; a change here forces a full regen.
+    private string ComputeGlobalGenerationEpoch()
+    {
+      var sb = new StringBuilder();
+      sb.Append(k_IncrementalProjectGenVersion).Append('|');
+      sb.Append((int)m_AssemblyNameProvider.ProjectGenerationFlag).Append('|');
+      sb.Append(Application.unityVersion).Append('|');
+      sb.Append(string.Join(",", m_ProjectSupportedExtensions)).Append('|');
+      sb.Append(typeof(ProjectGeneration).Assembly.GetName().Version);
+      return Md5Hash(sb.ToString());
+    }
+
+    // Everything ProjectText() consumes for a single project. Any change -> the project regenerates.
+    private string ComputeProjectInputHash(ProjectPart projectPart, string globalEpoch)
+    {
+      var sb = new StringBuilder();
+      sb.Append(globalEpoch).Append('|');
+      sb.Append(projectPart.Name).Append('|');
+      sb.Append(projectPart.OutputPath).Append('|');
+      sb.Append(projectPart.RootNamespace);
+      AppendAll(sb, projectPart.SourceFiles);
+      AppendAll(sb, projectPart.AdditionalAssets);
+      AppendAll(sb, projectPart.Defines);
+      AppendAll(sb, projectPart.CompiledAssemblyReferences);
+      sb.Append('|');
+      if (projectPart.AssemblyReferences != null)
+      {
+        foreach (var reference in projectPart.AssemblyReferences)
+          sb.Append(reference != null ? reference.name : "<null>").Append(';');
+      }
+      var options = projectPart.CompilerOptions;
+      if (options != null)
+      {
+        sb.Append('|').Append(options.LanguageVersion)
+          .Append('|').Append(options.AllowUnsafeCode)
+          .Append('|').Append((int)options.ApiCompatibilityLevel);
+        AppendAll(sb, options.ResponseFiles);
+        AppendAll(sb, options.RoslynAnalyzerDllPaths);
+        AppendAll(sb, options.RoslynAdditionalFilePaths);
+      }
+      return Md5Hash(sb.ToString());
+    }
+
+    private static void AppendAll(StringBuilder sb, IEnumerable<string> items)
+    {
+      sb.Append('|');
+      if (items == null)
+        return;
+      foreach (var item in items)
+        sb.Append(item).Append(';');
+    }
+
+    private static string Md5Hash(string input)
+    {
+      using (var md5 = System.Security.Cryptography.MD5.Create())
+      {
+        var bytes = md5.ComputeHash(Encoding.UTF8.GetBytes(input));
+        var sb = new StringBuilder(bytes.Length * 2);
+        foreach (var b in bytes)
+          sb.Append(b.ToString("x2"));
+        return sb.ToString();
       }
     }
 
