@@ -1,4 +1,8 @@
 # Code Editor Package for Rider
+## [3.0.41] - 2026-07-02
+
+- fix RIDER-139777 Excessive project regeneration sometimes caused by Rider csproj modification
+
 ## [3.0.40] - 2026-03-13
 
 - Normalise paths for additional files for roslyn, fixes RIDER-136169 Roslyn process gets stuck
