@@ -64,7 +64,7 @@
   },
   "publishing_job": ".yamato/wrench/promotion-jobs.yml#publish_ide_rider",
   "branch_pattern": "ReleaseSlash",
-  "wrench_version": "2.3.2.0",
+  "wrench_version": "3.2.1.0",
   "pvp_exemption_path": ".yamato/wrench/pvp-exemptions.json",
   "cs_project_path": "Tools/CI/Rider.Cookbook.csproj"
 }
