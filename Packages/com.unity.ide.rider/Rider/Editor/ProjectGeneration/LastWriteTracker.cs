@@ -1,14 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
 namespace Packages.Rider.Editor.ProjectGeneration
 {
   internal static class LastWriteTracker
   {
-    internal static bool HasLastWriteTimeChanged()
+    internal static bool HasLastWriteTimeChanged(out DateTime? externalProjectFileWriteTime)
     {
+      externalProjectFileWriteTime = null;
+
       if (!IsUnityCompatible()) return false;
 
       // any external changes of sln/csproj should cause their regeneration
@@ -19,7 +20,17 @@ namespace Packages.Rider.Editor.ProjectGeneration
       files.AddRange(directoryInfo.GetFiles("*.csproj"));
       files.Add(new FileInfo(Path.Combine(directoryInfo.FullName, directoryInfo.Name + ".sln")));
 
-      return files.Any(a => a.LastWriteTime > RiderScriptEditorPersistedState.instance.LastWrite);
+      foreach (var file in files)
+      {
+        var fileLastWriteTime = file.LastWriteTime;
+        if (fileLastWriteTime > RiderScriptEditorPersistedState.instance.LastWrite)
+        {
+          if (!externalProjectFileWriteTime.HasValue || fileLastWriteTime > externalProjectFileWriteTime.Value)
+            externalProjectFileWriteTime = fileLastWriteTime;
+        }
+      }
+
+      return externalProjectFileWriteTime.HasValue;
     }
 
     internal static void UpdateLastWriteIfNeeded(string path)

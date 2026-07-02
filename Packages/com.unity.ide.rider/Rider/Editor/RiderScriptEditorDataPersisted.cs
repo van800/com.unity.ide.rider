@@ -22,6 +22,11 @@ namespace Packages.Rider.Editor
         Save(true);
       }
     }
+
+    public void UpdateLastWriteIfNewer(DateTime newLastWrite)
+    {
+      if (newLastWrite > LastWrite) LastWrite = newLastWrite;
+    }
     
     public DateTime? ManifestJsonLastWrite
     {
