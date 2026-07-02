@@ -60,36 +60,6 @@ publish_dry_run_ide_rider:
       UTR:
         location: results/UTR/validate-ide.rider-2021.3-win10
         unzip: true
-  - path: .yamato/wrench/validation-jobs.yml#validate_-_ide_rider_-_2022_3_-_macos13
-    specific_options:
-      packages:
-        ignore_artifact: true
-      pvp-results:
-        location: results/pvp/validate-ide.rider-2022.3-macos13
-        unzip: true
-      UTR:
-        location: results/UTR/validate-ide.rider-2022.3-macos13
-        unzip: true
-  - path: .yamato/wrench/validation-jobs.yml#validate_-_ide_rider_-_2022_3_-_ubuntu1804
-    specific_options:
-      packages:
-        ignore_artifact: true
-      pvp-results:
-        location: results/pvp/validate-ide.rider-2022.3-ubuntu1804
-        unzip: true
-      UTR:
-        location: results/UTR/validate-ide.rider-2022.3-ubuntu1804
-        unzip: true
-  - path: .yamato/wrench/validation-jobs.yml#validate_-_ide_rider_-_2022_3_-_win10
-    specific_options:
-      packages:
-        ignore_artifact: true
-      pvp-results:
-        location: results/pvp/validate-ide.rider-2022.3-win10
-        unzip: true
-      UTR:
-        location: results/UTR/validate-ide.rider-2022.3-win10
-        unzip: true
   - path: .yamato/wrench/validation-jobs.yml#validate_-_ide_rider_-_6000_0_-_macos13
     specific_options:
       packages:
@@ -150,36 +120,6 @@ publish_dry_run_ide_rider:
       UTR:
         location: results/UTR/validate-ide.rider-6000.3-win10
         unzip: true
-  - path: .yamato/wrench/validation-jobs.yml#validate_-_ide_rider_-_6000_4_-_macos13
-    specific_options:
-      packages:
-        ignore_artifact: true
-      pvp-results:
-        location: results/pvp/validate-ide.rider-6000.4-macos13
-        unzip: true
-      UTR:
-        location: results/UTR/validate-ide.rider-6000.4-macos13
-        unzip: true
-  - path: .yamato/wrench/validation-jobs.yml#validate_-_ide_rider_-_6000_4_-_ubuntu2204
-    specific_options:
-      packages:
-        ignore_artifact: true
-      pvp-results:
-        location: results/pvp/validate-ide.rider-6000.4-ubuntu2204
-        unzip: true
-      UTR:
-        location: results/UTR/validate-ide.rider-6000.4-ubuntu2204
-        unzip: true
-  - path: .yamato/wrench/validation-jobs.yml#validate_-_ide_rider_-_6000_4_-_win10
-    specific_options:
-      packages:
-        ignore_artifact: true
-      pvp-results:
-        location: results/pvp/validate-ide.rider-6000.4-win10
-        unzip: true
-      UTR:
-        location: results/UTR/validate-ide.rider-6000.4-win10
-        unzip: true
   - path: .yamato/wrench/validation-jobs.yml#validate_-_ide_rider_-_6000_5_-_macos13
     specific_options:
       packages:
@@ -239,6 +179,36 @@ publish_dry_run_ide_rider:
         unzip: true
       UTR:
         location: results/UTR/validate-ide.rider-6000.6-win10
+        unzip: true
+  - path: .yamato/wrench/validation-jobs.yml#validate_-_ide_rider_-_6000_7_-_macos13
+    specific_options:
+      packages:
+        ignore_artifact: true
+      pvp-results:
+        location: results/pvp/validate-ide.rider-6000.7-macos13
+        unzip: true
+      UTR:
+        location: results/UTR/validate-ide.rider-6000.7-macos13
+        unzip: true
+  - path: .yamato/wrench/validation-jobs.yml#validate_-_ide_rider_-_6000_7_-_ubuntu2204
+    specific_options:
+      packages:
+        ignore_artifact: true
+      pvp-results:
+        location: results/pvp/validate-ide.rider-6000.7-ubuntu2204
+        unzip: true
+      UTR:
+        location: results/UTR/validate-ide.rider-6000.7-ubuntu2204
+        unzip: true
+  - path: .yamato/wrench/validation-jobs.yml#validate_-_ide_rider_-_6000_7_-_win10
+    specific_options:
+      packages:
+        ignore_artifact: true
+      pvp-results:
+        location: results/pvp/validate-ide.rider-6000.7-win10
+        unzip: true
+      UTR:
+        location: results/UTR/validate-ide.rider-6000.7-win10
         unzip: true
   variables:
     UPMPVP_ACK_UPMPVP_DOES_NO_API_VALIDATION: 1
@@ -302,36 +272,6 @@ publish_ide_rider:
       UTR:
         location: results/UTR/validate-ide.rider-2021.3-win10
         unzip: true
-  - path: .yamato/wrench/validation-jobs.yml#validate_-_ide_rider_-_2022_3_-_macos13
-    specific_options:
-      packages:
-        ignore_artifact: true
-      pvp-results:
-        location: results/pvp/validate-ide.rider-2022.3-macos13
-        unzip: true
-      UTR:
-        location: results/UTR/validate-ide.rider-2022.3-macos13
-        unzip: true
-  - path: .yamato/wrench/validation-jobs.yml#validate_-_ide_rider_-_2022_3_-_ubuntu1804
-    specific_options:
-      packages:
-        ignore_artifact: true
-      pvp-results:
-        location: results/pvp/validate-ide.rider-2022.3-ubuntu1804
-        unzip: true
-      UTR:
-        location: results/UTR/validate-ide.rider-2022.3-ubuntu1804
-        unzip: true
-  - path: .yamato/wrench/validation-jobs.yml#validate_-_ide_rider_-_2022_3_-_win10
-    specific_options:
-      packages:
-        ignore_artifact: true
-      pvp-results:
-        location: results/pvp/validate-ide.rider-2022.3-win10
-        unzip: true
-      UTR:
-        location: results/UTR/validate-ide.rider-2022.3-win10
-        unzip: true
   - path: .yamato/wrench/validation-jobs.yml#validate_-_ide_rider_-_6000_0_-_macos13
     specific_options:
       packages:
@@ -392,36 +332,6 @@ publish_ide_rider:
       UTR:
         location: results/UTR/validate-ide.rider-6000.3-win10
         unzip: true
-  - path: .yamato/wrench/validation-jobs.yml#validate_-_ide_rider_-_6000_4_-_macos13
-    specific_options:
-      packages:
-        ignore_artifact: true
-      pvp-results:
-        location: results/pvp/validate-ide.rider-6000.4-macos13
-        unzip: true
-      UTR:
-        location: results/UTR/validate-ide.rider-6000.4-macos13
-        unzip: true
-  - path: .yamato/wrench/validation-jobs.yml#validate_-_ide_rider_-_6000_4_-_ubuntu2204
-    specific_options:
-      packages:
-        ignore_artifact: true
-      pvp-results:
-        location: results/pvp/validate-ide.rider-6000.4-ubuntu2204
-        unzip: true
-      UTR:
-        location: results/UTR/validate-ide.rider-6000.4-ubuntu2204
-        unzip: true
-  - path: .yamato/wrench/validation-jobs.yml#validate_-_ide_rider_-_6000_4_-_win10
-    specific_options:
-      packages:
-        ignore_artifact: true
-      pvp-results:
-        location: results/pvp/validate-ide.rider-6000.4-win10
-        unzip: true
-      UTR:
-        location: results/UTR/validate-ide.rider-6000.4-win10
-        unzip: true
   - path: .yamato/wrench/validation-jobs.yml#validate_-_ide_rider_-_6000_5_-_macos13
     specific_options:
       packages:
@@ -481,6 +391,36 @@ publish_ide_rider:
         unzip: true
       UTR:
         location: results/UTR/validate-ide.rider-6000.6-win10
+        unzip: true
+  - path: .yamato/wrench/validation-jobs.yml#validate_-_ide_rider_-_6000_7_-_macos13
+    specific_options:
+      packages:
+        ignore_artifact: true
+      pvp-results:
+        location: results/pvp/validate-ide.rider-6000.7-macos13
+        unzip: true
+      UTR:
+        location: results/UTR/validate-ide.rider-6000.7-macos13
+        unzip: true
+  - path: .yamato/wrench/validation-jobs.yml#validate_-_ide_rider_-_6000_7_-_ubuntu2204
+    specific_options:
+      packages:
+        ignore_artifact: true
+      pvp-results:
+        location: results/pvp/validate-ide.rider-6000.7-ubuntu2204
+        unzip: true
+      UTR:
+        location: results/UTR/validate-ide.rider-6000.7-ubuntu2204
+        unzip: true
+  - path: .yamato/wrench/validation-jobs.yml#validate_-_ide_rider_-_6000_7_-_win10
+    specific_options:
+      packages:
+        ignore_artifact: true
+      pvp-results:
+        location: results/pvp/validate-ide.rider-6000.7-win10
+        unzip: true
+      UTR:
+        location: results/UTR/validate-ide.rider-6000.7-win10
         unzip: true
   variables:
     UPMPVP_ACK_UPMPVP_DOES_NO_API_VALIDATION: 1

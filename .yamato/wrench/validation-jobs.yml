@@ -209,210 +209,6 @@ validate_-_ide_rider_-_2021_3_-_win10:
   labels:
   - Packages:ide.rider
 
-# PVP Editor and Playmode tests for Validate - ide.rider - 2022.3 - macos13 (2022.3 - MacOS).
-validate_-_ide_rider_-_2022_3_-_macos13:
-  name: Validate - ide.rider - 2022.3 - macos13
-  agent:
-    image: package-ci/macos-13:v4
-    type: Unity::VM::osx
-    flavor: b1.xlarge
-  commands:
-  - command: curl https://artifactory.prd.it.unity3d.com/artifactory/stevedore-unity-internal/wrench-localapv/1-3-0_3978eda62a03e3dbc469ab77590d20f8832032d8e0b586550597b7f590baefec.zip -o wrench-localapv.zip
-  - command: 7z x -aoa wrench-localapv.zip
-  - command: pip install semver requests --index-url https://artifactory-slo.bf.unity3d.com/artifactory/api/pypi/pypi/simple
-  - command: python PythonScripts/print_machine_info.py
-  - command: unity-downloader-cli -u 2022.3/staging -c editor --path .Editor --fast
-    timeout: 10
-    retries: 3
-  - command: upm-pvp create-test-project test-ide.rider --packages "upm-ci~/packages/*.tgz" --filter "com.unity.ide.rider com.unity.ide.rider.tests" --unity .Editor
-    timeout: 10
-    retries: 1
-  - command: echo No internal packages to add.
-  - command: upm-pvp test --unity .Editor --packages "upm-ci~/packages/*.tgz" --results upm-ci~/pvp
-    timeout: 20
-    retries: 0
-  - command: upm-pvp require "pkgprom-promote -PVP-29-2 rme" --results upm-ci~/pvp --exemptions upm-ci~/pvp/failures.json
-    timeout: 5
-    retries: 0
-  - command: echo No additional PVP profiles to declared to check.
-  - command: 'UnifiedTestRunner --testproject=test-ide.rider --editor-location=.Editor --clean-library --reruncount=1 --clean-library-on-rerun --artifacts-path=artifacts --suite=Editor --suite=Playmode "--ff={ops.upmpvpevidence.enable=true}" '
-    timeout: 20
-    retries: 1
-  after:
-  - command: bash .yamato/generated-scripts/infrastructure-instability-detection-mac.sh
-  artifacts:
-    Crash Dumps:
-      paths:
-      - CrashDumps/**
-    packages:
-      paths:
-      - upm-ci~/packages/**/*
-    pvp-results:
-      paths:
-      - upm-ci~/pvp/**/*
-      browsable: onDemand
-    UTR:
-      paths:
-      - '*.log'
-      - '*.xml'
-      - artifacts/**/*
-      - test-ide.rider/Logs/**
-      - test-ide.rider/Library/*.log
-      - test-ide.rider/*.log
-      - test-ide.rider/Builds/*.log
-      - build/test-results/**
-      browsable: onDemand
-  dependencies:
-  - path: .yamato/wrench/package-pack-jobs.yml#package_pack_-_ide_rider
-  variables:
-    UNITY_LICENSING_SERVER_BASE_URL: http://unity-ci-licenses.hq.unity3d.com:8080/
-    UNITY_LICENSING_SERVER_DELETE_NUL: 0
-    UNITY_LICENSING_SERVER_DELETE_ULF: 0
-    UNITY_LICENSING_SERVER_TOOLSET: pro
-    UPMPVP_ACK_UPMPVP_DOES_NO_API_VALIDATION: 1
-    UPMPVP_CONTEXT_WRENCH: 2.3.2.0
-  metadata:
-    Job Maintainers: '#rm-packageworks'
-    Wrench: 2.3.2.0
-  labels:
-  - Packages:ide.rider
-
-# PVP Editor and Playmode tests for Validate - ide.rider - 2022.3 - ubuntu1804 (2022.3 - Ubuntu).
-validate_-_ide_rider_-_2022_3_-_ubuntu1804:
-  name: Validate - ide.rider - 2022.3 - ubuntu1804
-  agent:
-    image: package-ci/ubuntu-18.04:v4
-    type: Unity::VM
-    flavor: b1.large
-  commands:
-  - command: curl https://artifactory.prd.it.unity3d.com/artifactory/stevedore-unity-internal/wrench-localapv/1-3-0_3978eda62a03e3dbc469ab77590d20f8832032d8e0b586550597b7f590baefec.zip -o wrench-localapv.zip
-  - command: 7z x -aoa wrench-localapv.zip
-  - command: pip install semver requests --index-url https://artifactory-slo.bf.unity3d.com/artifactory/api/pypi/pypi/simple
-  - command: python PythonScripts/print_machine_info.py
-  - command: unity-downloader-cli -u 2022.3/staging -c editor --path .Editor --fast
-    timeout: 10
-    retries: 3
-  - command: upm-pvp create-test-project test-ide.rider --packages "upm-ci~/packages/*.tgz" --filter "com.unity.ide.rider com.unity.ide.rider.tests" --unity .Editor
-    timeout: 10
-    retries: 1
-  - command: echo No internal packages to add.
-  - command: upm-pvp test --unity .Editor --packages "upm-ci~/packages/*.tgz" --results upm-ci~/pvp
-    timeout: 20
-    retries: 0
-  - command: upm-pvp require "pkgprom-promote -PVP-29-2 rme" --results upm-ci~/pvp --exemptions upm-ci~/pvp/failures.json
-    timeout: 5
-    retries: 0
-  - command: echo No additional PVP profiles to declared to check.
-  - command: 'UnifiedTestRunner --testproject=test-ide.rider --editor-location=.Editor --clean-library --reruncount=1 --clean-library-on-rerun --artifacts-path=artifacts --suite=Editor --suite=Playmode "--ff={ops.upmpvpevidence.enable=true}" '
-    timeout: 20
-    retries: 1
-  after:
-  - command: bash .yamato/generated-scripts/infrastructure-instability-detection-linux.sh
-  artifacts:
-    Crash Dumps:
-      paths:
-      - CrashDumps/**
-    packages:
-      paths:
-      - upm-ci~/packages/**/*
-    pvp-results:
-      paths:
-      - upm-ci~/pvp/**/*
-      browsable: onDemand
-    UTR:
-      paths:
-      - '*.log'
-      - '*.xml'
-      - artifacts/**/*
-      - test-ide.rider/Logs/**
-      - test-ide.rider/Library/*.log
-      - test-ide.rider/*.log
-      - test-ide.rider/Builds/*.log
-      - build/test-results/**
-      browsable: onDemand
-  dependencies:
-  - path: .yamato/wrench/package-pack-jobs.yml#package_pack_-_ide_rider
-  variables:
-    UNITY_LICENSING_SERVER_BASE_URL: http://unity-ci-licenses.hq.unity3d.com:8080/
-    UNITY_LICENSING_SERVER_DELETE_NUL: 0
-    UNITY_LICENSING_SERVER_DELETE_ULF: 0
-    UNITY_LICENSING_SERVER_TOOLSET: pro
-    UPMPVP_ACK_UPMPVP_DOES_NO_API_VALIDATION: 1
-    UPMPVP_CONTEXT_WRENCH: 2.3.2.0
-  metadata:
-    Job Maintainers: '#rm-packageworks'
-    Wrench: 2.3.2.0
-  labels:
-  - Packages:ide.rider
-
-# PVP Editor and Playmode tests for Validate - ide.rider - 2022.3 - win10 (2022.3 - Windows).
-validate_-_ide_rider_-_2022_3_-_win10:
-  name: Validate - ide.rider - 2022.3 - win10
-  agent:
-    image: package-ci/win10:v4
-    type: Unity::VM
-    flavor: b1.large
-  commands:
-  - command: curl https://artifactory.prd.it.unity3d.com/artifactory/stevedore-unity-internal/wrench-localapv/1-3-0_3978eda62a03e3dbc469ab77590d20f8832032d8e0b586550597b7f590baefec.zip -o wrench-localapv.zip
-  - command: 7z x -aoa wrench-localapv.zip
-  - command: pip install semver requests --index-url https://artifactory-slo.bf.unity3d.com/artifactory/api/pypi/pypi/simple
-  - command: python PythonScripts/print_machine_info.py
-  - command: unity-downloader-cli -u 2022.3/staging -c editor --path .Editor --fast
-    timeout: 10
-    retries: 3
-  - command: upm-pvp create-test-project test-ide.rider --packages "upm-ci~/packages/*.tgz" --filter "com.unity.ide.rider com.unity.ide.rider.tests" --unity .Editor
-    timeout: 10
-    retries: 1
-  - command: echo No internal packages to add.
-  - command: upm-pvp test --unity .Editor --packages "upm-ci~/packages/*.tgz" --results upm-ci~/pvp
-    timeout: 20
-    retries: 0
-  - command: upm-pvp require "pkgprom-promote -PVP-29-2 rme" --results upm-ci~/pvp --exemptions upm-ci~/pvp/failures.json
-    timeout: 5
-    retries: 0
-  - command: echo No additional PVP profiles to declared to check.
-  - command: 'UnifiedTestRunner.exe --testproject=test-ide.rider --editor-location=.Editor --clean-library --reruncount=1 --clean-library-on-rerun --artifacts-path=artifacts --suite=Editor --suite=Playmode "--ff={ops.upmpvpevidence.enable=true}" '
-    timeout: 20
-    retries: 1
-  after:
-  - command: .yamato\generated-scripts\infrastructure-instability-detection-win.cmd
-  artifacts:
-    Crash Dumps:
-      paths:
-      - CrashDumps/**
-    packages:
-      paths:
-      - upm-ci~/packages/**/*
-    pvp-results:
-      paths:
-      - upm-ci~/pvp/**/*
-      browsable: onDemand
-    UTR:
-      paths:
-      - '*.log'
-      - '*.xml'
-      - artifacts/**/*
-      - test-ide.rider/Logs/**
-      - test-ide.rider/Library/*.log
-      - test-ide.rider/*.log
-      - test-ide.rider/Builds/*.log
-      - build/test-results/**
-      browsable: onDemand
-  dependencies:
-  - path: .yamato/wrench/package-pack-jobs.yml#package_pack_-_ide_rider
-  variables:
-    UNITY_LICENSING_SERVER_BASE_URL: http://unity-ci-licenses.hq.unity3d.com:8080/
-    UNITY_LICENSING_SERVER_DELETE_NUL: 0
-    UNITY_LICENSING_SERVER_DELETE_ULF: 0
-    UNITY_LICENSING_SERVER_TOOLSET: pro
-    UPMPVP_ACK_UPMPVP_DOES_NO_API_VALIDATION: 1
-    UPMPVP_CONTEXT_WRENCH: 2.3.2.0
-  metadata:
-    Job Maintainers: '#rm-packageworks'
-    Wrench: 2.3.2.0
-  labels:
-  - Packages:ide.rider
-
 # PVP Editor and Playmode tests for Validate - ide.rider - 6000.0 - macos13 (6000.0 - MacOS).
 validate_-_ide_rider_-_6000_0_-_macos13:
   name: Validate - ide.rider - 6000.0 - macos13
@@ -821,210 +617,6 @@ validate_-_ide_rider_-_6000_3_-_win10:
   labels:
   - Packages:ide.rider
 
-# PVP Editor and Playmode tests for Validate - ide.rider - 6000.4 - macos13 (6000.4 - MacOS).
-validate_-_ide_rider_-_6000_4_-_macos13:
-  name: Validate - ide.rider - 6000.4 - macos13
-  agent:
-    image: package-ci/macos-13:v4
-    type: Unity::VM::osx
-    flavor: b1.xlarge
-  commands:
-  - command: curl https://artifactory.prd.it.unity3d.com/artifactory/stevedore-unity-internal/wrench-localapv/1-3-0_3978eda62a03e3dbc469ab77590d20f8832032d8e0b586550597b7f590baefec.zip -o wrench-localapv.zip
-  - command: 7z x -aoa wrench-localapv.zip
-  - command: pip install semver requests --index-url https://artifactory-slo.bf.unity3d.com/artifactory/api/pypi/pypi/simple
-  - command: python PythonScripts/print_machine_info.py
-  - command: unity-downloader-cli -u 6000.4/staging -c editor --path .Editor --fast
-    timeout: 10
-    retries: 3
-  - command: upm-pvp create-test-project test-ide.rider --packages "upm-ci~/packages/*.tgz" --filter "com.unity.ide.rider com.unity.ide.rider.tests" --unity .Editor
-    timeout: 10
-    retries: 1
-  - command: echo No internal packages to add.
-  - command: upm-pvp test --unity .Editor --packages "upm-ci~/packages/*.tgz" --results upm-ci~/pvp
-    timeout: 20
-    retries: 0
-  - command: upm-pvp require "pkgprom-promote -PVP-29-2 rme" --results upm-ci~/pvp --exemptions upm-ci~/pvp/failures.json
-    timeout: 5
-    retries: 0
-  - command: echo No additional PVP profiles to declared to check.
-  - command: 'UnifiedTestRunner --testproject=test-ide.rider --editor-location=.Editor --clean-library --reruncount=1 --clean-library-on-rerun --artifacts-path=artifacts --suite=Editor --suite=Playmode "--ff={ops.upmpvpevidence.enable=true}" '
-    timeout: 20
-    retries: 1
-  after:
-  - command: bash .yamato/generated-scripts/infrastructure-instability-detection-mac.sh
-  artifacts:
-    Crash Dumps:
-      paths:
-      - CrashDumps/**
-    packages:
-      paths:
-      - upm-ci~/packages/**/*
-    pvp-results:
-      paths:
-      - upm-ci~/pvp/**/*
-      browsable: onDemand
-    UTR:
-      paths:
-      - '*.log'
-      - '*.xml'
-      - artifacts/**/*
-      - test-ide.rider/Logs/**
-      - test-ide.rider/Library/*.log
-      - test-ide.rider/*.log
-      - test-ide.rider/Builds/*.log
-      - build/test-results/**
-      browsable: onDemand
-  dependencies:
-  - path: .yamato/wrench/package-pack-jobs.yml#package_pack_-_ide_rider
-  variables:
-    UNITY_LICENSING_SERVER_BASE_URL: http://unity-ci-licenses.hq.unity3d.com:8080/
-    UNITY_LICENSING_SERVER_DELETE_NUL: 0
-    UNITY_LICENSING_SERVER_DELETE_ULF: 0
-    UNITY_LICENSING_SERVER_TOOLSET: pro
-    UPMPVP_ACK_UPMPVP_DOES_NO_API_VALIDATION: 1
-    UPMPVP_CONTEXT_WRENCH: 2.3.2.0
-  metadata:
-    Job Maintainers: '#rm-packageworks'
-    Wrench: 2.3.2.0
-  labels:
-  - Packages:ide.rider
-
-# PVP Editor and Playmode tests for Validate - ide.rider - 6000.4 - ubuntu2204 (6000.4 - Ubuntu).
-validate_-_ide_rider_-_6000_4_-_ubuntu2204:
-  name: Validate - ide.rider - 6000.4 - ubuntu2204
-  agent:
-    image: package-ci/ubuntu-22.04:v4
-    type: Unity::VM
-    flavor: b1.large
-  commands:
-  - command: curl https://artifactory.prd.it.unity3d.com/artifactory/stevedore-unity-internal/wrench-localapv/1-3-0_3978eda62a03e3dbc469ab77590d20f8832032d8e0b586550597b7f590baefec.zip -o wrench-localapv.zip
-  - command: 7z x -aoa wrench-localapv.zip
-  - command: pip install semver requests --index-url https://artifactory-slo.bf.unity3d.com/artifactory/api/pypi/pypi/simple
-  - command: python PythonScripts/print_machine_info.py
-  - command: unity-downloader-cli -u 6000.4/staging -c editor --path .Editor --fast
-    timeout: 10
-    retries: 3
-  - command: upm-pvp create-test-project test-ide.rider --packages "upm-ci~/packages/*.tgz" --filter "com.unity.ide.rider com.unity.ide.rider.tests" --unity .Editor
-    timeout: 10
-    retries: 1
-  - command: echo No internal packages to add.
-  - command: upm-pvp test --unity .Editor --packages "upm-ci~/packages/*.tgz" --results upm-ci~/pvp
-    timeout: 20
-    retries: 0
-  - command: upm-pvp require "pkgprom-promote -PVP-29-2 rme" --results upm-ci~/pvp --exemptions upm-ci~/pvp/failures.json
-    timeout: 5
-    retries: 0
-  - command: echo No additional PVP profiles to declared to check.
-  - command: 'UnifiedTestRunner --testproject=test-ide.rider --editor-location=.Editor --clean-library --reruncount=1 --clean-library-on-rerun --artifacts-path=artifacts --suite=Editor --suite=Playmode "--ff={ops.upmpvpevidence.enable=true}" '
-    timeout: 20
-    retries: 1
-  after:
-  - command: bash .yamato/generated-scripts/infrastructure-instability-detection-linux.sh
-  artifacts:
-    Crash Dumps:
-      paths:
-      - CrashDumps/**
-    packages:
-      paths:
-      - upm-ci~/packages/**/*
-    pvp-results:
-      paths:
-      - upm-ci~/pvp/**/*
-      browsable: onDemand
-    UTR:
-      paths:
-      - '*.log'
-      - '*.xml'
-      - artifacts/**/*
-      - test-ide.rider/Logs/**
-      - test-ide.rider/Library/*.log
-      - test-ide.rider/*.log
-      - test-ide.rider/Builds/*.log
-      - build/test-results/**
-      browsable: onDemand
-  dependencies:
-  - path: .yamato/wrench/package-pack-jobs.yml#package_pack_-_ide_rider
-  variables:
-    UNITY_LICENSING_SERVER_BASE_URL: http://unity-ci-licenses.hq.unity3d.com:8080/
-    UNITY_LICENSING_SERVER_DELETE_NUL: 0
-    UNITY_LICENSING_SERVER_DELETE_ULF: 0
-    UNITY_LICENSING_SERVER_TOOLSET: pro
-    UPMPVP_ACK_UPMPVP_DOES_NO_API_VALIDATION: 1
-    UPMPVP_CONTEXT_WRENCH: 2.3.2.0
-  metadata:
-    Job Maintainers: '#rm-packageworks'
-    Wrench: 2.3.2.0
-  labels:
-  - Packages:ide.rider
-
-# PVP Editor and Playmode tests for Validate - ide.rider - 6000.4 - win10 (6000.4 - Windows).
-validate_-_ide_rider_-_6000_4_-_win10:
-  name: Validate - ide.rider - 6000.4 - win10
-  agent:
-    image: package-ci/win10:v4
-    type: Unity::VM
-    flavor: b1.large
-  commands:
-  - command: curl https://artifactory.prd.it.unity3d.com/artifactory/stevedore-unity-internal/wrench-localapv/1-3-0_3978eda62a03e3dbc469ab77590d20f8832032d8e0b586550597b7f590baefec.zip -o wrench-localapv.zip
-  - command: 7z x -aoa wrench-localapv.zip
-  - command: pip install semver requests --index-url https://artifactory-slo.bf.unity3d.com/artifactory/api/pypi/pypi/simple
-  - command: python PythonScripts/print_machine_info.py
-  - command: unity-downloader-cli -u 6000.4/staging -c editor --path .Editor --fast
-    timeout: 10
-    retries: 3
-  - command: upm-pvp create-test-project test-ide.rider --packages "upm-ci~/packages/*.tgz" --filter "com.unity.ide.rider com.unity.ide.rider.tests" --unity .Editor
-    timeout: 10
-    retries: 1
-  - command: echo No internal packages to add.
-  - command: upm-pvp test --unity .Editor --packages "upm-ci~/packages/*.tgz" --results upm-ci~/pvp
-    timeout: 20
-    retries: 0
-  - command: upm-pvp require "pkgprom-promote -PVP-29-2 rme" --results upm-ci~/pvp --exemptions upm-ci~/pvp/failures.json
-    timeout: 5
-    retries: 0
-  - command: echo No additional PVP profiles to declared to check.
-  - command: 'UnifiedTestRunner.exe --testproject=test-ide.rider --editor-location=.Editor --clean-library --reruncount=1 --clean-library-on-rerun --artifacts-path=artifacts --suite=Editor --suite=Playmode "--ff={ops.upmpvpevidence.enable=true}" '
-    timeout: 20
-    retries: 1
-  after:
-  - command: .yamato\generated-scripts\infrastructure-instability-detection-win.cmd
-  artifacts:
-    Crash Dumps:
-      paths:
-      - CrashDumps/**
-    packages:
-      paths:
-      - upm-ci~/packages/**/*
-    pvp-results:
-      paths:
-      - upm-ci~/pvp/**/*
-      browsable: onDemand
-    UTR:
-      paths:
-      - '*.log'
-      - '*.xml'
-      - artifacts/**/*
-      - test-ide.rider/Logs/**
-      - test-ide.rider/Library/*.log
-      - test-ide.rider/*.log
-      - test-ide.rider/Builds/*.log
-      - build/test-results/**
-      browsable: onDemand
-  dependencies:
-  - path: .yamato/wrench/package-pack-jobs.yml#package_pack_-_ide_rider
-  variables:
-    UNITY_LICENSING_SERVER_BASE_URL: http://unity-ci-licenses.hq.unity3d.com:8080/
-    UNITY_LICENSING_SERVER_DELETE_NUL: 0
-    UNITY_LICENSING_SERVER_DELETE_ULF: 0
-    UNITY_LICENSING_SERVER_TOOLSET: pro
-    UPMPVP_ACK_UPMPVP_DOES_NO_API_VALIDATION: 1
-    UPMPVP_CONTEXT_WRENCH: 2.3.2.0
-  metadata:
-    Job Maintainers: '#rm-packageworks'
-    Wrench: 2.3.2.0
-  labels:
-  - Packages:ide.rider
-
 # PVP Editor and Playmode tests for Validate - ide.rider - 6000.5 - macos13 (6000.5 - MacOS).
 validate_-_ide_rider_-_6000_5_-_macos13:
   name: Validate - ide.rider - 6000.5 - macos13
@@ -1241,7 +833,7 @@ validate_-_ide_rider_-_6000_6_-_macos13:
   - command: 7z x -aoa wrench-localapv.zip
   - command: pip install semver requests --index-url https://artifactory-slo.bf.unity3d.com/artifactory/api/pypi/pypi/simple
   - command: python PythonScripts/print_machine_info.py
-  - command: unity-downloader-cli -u trunk -c editor --path .Editor --fast
+  - command: unity-downloader-cli -u 6000.6/staging -c editor --path .Editor --fast
     timeout: 10
     retries: 3
   - command: upm-pvp create-test-project test-ide.rider --packages "upm-ci~/packages/*.tgz" --filter "com.unity.ide.rider com.unity.ide.rider.tests" --unity .Editor
@@ -1309,7 +901,7 @@ validate_-_ide_rider_-_6000_6_-_ubuntu2204:
   - command: 7z x -aoa wrench-localapv.zip
   - command: pip install semver requests --index-url https://artifactory-slo.bf.unity3d.com/artifactory/api/pypi/pypi/simple
   - command: python PythonScripts/print_machine_info.py
-  - command: unity-downloader-cli -u trunk -c editor --path .Editor --fast
+  - command: unity-downloader-cli -u 6000.6/staging -c editor --path .Editor --fast
     timeout: 10
     retries: 3
   - command: upm-pvp create-test-project test-ide.rider --packages "upm-ci~/packages/*.tgz" --filter "com.unity.ide.rider com.unity.ide.rider.tests" --unity .Editor
@@ -1368,6 +960,210 @@ validate_-_ide_rider_-_6000_6_-_ubuntu2204:
 # PVP Editor and Playmode tests for Validate - ide.rider - 6000.6 - win10 (6000.6 - Windows).
 validate_-_ide_rider_-_6000_6_-_win10:
   name: Validate - ide.rider - 6000.6 - win10
+  agent:
+    image: package-ci/win10:v4
+    type: Unity::VM
+    flavor: b1.large
+  commands:
+  - command: curl https://artifactory.prd.it.unity3d.com/artifactory/stevedore-unity-internal/wrench-localapv/1-3-0_3978eda62a03e3dbc469ab77590d20f8832032d8e0b586550597b7f590baefec.zip -o wrench-localapv.zip
+  - command: 7z x -aoa wrench-localapv.zip
+  - command: pip install semver requests --index-url https://artifactory-slo.bf.unity3d.com/artifactory/api/pypi/pypi/simple
+  - command: python PythonScripts/print_machine_info.py
+  - command: unity-downloader-cli -u 6000.6/staging -c editor --path .Editor --fast
+    timeout: 10
+    retries: 3
+  - command: upm-pvp create-test-project test-ide.rider --packages "upm-ci~/packages/*.tgz" --filter "com.unity.ide.rider com.unity.ide.rider.tests" --unity .Editor
+    timeout: 10
+    retries: 1
+  - command: echo No internal packages to add.
+  - command: upm-pvp test --unity .Editor --packages "upm-ci~/packages/*.tgz" --results upm-ci~/pvp
+    timeout: 20
+    retries: 0
+  - command: upm-pvp require "pkgprom-promote -PVP-29-2 rme" --results upm-ci~/pvp --exemptions upm-ci~/pvp/failures.json
+    timeout: 5
+    retries: 0
+  - command: echo No additional PVP profiles to declared to check.
+  - command: 'UnifiedTestRunner.exe --testproject=test-ide.rider --editor-location=.Editor --clean-library --reruncount=1 --clean-library-on-rerun --artifacts-path=artifacts --suite=Editor --suite=Playmode "--ff={ops.upmpvpevidence.enable=true}" '
+    timeout: 20
+    retries: 1
+  after:
+  - command: .yamato\generated-scripts\infrastructure-instability-detection-win.cmd
+  artifacts:
+    Crash Dumps:
+      paths:
+      - CrashDumps/**
+    packages:
+      paths:
+      - upm-ci~/packages/**/*
+    pvp-results:
+      paths:
+      - upm-ci~/pvp/**/*
+      browsable: onDemand
+    UTR:
+      paths:
+      - '*.log'
+      - '*.xml'
+      - artifacts/**/*
+      - test-ide.rider/Logs/**
+      - test-ide.rider/Library/*.log
+      - test-ide.rider/*.log
+      - test-ide.rider/Builds/*.log
+      - build/test-results/**
+      browsable: onDemand
+  dependencies:
+  - path: .yamato/wrench/package-pack-jobs.yml#package_pack_-_ide_rider
+  variables:
+    UNITY_LICENSING_SERVER_BASE_URL: http://unity-ci-licenses.hq.unity3d.com:8080/
+    UNITY_LICENSING_SERVER_DELETE_NUL: 0
+    UNITY_LICENSING_SERVER_DELETE_ULF: 0
+    UNITY_LICENSING_SERVER_TOOLSET: pro
+    UPMPVP_ACK_UPMPVP_DOES_NO_API_VALIDATION: 1
+    UPMPVP_CONTEXT_WRENCH: 2.3.2.0
+  metadata:
+    Job Maintainers: '#rm-packageworks'
+    Wrench: 2.3.2.0
+  labels:
+  - Packages:ide.rider
+
+# PVP Editor and Playmode tests for Validate - ide.rider - 6000.7 - macos13 (6000.7 - MacOS).
+validate_-_ide_rider_-_6000_7_-_macos13:
+  name: Validate - ide.rider - 6000.7 - macos13
+  agent:
+    image: package-ci/macos-13:v4
+    type: Unity::VM::osx
+    flavor: b1.xlarge
+  commands:
+  - command: curl https://artifactory.prd.it.unity3d.com/artifactory/stevedore-unity-internal/wrench-localapv/1-3-0_3978eda62a03e3dbc469ab77590d20f8832032d8e0b586550597b7f590baefec.zip -o wrench-localapv.zip
+  - command: 7z x -aoa wrench-localapv.zip
+  - command: pip install semver requests --index-url https://artifactory-slo.bf.unity3d.com/artifactory/api/pypi/pypi/simple
+  - command: python PythonScripts/print_machine_info.py
+  - command: unity-downloader-cli -u trunk -c editor --path .Editor --fast
+    timeout: 10
+    retries: 3
+  - command: upm-pvp create-test-project test-ide.rider --packages "upm-ci~/packages/*.tgz" --filter "com.unity.ide.rider com.unity.ide.rider.tests" --unity .Editor
+    timeout: 10
+    retries: 1
+  - command: echo No internal packages to add.
+  - command: upm-pvp test --unity .Editor --packages "upm-ci~/packages/*.tgz" --results upm-ci~/pvp
+    timeout: 20
+    retries: 0
+  - command: upm-pvp require "pkgprom-promote -PVP-29-2 rme" --results upm-ci~/pvp --exemptions upm-ci~/pvp/failures.json
+    timeout: 5
+    retries: 0
+  - command: echo No additional PVP profiles to declared to check.
+  - command: 'UnifiedTestRunner --testproject=test-ide.rider --editor-location=.Editor --clean-library --reruncount=1 --clean-library-on-rerun --artifacts-path=artifacts --suite=Editor --suite=Playmode "--ff={ops.upmpvpevidence.enable=true}" '
+    timeout: 20
+    retries: 1
+  after:
+  - command: bash .yamato/generated-scripts/infrastructure-instability-detection-mac.sh
+  artifacts:
+    Crash Dumps:
+      paths:
+      - CrashDumps/**
+    packages:
+      paths:
+      - upm-ci~/packages/**/*
+    pvp-results:
+      paths:
+      - upm-ci~/pvp/**/*
+      browsable: onDemand
+    UTR:
+      paths:
+      - '*.log'
+      - '*.xml'
+      - artifacts/**/*
+      - test-ide.rider/Logs/**
+      - test-ide.rider/Library/*.log
+      - test-ide.rider/*.log
+      - test-ide.rider/Builds/*.log
+      - build/test-results/**
+      browsable: onDemand
+  dependencies:
+  - path: .yamato/wrench/package-pack-jobs.yml#package_pack_-_ide_rider
+  variables:
+    UNITY_LICENSING_SERVER_BASE_URL: http://unity-ci-licenses.hq.unity3d.com:8080/
+    UNITY_LICENSING_SERVER_DELETE_NUL: 0
+    UNITY_LICENSING_SERVER_DELETE_ULF: 0
+    UNITY_LICENSING_SERVER_TOOLSET: pro
+    UPMPVP_ACK_UPMPVP_DOES_NO_API_VALIDATION: 1
+    UPMPVP_CONTEXT_WRENCH: 2.3.2.0
+  metadata:
+    Job Maintainers: '#rm-packageworks'
+    Wrench: 2.3.2.0
+  labels:
+  - Packages:ide.rider
+
+# PVP Editor and Playmode tests for Validate - ide.rider - 6000.7 - ubuntu2204 (6000.7 - Ubuntu).
+validate_-_ide_rider_-_6000_7_-_ubuntu2204:
+  name: Validate - ide.rider - 6000.7 - ubuntu2204
+  agent:
+    image: package-ci/ubuntu-22.04:v4
+    type: Unity::VM
+    flavor: b1.large
+  commands:
+  - command: curl https://artifactory.prd.it.unity3d.com/artifactory/stevedore-unity-internal/wrench-localapv/1-3-0_3978eda62a03e3dbc469ab77590d20f8832032d8e0b586550597b7f590baefec.zip -o wrench-localapv.zip
+  - command: 7z x -aoa wrench-localapv.zip
+  - command: pip install semver requests --index-url https://artifactory-slo.bf.unity3d.com/artifactory/api/pypi/pypi/simple
+  - command: python PythonScripts/print_machine_info.py
+  - command: unity-downloader-cli -u trunk -c editor --path .Editor --fast
+    timeout: 10
+    retries: 3
+  - command: upm-pvp create-test-project test-ide.rider --packages "upm-ci~/packages/*.tgz" --filter "com.unity.ide.rider com.unity.ide.rider.tests" --unity .Editor
+    timeout: 10
+    retries: 1
+  - command: echo No internal packages to add.
+  - command: upm-pvp test --unity .Editor --packages "upm-ci~/packages/*.tgz" --results upm-ci~/pvp
+    timeout: 20
+    retries: 0
+  - command: upm-pvp require "pkgprom-promote -PVP-29-2 rme" --results upm-ci~/pvp --exemptions upm-ci~/pvp/failures.json
+    timeout: 5
+    retries: 0
+  - command: echo No additional PVP profiles to declared to check.
+  - command: 'UnifiedTestRunner --testproject=test-ide.rider --editor-location=.Editor --clean-library --reruncount=1 --clean-library-on-rerun --artifacts-path=artifacts --suite=Editor --suite=Playmode "--ff={ops.upmpvpevidence.enable=true}" '
+    timeout: 20
+    retries: 1
+  after:
+  - command: bash .yamato/generated-scripts/infrastructure-instability-detection-linux.sh
+  artifacts:
+    Crash Dumps:
+      paths:
+      - CrashDumps/**
+    packages:
+      paths:
+      - upm-ci~/packages/**/*
+    pvp-results:
+      paths:
+      - upm-ci~/pvp/**/*
+      browsable: onDemand
+    UTR:
+      paths:
+      - '*.log'
+      - '*.xml'
+      - artifacts/**/*
+      - test-ide.rider/Logs/**
+      - test-ide.rider/Library/*.log
+      - test-ide.rider/*.log
+      - test-ide.rider/Builds/*.log
+      - build/test-results/**
+      browsable: onDemand
+  dependencies:
+  - path: .yamato/wrench/package-pack-jobs.yml#package_pack_-_ide_rider
+  variables:
+    UNITY_LICENSING_SERVER_BASE_URL: http://unity-ci-licenses.hq.unity3d.com:8080/
+    UNITY_LICENSING_SERVER_DELETE_NUL: 0
+    UNITY_LICENSING_SERVER_DELETE_ULF: 0
+    UNITY_LICENSING_SERVER_TOOLSET: pro
+    UPMPVP_ACK_UPMPVP_DOES_NO_API_VALIDATION: 1
+    UPMPVP_CONTEXT_WRENCH: 2.3.2.0
+  metadata:
+    Job Maintainers: '#rm-packageworks'
+    Wrench: 2.3.2.0
+  labels:
+  - Packages:ide.rider
+
+# PVP Editor and Playmode tests for Validate - ide.rider - 6000.7 - win10 (6000.7 - Windows).
+validate_-_ide_rider_-_6000_7_-_win10:
+  name: Validate - ide.rider - 6000.7 - win10
   agent:
     image: package-ci/win10:v4
     type: Unity::VM
