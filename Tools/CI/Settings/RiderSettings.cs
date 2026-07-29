@@ -19,7 +19,13 @@ public class RiderSettings : AnnotatedSettingsBase
     {
         {
             "com.unity.ide.rider",
-            new PackageOptions() { ReleaseOptions = new ReleaseOptions() { IsReleasing = true } }
+            new PackageOptions() { 
+                ReleaseOptions = new ReleaseOptions() { IsReleasing = true },
+                ValidationOptions = new()
+                {
+                    HostsWhereZeroPlaymodeTestsAreAllowed = new HashSet<HostPlatform>() { HostPlatform.Ubuntu, HostPlatform.MacOS, HostPlatform.Windows },
+                }
+            }
         }
     };
 
