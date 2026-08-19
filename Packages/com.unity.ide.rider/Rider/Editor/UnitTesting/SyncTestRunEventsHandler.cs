@@ -1,6 +1,7 @@
 #if TEST_FRAMEWORK
 using System;
 using System.Reflection;
+using Packages.Rider.Editor.Util;
 using UnityEditor;
 using UnityEngine;
 
@@ -88,11 +89,11 @@ namespace Packages.Rider.Editor.UnitTesting
           {
             if (PluginSettings.SelectedLoggingLevel >= LoggingLevel.TRACE) 
               Debug.Log($"Rider Test Runner: loading assembly from {dependency}");
-            Assembly.LoadFrom(dependency);
+            AssemblyLoading.LoadFromPath(dependency);
           }
         if (PluginSettings.SelectedLoggingLevel >= LoggingLevel.TRACE)
           Debug.Log($"Rider Test Runner: loading assembly from {m_HandlerCodeBase}");
-        var assembly = Assembly.LoadFrom(m_HandlerCodeBase);
+        var assembly = AssemblyLoading.LoadFromPath(m_HandlerCodeBase);
         var type = assembly.GetType(m_HandlerTypeName);
         if (type == null)
         {

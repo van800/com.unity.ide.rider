@@ -104,11 +104,12 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
       PackageManagerTracker.SyncIfNeeded(checkProjectFiles);
 
+      DateTime? externalProjectFileWriteTime = null;
       if (HasFilesBeenModified(affectedFiles, reimportedFiles) || RiderScriptEditorData.instance.hasChanges
                                                                || RiderScriptEditorData.instance.HasChangesInCompilationDefines()
-                                                               || (checkProjectFiles && LastWriteTracker.HasLastWriteTimeChanged()))
+                                                               || (checkProjectFiles && LastWriteTracker.HasLastWriteTimeChanged(out externalProjectFileWriteTime)))
       {
-        Sync();
+        Sync(externalProjectFileWriteTime);
         return true;
       }
 
@@ -136,8 +137,10 @@ namespace Packages.Rider.Editor.ProjectGeneration
              extension.Equals(".asmref", StringComparison.OrdinalIgnoreCase) ||
              Path.GetFileName(asset).Equals("csc.rsp", StringComparison.OrdinalIgnoreCase);
     }
+    
+    public void Sync() => Sync(null);
 
-    public void Sync()
+    private void Sync(DateTime? externalProjectFileWriteTime)
     {
       SetupSupportedExtensions();
       var types = GetAssetPostprocessorTypes();
@@ -157,6 +160,8 @@ namespace Packages.Rider.Editor.ProjectGeneration
       _buffer = null;
       RiderScriptEditorData.instance.hasChanges = false;
       RiderScriptEditorData.instance.InvalidateSavedCompilationDefines();
+      if (externalProjectFileWriteTime.HasValue)
+        RiderScriptEditorPersistedState.instance.UpdateLastWriteIfNewer(externalProjectFileWriteTime.Value);
     }
 
     public bool HasSolutionBeenGenerated()
@@ -630,7 +635,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
         foreach (var reference in assembly.AssemblyReferences)
         {
           if (assemblyUsage.IsProjectAssembly(reference))
-{
+          {
             var name = m_AssemblyNameProvider.GetProjectName(reference.name, reference.defines);
             projectBuilder
               .Append("    <ProjectReference Include=\"").Append(name).AppendLine(".csproj\">")
@@ -644,14 +649,6 @@ namespace Packages.Rider.Editor.ProjectGeneration
       projectBuilder
         .AppendLine("  </ItemGroup>")
         .AppendLine("  <Import Project=\"$(MSBuildToolsPath)\\Microsoft.CSharp.targets\" />")
-        .AppendLine(
-          "  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.")
-        .AppendLine("       Other similar extension points exist, see Microsoft.Common.targets.")
-        .AppendLine("  <Target Name=\"BeforeBuild\">")
-        .AppendLine("  </Target>")
-        .AppendLine("  <Target Name=\"AfterBuild\">")
-        .AppendLine("  </Target>")
-        .AppendLine("  -->")
         .AppendLine("</Project>");
 
       return projectBuilder.ToString();

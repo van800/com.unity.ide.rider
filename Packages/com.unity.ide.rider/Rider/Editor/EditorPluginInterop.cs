@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using UnityEditor.Build.Reporting;
+using Packages.Rider.Editor.Util;
 using Debug = UnityEngine.Debug;
 
 namespace Packages.Rider.Editor
@@ -23,7 +24,7 @@ namespace Packages.Rider.Editor
       {
         if (ourEditorPluginAssembly != null)
           return ourEditorPluginAssembly;
-        var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+        var assemblies = AssemblyLoading.GetLoadedAssemblies();
         ourEditorPluginAssembly = assemblies.FirstOrDefault(a =>
         {
           try
@@ -117,7 +118,7 @@ namespace Packages.Rider.Editor
     {
       if (assembly == null)
         return false;
-      var location = assembly.Location;
+      var location = assembly.GetLoadedAssemblyLocation();
       var currentDir = Directory.GetCurrentDirectory();
       return location.StartsWith(currentDir, StringComparison.InvariantCultureIgnoreCase);
     }

@@ -1,0 +1,9 @@
+{
+  "name": "CSProjTest",
+  "references": [
+    "Unity.Rider.Editor"
+  ],
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ]
+}
