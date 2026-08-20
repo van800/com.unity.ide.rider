@@ -140,16 +140,29 @@ namespace Packages.Rider.Editor.ProjectGeneration
     private void Sync(DateTime? externalProjectFileWriteTime)
     {
       SetupSupportedExtensions();
-      var types = GetAssetPostprocessorTypes();
-      isRiderProjectGeneration = true;
-      var externalCodeAlreadyGeneratedProjects = OnPreGeneratingCSProjectFiles(types);
-      isRiderProjectGeneration = false;
-      if (!externalCodeAlreadyGeneratedProjects)
+
+      if (!IsMSBuildCompilationPipelineEnabled())
       {
-        GenerateAndWriteSolutionAndProjects(types);
+        // TODO: remove the previously generated .csproj files (sln will be overwritten anyway)
+        // TODO: disable "regenerate project files" button and put a note there that the setting is enabled
+        // TODO: on the rider side, make sure it never changes the csproj, since it's unity's responsibility
+        var types = GetAssetPostprocessorTypes();
+        isRiderProjectGeneration = true;
+        var externalCodeAlreadyGeneratedProjects = OnPreGeneratingCSProjectFiles(types);
+        isRiderProjectGeneration = false;
+        if (!externalCodeAlreadyGeneratedProjects)
+        {
+          GenerateAndWriteSolutionAndProjects(types);
+        }
+
+        OnGeneratedCSProjectFiles(types);
+      }
+      else
+      {
+        if (PluginSettings.SelectedLoggingLevel >= LoggingLevel.TRACE)
+          Debug.Log("Skipping project generation because MSBuild compilation pipeline has been enabled"); 
       }
 
-      OnGeneratedCSProjectFiles(types);
       m_AssemblyNameProvider.ResetCaches();
       m_AssemblyNames.Clear();
       m_NormalisedPaths.Clear();
@@ -1012,6 +1025,27 @@ namespace Packages.Rider.Editor.ProjectGeneration
       }
 
       return name;
+    }
+
+    private System.Reflection.PropertyInfo _enableMSBuildCompilationPipelineProperty;
+
+    bool IsMSBuildCompilationPipelineEnabled()
+    {
+#if UNITY_6000_7_OR_NEWER
+      _enableMSBuildCompilationPipelineProperty ??= typeof(EditorSettings).GetProperty(
+        "EnableMSBuildCompilationPipeline",
+        System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic
+      );
+      if (_enableMSBuildCompilationPipelineProperty == null)
+      {
+        Debug.LogWarning(
+          "EditorSettings.EnableMSBuildCompilationPipeline property is not found. Rider package will generate C# project files.");
+        return false;
+      }
+      return (bool)_enableMSBuildCompilationPipelineProperty.GetValue(null);
+#else
+      return false;
+#endif
     }
   }
 
