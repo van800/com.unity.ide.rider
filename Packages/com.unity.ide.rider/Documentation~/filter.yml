@@ -1,0 +1,3 @@
+apiRules:
+  - exclude:
+      uidRegex: ^Packages\.Rider\.Editor\.Util\.AssemblyLoading
