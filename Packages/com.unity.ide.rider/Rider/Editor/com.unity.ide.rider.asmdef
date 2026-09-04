@@ -15,7 +15,7 @@
         "nunit.framework.dll",
         "JetBrains.Rider.PathLocator.dll"
     ],
-    "autoReferenced": true,
+    "autoReferenced": false,
     "defineConstraints": [
         "UNITY_2019_2_OR_NEWER"
     ],
