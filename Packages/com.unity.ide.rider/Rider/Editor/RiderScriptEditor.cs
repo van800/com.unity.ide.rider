@@ -111,6 +111,12 @@ namespace Packages.Rider.Editor
 
     public void OnGUI()
     {
+      if (UnityVersionUtils.MSBuildCompilationPipelineEnabled)
+      {
+        EditorGUILayout.HelpBox("MSBuild compilation is enabled: project generation settings is controlled by the Unity Editor", MessageType.Info);
+        return;
+      }
+      
       GUILayout.BeginHorizontal();
 
       var style = GUI.skin.label;

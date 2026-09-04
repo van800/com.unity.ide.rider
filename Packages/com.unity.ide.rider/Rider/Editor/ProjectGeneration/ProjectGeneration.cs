@@ -141,10 +141,9 @@ namespace Packages.Rider.Editor.ProjectGeneration
     {
       SetupSupportedExtensions();
 
-      if (!IsMSBuildCompilationPipelineEnabled())
+      if (!UnityVersionUtils.MSBuildCompilationPipelineEnabled)
       {
         // TODO: remove the previously generated .csproj files (sln will be overwritten anyway)
-        // TODO: disable "regenerate project files" button and put a note there that the setting is enabled
         // TODO: on the rider side, make sure it never changes the csproj, since it's unity's responsibility
         var types = GetAssetPostprocessorTypes();
         isRiderProjectGeneration = true;
@@ -1028,25 +1027,6 @@ namespace Packages.Rider.Editor.ProjectGeneration
     }
 
     private System.Reflection.PropertyInfo _enableMSBuildCompilationPipelineProperty;
-
-    bool IsMSBuildCompilationPipelineEnabled()
-    {
-#if UNITY_6000_7_OR_NEWER
-      _enableMSBuildCompilationPipelineProperty ??= typeof(EditorSettings).GetProperty(
-        "EnableMSBuildCompilationPipeline",
-        System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic
-      );
-      if (_enableMSBuildCompilationPipelineProperty == null)
-      {
-        Debug.LogWarning(
-          "EditorSettings.EnableMSBuildCompilationPipeline property is not found. Rider package will generate C# project files.");
-        return false;
-      }
-      return (bool)_enableMSBuildCompilationPipelineProperty.GetValue(null);
-#else
-      return false;
-#endif
-    }
   }
 
   internal class FilePathTrie<TData>

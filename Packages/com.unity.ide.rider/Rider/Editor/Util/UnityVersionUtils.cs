@@ -8,10 +8,17 @@ using UnityEngine;
 
 namespace Packages.Rider.Editor.Util
 {
-  internal class UnityVersionUtils
+  internal static class UnityVersionUtils
   {
     private static string UnityApplicationVersion => Application.unityVersion;
-
+    
+    public const bool MSBuildCompilationPipelineEnabled =
+#if UNITY_MSBUILD_ENABLED
+      true;
+#else
+      false;
+#endif
+    
     public static Version UnityVersion
     {
       get
