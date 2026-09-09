@@ -12,7 +12,8 @@ namespace Packages.Rider.Editor.Util
   {
     private static string UnityApplicationVersion => Application.unityVersion;
     
-    public const bool MSBuildCompilationPipelineEnabled =
+    // NOTE: we don't use const here to avoid "unreachable code" warnings
+    public static bool MSBuildCompilationPipelineEnabled =>
 #if UNITY_MSBUILD_ENABLED
       true;
 #else
