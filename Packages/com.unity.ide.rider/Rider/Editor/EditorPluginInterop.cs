@@ -2,8 +2,6 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
-using UnityEditor.Build.Reporting;
 using Packages.Rider.Editor.Util;
 using Debug = UnityEngine.Debug;
 
@@ -136,13 +134,19 @@ namespace Packages.Rider.Editor
         }
         else
             DisableSyncSolutionOnceCallBack();
-        
+
+#if UNITY_6000_5_OR_NEWER
+        var type = assembly.GetType(ourEntryPointTypeName);
+        var method = type.GetMethod("Initialize", BindingFlags.NonPublic | BindingFlags.Static);
+        method.Invoke(null, new object[] { UnityCodeLifetime.Token });
+#else
         var type = assembly.GetType("JetBrains.Rider.Unity.Editor.AfterUnity56.EntryPoint");
         if (type == null) 
           type = assembly.GetType("JetBrains.Rider.Unity.Editor.UnitTesting.EntryPoint"); // oldRider
-        RuntimeHelpers.RunClassConstructor(type.TypeHandle);
+        System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(type.TypeHandle);
+#endif
       }
-      catch (TypeInitializationException ex)
+      catch (Exception ex)
       {
         Debug.LogException(ex);
         if (ex.InnerException != null) 
