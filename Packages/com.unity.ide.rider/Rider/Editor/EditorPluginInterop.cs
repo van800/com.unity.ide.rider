@@ -135,16 +135,12 @@ namespace Packages.Rider.Editor
         else
             DisableSyncSolutionOnceCallBack();
 
-#if UNITY_6000_5_OR_NEWER
-        var type = assembly.GetType(ourEntryPointTypeName);
-        var method = type.GetMethod("Initialize", BindingFlags.NonPublic | BindingFlags.Static);
-        method.Invoke(null, new object[] { UnityCodeLifetime.Token });
-#else
-        var type = assembly.GetType("JetBrains.Rider.Unity.Editor.AfterUnity56.EntryPoint");
-        if (type == null) 
-          type = assembly.GetType("JetBrains.Rider.Unity.Editor.UnitTesting.EntryPoint"); // oldRider
-        System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(type.TypeHandle);
-#endif
+        var entryPointType = assembly.GetType(ourEntryPointTypeName); 
+        var initMethod = entryPointType.GetMethod("Initialize", BindingFlags.NonPublic | BindingFlags.Static);
+        if (initMethod != null)
+          initMethod.Invoke(null, new object[] { UnityCodeLifetime.Token });
+        else
+          InitLegacyEntryPoint(assembly);
       }
       catch (Exception ex)
       {
@@ -152,6 +148,14 @@ namespace Packages.Rider.Editor
         if (ex.InnerException != null) 
           Debug.LogException(ex.InnerException);
       }
+    }
+
+    private static void InitLegacyEntryPoint(Assembly assembly)
+    {
+      var type = assembly.GetType("JetBrains.Rider.Unity.Editor.AfterUnity56.EntryPoint");
+      if (type == null)
+        type = assembly.GetType("JetBrains.Rider.Unity.Editor.UnitTesting.EntryPoint"); // oldRider
+      System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(type.TypeHandle);
     }
   }
 }
