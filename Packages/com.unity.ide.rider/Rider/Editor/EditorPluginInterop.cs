@@ -152,6 +152,8 @@ namespace Packages.Rider.Editor
 
     private static void InitLegacyEntryPoint(Assembly assembly)
     {
+      // this is a legacy entry point into the editor plugin that tries to manage its lifetime by its own,
+      // using AppDomain.DomainUnload, it will be removed someday, so all its initialization logic is encapsulated here
       var type = assembly.GetType("JetBrains.Rider.Unity.Editor.AfterUnity56.EntryPoint");
       if (type == null)
         type = assembly.GetType("JetBrains.Rider.Unity.Editor.UnitTesting.EntryPoint"); // oldRider
