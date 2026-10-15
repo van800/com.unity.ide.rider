@@ -589,7 +589,7 @@ namespace Packages.Rider.Editor.Tests
                 synchronizer.Sync();
 
                 var csprojFileContents = m_Builder.ReadProjectFile(m_Builder.Assembly);
-                StringAssert.Contains($"<GlobalAnalyzerConfigFiles Include=\"Default.globalconfig\" />", csprojFileContents);
+                Assert.That(csprojFileContents, Does.Match(@"<GlobalAnalyzerConfigFiles Include="".*Default\.globalconfig"" />"));
             }
 #endif
             static string[] s_BuiltinSupportedExtensionsForAssets =
