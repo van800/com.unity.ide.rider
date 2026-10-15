@@ -813,7 +813,7 @@ namespace Packages.Rider.Editor.ProjectGeneration
     protected abstract void AppendProjectFooter(StringBuilder stringBuilder);
     protected abstract void AppendProjectProperties(StringBuilder stringBuilder);
 
-    private static string GetGlobalAnalyzerConfigFile(ProjectPart assembly)
+    private string GetGlobalAnalyzerConfigFile(ProjectPart assembly)
     {
       var configFile = string.Empty;
 #if UNITY_2021_3 // https://github.com/JetBrains/resharper-unity/issues/2401
@@ -827,8 +827,9 @@ namespace Packages.Rider.Editor.ProjectGeneration
         configFile = assembly.CompilerOptions.AnalyzerConfigPath; // https://docs.unity3d.com/2021.3/Documentation/ScriptReference/Compilation.ScriptCompilerOptions.AnalyzerConfigPath.html
 #endif
 
-
-      return configFile;
+      if (string.IsNullOrEmpty(configFile)) return "";
+      
+      return GetNormalisedPath(FileUtil.GetPhysicalPath(configFile)); // handle unity's Package/* virtual paths
     }
 
     private string[] GetRoslynAdditionalFiles(ProjectPart assembly, ILookup<string, string> otherResponseFilesData)
