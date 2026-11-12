@@ -1060,8 +1060,6 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
       return name;
     }
-
-    private System.Reflection.PropertyInfo _enableMSBuildCompilationPipelineProperty;
   }
 
   internal class FilePathTrie<TData>
