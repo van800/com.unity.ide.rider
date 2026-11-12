@@ -18,6 +18,7 @@ namespace Packages.Rider.Editor.Tests
         }
 
         IGenerator m_Synchronizer;
+        bool m_useSdkStyleProject;
         Mock<IAssemblyNameProvider> m_AssemblyProvider = new Mock<IAssemblyNameProvider>();
         public static string ProjectDirectory = Path.GetFullPath("/FullPath/Example");
 
@@ -48,13 +49,22 @@ namespace Packages.Rider.Editor.Tests
 
         public SynchronizerBuilder()
         {
+            m_useSdkStyleProject = true;
             WithAssemblyData();
             m_AssemblyProvider.Setup(x => x.GetProjectName("Assembly-CSharp", It.IsAny<string[]>())).Returns("Assembly-CSharp");
         }
 
         internal IGenerator Build()
         {
-            return m_Synchronizer = new ProjectGeneration.ProjectGeneration(ProjectDirectory, m_AssemblyProvider.Object, m_FileIoMock, new GUIDProvider());
+            return m_Synchronizer = m_useSdkStyleProject
+                ? new SdkStyleProjectGeneration(ProjectDirectory, m_AssemblyProvider.Object, m_FileIoMock, new GUIDProvider())
+                : new LegacyStyleProjectGeneration(ProjectDirectory, m_AssemblyProvider.Object, m_FileIoMock, new GUIDProvider());
+        }
+
+        public SynchronizerBuilder WithLegacyStyleProject()
+        {
+            m_useSdkStyleProject = false;
+            return this;
         }
 
         public SynchronizerBuilder WithSolutionText(string solutionText)
