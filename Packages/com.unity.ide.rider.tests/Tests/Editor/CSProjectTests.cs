@@ -48,7 +48,14 @@ namespace Packages.Rider.Editor.Tests
                 var csprojContent = m_Builder.ReadProjectFile(m_Builder.Assembly);
                 var content = new[]
                 {
-                    "<Project Sdk=\"Microsoft.NET.Sdk\">",
+                    "<Project>",
+                    "  <PropertyGroup>",
+                    $"    <BaseIntermediateOutputPath>{"Temp/obj/$(MSBuildProjectName)/".NormalizePath()}</BaseIntermediateOutputPath>",
+                    "    <IntermediateOutputPath>$(BaseIntermediateOutputPath)</IntermediateOutputPath>",
+                    "    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>",
+                    "    <UseCommonOutputDirectory>true</UseCommonOutputDirectory>",
+                    "  </PropertyGroup>",
+                    "  <Import Project=\"Sdk.props\" Sdk=\"Microsoft.NET.Sdk\" />",
                     "  <PropertyGroup>",
                     $"    <LangVersion>{Helper.GetLangVersion()}</LangVersion>",
                     "    <DisableHandlePackageFileConflicts>true</DisableHandlePackageFileConflicts>",
@@ -96,13 +103,14 @@ namespace Packages.Rider.Editor.Tests
                     "  <ItemGroup>",
                     "    <Compile Include=\"test.cs\" />",
                     "  </ItemGroup>",
+                    "  <Import Project=\"Sdk.targets\" Sdk=\"Microsoft.NET.Sdk\" />",
                     "</Project>",
                     ""
                 };
 
                 StringAssert.AreEqualIgnoringCase(string.Join(Environment.NewLine, content), csprojContent);
             }
-            
+
             [Test]
             public void DefaultSyncSettings_WhenSynced_CreatesProjectFileFromDefaultTemplate_LegacyStyle()
             {
