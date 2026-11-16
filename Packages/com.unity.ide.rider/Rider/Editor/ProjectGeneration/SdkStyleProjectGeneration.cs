@@ -1,4 +1,5 @@
 using System.Text;
+using Packages.Rider.Editor.Util;
 
 namespace Packages.Rider.Editor.ProjectGeneration
 {
@@ -11,11 +12,20 @@ namespace Packages.Rider.Editor.ProjectGeneration
 
     protected override void AppendProjectStartTag(StringBuilder stringBuilder)
     {
-      stringBuilder.AppendLine("<Project Sdk=\"Microsoft.NET.Sdk\">");
+      stringBuilder
+        .AppendLine("<Project>")
+        .AppendLine("  <PropertyGroup>")
+        .Append("    <BaseIntermediateOutputPath>").Append("Temp/obj/$(MSBuildProjectName)/".NormalizePath()).AppendLine("</BaseIntermediateOutputPath>")
+        .AppendLine("    <IntermediateOutputPath>$(BaseIntermediateOutputPath)</IntermediateOutputPath>")
+        .AppendLine("    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>")
+        .AppendLine("    <UseCommonOutputDirectory>true</UseCommonOutputDirectory>")
+        .AppendLine("  </PropertyGroup>")
+        .AppendLine("  <Import Project=\"Sdk.props\" Sdk=\"Microsoft.NET.Sdk\" />");
     }
 
     protected override void AppendProjectFooter(StringBuilder stringBuilder)
     {
+      stringBuilder.AppendLine("  <Import Project=\"Sdk.targets\" Sdk=\"Microsoft.NET.Sdk\" />");
     }
 
     protected override void AppendProjectProperties(StringBuilder stringBuilder)
