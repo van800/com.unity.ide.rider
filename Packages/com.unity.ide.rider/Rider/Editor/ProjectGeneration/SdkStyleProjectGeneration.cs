@@ -39,6 +39,8 @@ namespace Packages.Rider.Editor.ProjectGeneration
         .AppendLine("    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>")
         .AppendLine("    <EnableDefaultItems>false</EnableDefaultItems>")
         .AppendLine("    <RestoreProjectStyle>None</RestoreProjectStyle>")
+        .AppendLine("    <SkipResolvePackageAssets>true</SkipResolvePackageAssets>")
+        .AppendLine("    <GenerateDependencyFile>false</GenerateDependencyFile>")
         ;      
     }
   }
