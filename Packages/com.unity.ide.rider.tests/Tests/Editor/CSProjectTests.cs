@@ -78,6 +78,8 @@ namespace Packages.Rider.Editor.Tests
                     "    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>",
                     "    <EnableDefaultItems>false</EnableDefaultItems>",
                     "    <RestoreProjectStyle>None</RestoreProjectStyle>",
+                    "    <SkipResolvePackageAssets>true</SkipResolvePackageAssets>",
+                    "    <GenerateDependencyFile>false</GenerateDependencyFile>",
                     "    <FileAlignment>512</FileAlignment>",
                     "    <BaseDirectory>.</BaseDirectory>",
                     "  </PropertyGroup>",
